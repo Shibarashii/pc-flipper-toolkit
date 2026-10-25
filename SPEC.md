@@ -105,12 +105,28 @@ just before deployment, not first.
 ## Screens
 
 1. **Builds list** (`/`): one card or row per build showing name, status badge, total cost, selling price and profit (green if positive, red if negative). Has a "New build" button.
+   - "New build" opens a dialog that asks only for the name. Creating it goes straight to the new build's detail page.
 2. **Build detail** (`/builds/:id`):
    - Header: name, status selector, selling price input.
+   - Sold date: shown only when status is Sold. Switching to Sold fills in today's date (editable). Switching away from Sold clears it.
+   - Build section (above Parts): a case diagram plus a checklist showing which part slots are filled.
+     - Slots: CPU, Motherboard, Cooler, RAM, Storage, GPU, PSU, Case, one per `Part.category`. A slot is filled when the build has at least one part in that category. Parts in `other` aren't shown in the diagram.
+     - Required slots are CPU, Motherboard, RAM, Storage, PSU and Case. Cooler and GPU are optional (stock coolers, APU builds) and never count as missing.
+     - Shows "N of 6 required parts" with a progress bar. A missing or optional slot has an "Add" link that opens the add-part row with that category preselected.
+     - Computed in the frontend from the parts list. No data-model or API change.
    - Summary panel with all the totals from user story 5.
-   - Parts table: add, edit and delete rows inline. On mobile it becomes stacked cards.
-   - Extra costs list: add, edit and delete.
-   - Delete build (asks for confirmation).
+   - Parts table: add, edit and delete rows inline. The pencil turns a row into inputs with Save/Cancel (Enter saves, Esc cancels). The add row looks the same. On mobile it becomes stacked cards.
+   - Extra costs list: add, edit and delete, same inline pattern as parts.
+   - Notes: a plain textarea under Extra costs that saves on blur.
+   - Delete build: a confirmation dialog naming how many parts and extra costs will be deleted with it.
+
+States each screen must handle:
+- **Builds list:** no builds yet (message plus "New build").
+- **Build detail:** no parts or extra costs yet, no selling price (profit and margin show "—"), a loss (red), and a validation error on a field (e.g. negative price).
+- **Both:** loading, request failed, and read-only mode when no access key is saved. Read-only hides every edit control and shows an "Unlock editing" button in the header, which opens a dialog asking for the key.
+
+Visual design (colors, type, components, light/dark) follows [docs/brand-guidelines.md](docs/brand-guidelines.md).
+Builds are labeled `Build 01` (id zero-padded to 2 digits) in the UI.
 
 Money is shown as `₱12,500.00` using `Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' })`.
 
