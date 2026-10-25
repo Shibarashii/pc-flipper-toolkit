@@ -1,0 +1,11 @@
+# Repo-wide. Tool-specific ignores live in backend/.gitignore and frontend/.gitignore.
+
+# Secrets (SPEC: never commit .env files). Commit an .env.example instead.
+.env
+.env.*
+!.env.example
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/

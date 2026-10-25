@@ -1,0 +1,10 @@
+[tool.ruff]
+extend-exclude = ["*/migrations/*"]
+
+[tool.ruff.lint]
+# Django's class Meta / serializer field lists are idiomatic mutable class attributes.
+ignore = ["RUF012"]
+
+[tool.pyright]
+venvPath = "."
+venv = ".venv"

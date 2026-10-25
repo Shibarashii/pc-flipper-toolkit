@@ -1,0 +1,67 @@
+@import "tailwindcss";
+
+/* Brand tokens: docs/brand-guidelines.md. Light values here, dark below. */
+:root {
+  --bg: #f5f2ec;
+  --surface: #fffdf9;
+  --sunken: #ede8df;
+  --line: #e2dcd0;
+  --line-strong: #cfc7b8;
+  --ink: #1d1b17;
+  --muted: #6e685d;
+  --faint: #a29b8e;
+  --accent: #1e5b43;
+  --accent-hover: #174a36;
+  --on-accent: #ffffff;
+  --profit: #1e6b45;
+  --loss: #a63a2b;
+  --status-building: #8a6100;
+  --status-listed: #2f5d8a;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #14130f;
+    --surface: #1c1a16;
+    --sunken: #24211c;
+    --line: #2e2b25;
+    --line-strong: #3d3932;
+    --ink: #eeeae2;
+    --muted: #a39d91;
+    --faint: #6d675d;
+    --accent: #5fb58c;
+    --accent-hover: #7dc7a0;
+    --on-accent: #0f1a14;
+    --profit: #6cc497;
+    --loss: #e07a66;
+    --status-building: #d9a441;
+    --status-listed: #7fa8d6;
+    color-scheme: dark;
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-sunken: var(--sunken);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-on-accent: var(--on-accent);
+  --color-profit: var(--profit);
+  --color-loss: var(--loss);
+  --color-status-building: var(--status-building);
+  --color-status-listed: var(--status-listed);
+
+  --font-sans: "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Newsreader", ui-serif, Georgia, serif;
+}
+
+body {
+  @apply bg-bg font-sans text-ink antialiased;
+}

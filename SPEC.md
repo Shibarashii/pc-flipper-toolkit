@@ -135,8 +135,10 @@ Money is shown as `₱12,500.00` using `Intl.NumberFormat('en-PH', { style: 'cur
 Backend (from `backend/`, fish shell):
 ```
 python -m venv .venv && source .venv/bin/activate.fish
-pip install -r requirements.txt
-createdb pc_flipper                 # one-time; DATABASE_URL=postgres:///pc_flipper
+set -gx DEBUG 1                     # every new shell: local dev mode (DEBUG is off unless set,
+                                    # and without DEBUG the server requires a real SECRET_KEY)
+pip install -r requirements.txt -r requirements-dev.txt
+createdb pc_flipper_toolkit         # one-time; needs CREATEDB (tests create test_pc_flipper_toolkit)
 python manage.py migrate
 python manage.py runserver          # http://localhost:8000
 python manage.py test               # run backend tests
