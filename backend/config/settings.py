@@ -2,8 +2,11 @@ import os
 from pathlib import Path
 
 import dj_database_url
+from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+# Fills os.environ from backend/.env; real env vars (e.g. on Render) take precedence.
+load_dotenv(BASE_DIR / ".env")
 
 DEBUG = os.environ.get("DEBUG", "0") == "1"
 SECRET_KEY = os.environ.get("SECRET_KEY", "dev-only-insecure-key")

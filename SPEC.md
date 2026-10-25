@@ -36,7 +36,7 @@ compatibility checks, multiple currencies (amounts are in PHP ₱ only).
 
 | Layer | Choice |
 |---|---|
-| Backend | Python 3.14, Django 6.0, Django REST Framework, django-cors-headers, psycopg 3, dj-database-url |
+| Backend | Python 3.14, Django 6.0, Django REST Framework, django-cors-headers, psycopg 3, dj-database-url, python-dotenv |
 | Database | PostgreSQL everywhere: local install (dev), Neon free tier (prod). Configured via `DATABASE_URL` |
 | Frontend | React 19 + TypeScript, Vite, Tailwind CSS v4 |
 | Backend tests | Django test runner (`manage.py test`) |
@@ -135,9 +135,8 @@ Money is shown as `₱12,500.00` using `Intl.NumberFormat('en-PH', { style: 'cur
 Backend (from `backend/`, fish shell):
 ```
 python -m venv .venv && source .venv/bin/activate.fish
-set -gx DEBUG 1                     # every new shell: local dev mode (DEBUG is off unless set,
-                                    # and without DEBUG the server requires a real SECRET_KEY)
 pip install -r requirements.txt -r requirements-dev.txt
+cp .env.example .env               # one-time; edit values as needed
 createdb pc_flipper_toolkit         # one-time; needs CREATEDB (tests create test_pc_flipper_toolkit)
 python manage.py migrate
 python manage.py runserver          # http://localhost:8000
@@ -148,6 +147,7 @@ ruff check . && ruff format .       # lint + format
 Frontend (from `frontend/`):
 ```
 npm install
+cp .env.example .env               # one-time; set VITE_API_URL in production
 npm run dev                         # http://localhost:5173, proxies /api → :8000
 npm test                            # vitest run
 npm run lint                        # eslint
