@@ -78,6 +78,8 @@ All endpoints are under `/api/`. JSON in, JSON out. Only `PATCH` is supported fo
 
 **Reference docs:** an OpenAPI 3 schema is generated from the code with drf-spectacular. Interactive docs (Swagger UI) are at `/api/docs/` and the raw schema at `/api/schema/`. This table is the overview, and `/api/docs/` is the source of truth for fields and examples.
 
+**Admin:** the Django admin at `/admin/` can browse and fix builds, parts and extra costs directly. Logging in needs a superuser (`python manage.py createsuperuser`). The API itself still has no users.
+
 | Method | Path | Purpose |
 |---|---|---|
 | GET, POST | `/api/builds/` | List builds (with totals) / create a build |
@@ -141,6 +143,7 @@ pip install -r requirements.txt -r requirements-dev.txt
 cp .env.example .env               # one-time; edit values as needed
 createdb pc_flipper_toolkit         # one-time; needs CREATEDB (tests create test_pc_flipper_toolkit)
 python manage.py migrate
+python manage.py createsuperuser    # one-time; for the admin at /admin/
 python manage.py runserver          # http://localhost:8000 · API docs at /api/docs/
 python manage.py test               # run backend tests
 ruff check . && ruff format .       # lint + format

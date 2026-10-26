@@ -1,6 +1,7 @@
 from decimal import Decimal as D
 from io import StringIO
 
+from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.management import call_command
 from django.db import IntegrityError, transaction
@@ -355,3 +356,24 @@ class ApiDocsTests(APITestCase):
         res = self.client.put(f"/api/builds/{build.id}/", {"name": "X"}, format="json")
 
         self.assertEqual(res.status_code, 405)
+
+
+class AdminTests(TestCase):
+    def test_admin_pages_load_for_a_superuser(self):
+        build = Build.objects.create(name="Admin build")
+        Part.objects.create(
+            build=build, name="Ryzen", category="cpu", listed_price=1, bought_for=1
+        )
+        ExtraCost.objects.create(build=build, label="Gas", amount=1)
+        self.client.force_login(User.objects.create_superuser("admin", password="x"))
+
+        for url in [
+            "/admin/builds/build/",
+            f"/admin/builds/build/{build.id}/change/",
+            "/admin/builds/part/",
+            "/admin/builds/extracost/",
+        ]:
+            self.assertEqual(self.client.get(url).status_code, 200, url)
+
+    def test_admin_requires_login(self):
+        self.assertEqual(self.client.get("/admin/builds/build/").status_code, 302)
