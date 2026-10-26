@@ -20,8 +20,9 @@ const EMPTY = {
   bought_for: "",
 };
 
-/** "12,500" → "12500": people type thousands separators; the API doesn't accept them. */
-const cleanMoney = (value: string) => value.replace(/,/g, "").trim();
+/** "₱12,500" → "12500": people type (or paste from shops) the peso sign and
+ * thousands separators; the API accepts neither. */
+const cleanMoney = (value: string) => value.replace(/[₱,]/g, "").trim();
 
 export function PartsTable({
   buildId,
@@ -72,7 +73,8 @@ export function PartsTable({
     } catch (err) {
       const fieldErrors = err instanceof ApiError ? err.fieldErrors : {};
       setErrors(fieldErrors);
-      setFailed(Object.keys(fieldErrors).length === 0);
+      // Errors on fields this form doesn't show (e.g. "build") need the general message.
+      setFailed(!Object.keys(fieldErrors).some((key) => key in EMPTY));
     } finally {
       setSaving(false);
     }
@@ -234,7 +236,7 @@ export function PartsTable({
                 <button
                   type="button"
                   onClick={close}
-                  className={`${buttonSecondary} sm:hidden`}
+                  className={buttonSecondary}
                 >
                   Cancel
                 </button>

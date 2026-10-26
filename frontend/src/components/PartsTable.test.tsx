@@ -31,7 +31,7 @@ function setup(response: Response) {
     fireEvent.change(screen.getByLabelText(label), { target: { value } });
   type("Part", "Ryzen 5 7600");
   type("Category", "cpu");
-  type("Listed price", "12,500");
+  type("Listed price", "₱12,500");
   type("Bought for", "10500.50");
   fireEvent.submit(screen.getByRole("form", { name: "New part" }));
   return { fetchMock, onChanged };
@@ -50,7 +50,7 @@ test("shows the empty state before any parts exist", () => {
   expect(screen.getByText("No parts yet")).toBeTruthy();
 });
 
-test("adding a part posts it (without thousands separators) and refreshes", async () => {
+test("adding a part posts it (without ₱ or separators) and refreshes", async () => {
   const { fetchMock, onChanged } = setup(
     Response.json({ id: 1 }, { status: 201 }),
   );
@@ -82,4 +82,23 @@ test("a server validation error is shown on its field", async () => {
     "border-loss",
   );
   expect(onChanged).not.toHaveBeenCalled();
+});
+
+test("a 400 on a field the form doesn't show still explains the failure", async () => {
+  setup(
+    Response.json(
+      { build: ['Invalid pk "3" - object does not exist.'] },
+      { status: 400 },
+    ),
+  );
+
+  expect(await screen.findByRole("alert")).toBeTruthy();
+});
+
+test("Cancel closes the form", () => {
+  setup(Response.json({ id: 1 }, { status: 201 }));
+
+  fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+
+  expect(screen.queryByRole("form", { name: "New part" })).toBeNull();
 });

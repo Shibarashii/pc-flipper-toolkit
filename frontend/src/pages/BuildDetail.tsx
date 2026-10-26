@@ -94,15 +94,16 @@ export function BuildDetail() {
             {state.build.name}
           </h1>
 
-          {/* Mobile: summary first. Desktop: summary is the right-hand column. */}
-          <div className="mt-8 grid gap-8 sm:mt-12 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-14">
-            <div className="lg:col-start-2 lg:row-start-1">
+          {/* Below 1280px: summary first, stacked. Wider: summary is the right-hand column
+              (narrower than that, the add-part row gets too cramped). */}
+          <div className="mt-8 grid gap-8 sm:mt-12 xl:grid-cols-[minmax(0,1fr)_320px] xl:gap-14">
+            <div className="xl:col-start-2 xl:row-start-1">
               <Summary
                 totals={state.build.totals}
                 sellingPrice={state.build.selling_price}
               />
             </div>
-            <div className="min-w-0 lg:col-start-1 lg:row-start-1">
+            <div className="min-w-0 xl:col-start-1 xl:row-start-1">
               <PartsTable
                 buildId={state.build.id}
                 parts={state.build.parts}
