@@ -7,7 +7,7 @@ import slotMissing from "../assets/slot-missing.png";
 import { buildSlots, REQUIRED_SLOTS, type SlotState } from "../slots";
 
 // Where each slot sits in the 300×380 case diagram, drawn back to front.
-const DIAGRAM: Record<PartCategory, string> = {
+const DIAGRAM: Record<Exclude<PartCategory, "other">, string> = {
   case: "inset-0 items-end justify-end rounded-[12px] pr-[14px] pb-[10px]",
   motherboard:
     "top-[20px] left-[20px] h-[236px] w-[204px] items-start justify-start pt-[8px] pl-[10px]",
@@ -17,9 +17,8 @@ const DIAGRAM: Record<PartCategory, string> = {
   storage: "top-[154px] left-[40px] h-[26px] w-[116px]",
   gpu: "top-[194px] left-[28px] h-[52px] w-[248px]",
   psu: "top-[290px] left-[20px] h-[68px] w-[136px]",
-  other: "hidden",
 };
-const DIAGRAM_ORDER: PartCategory[] = [
+const DIAGRAM_ORDER: (keyof typeof DIAGRAM)[] = [
   "case",
   "motherboard",
   "cooler",

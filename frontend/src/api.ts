@@ -91,8 +91,9 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   if (token) headers.set("Authorization", `Token ${token}`);
   const res = await fetch(BASE + path, { ...init, headers });
   const body = res.status === 204 ? null : await res.json().catch(() => null);
-  // The token was deleted (logged out elsewhere) or is no longer valid.
-  if (res.status === 401 && token)
+  // The token was deleted (logged out elsewhere) or is no longer valid. Only if it's
+  // still the current one: a request from before a log-out must not end a newer session.
+  if (res.status === 401 && token && token === getToken())
     endSession("Your session ended. Log in again.");
   if (!res.ok) throw new ApiError(res.status, body);
   return body as T;

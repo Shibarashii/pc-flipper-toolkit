@@ -11,11 +11,19 @@ type State = {
   notice: string;
 };
 
+const isSession = (value: unknown): value is Session =>
+  typeof value === "object" &&
+  value !== null &&
+  typeof (value as Session).token === "string" &&
+  typeof (value as Session).username === "string";
+
 function load(): Session | null {
   // Storage can throw (blocked site data, some private windows): then nobody's logged in.
   try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    return saved ? (JSON.parse(saved) as Session) : null;
+    const saved: unknown = JSON.parse(
+      localStorage.getItem(STORAGE_KEY) ?? "null",
+    );
+    return isSession(saved) ? saved : null;
   } catch {
     return null;
   }

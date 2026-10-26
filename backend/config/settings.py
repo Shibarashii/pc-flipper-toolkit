@@ -99,6 +99,11 @@ REST_FRAMEWORK = {
     # ponytail: counted in each process's memory, so the limit is per worker and
     # resets on restart. Move to a shared cache if guessing becomes a real threat.
     "DEFAULT_THROTTLE_RATES": {"auth": "10/min"},
+    # How many proxies sit in front of Django and add to X-Forwarded-For. The limit
+    # counts per client IP, taken that many entries from the end; 0 uses the
+    # connection's address. Unset, DRF would trust the whole header, which clients
+    # can fake to get a fresh limit on every request.
+    "NUM_PROXIES": int(os.environ.get("NUM_PROXIES", "0")),
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 

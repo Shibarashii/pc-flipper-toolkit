@@ -3,6 +3,7 @@
 from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.db import IntegrityError, transaction
 from drf_spectacular.utils import extend_schema
 from rest_framework import serializers, status
 from rest_framework.authtoken.models import Token
@@ -12,6 +13,8 @@ from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 
 User = get_user_model()
+
+TAKEN = "That username is taken."
 
 
 class CredentialsSerializer(serializers.Serializer):
@@ -30,7 +33,7 @@ class SignupSerializer(CredentialsSerializer):
 
     def validate_username(self, username):
         if User.objects.filter(username__iexact=username).exists():
-            raise serializers.ValidationError("That username is taken.")
+            raise serializers.ValidationError(TAKEN)
         return username
 
     def validate(self, data):
@@ -77,7 +80,12 @@ class SignupView(PublicAuthView):
     def post(self, request):
         serializer = SignupSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = User.objects.create_user(**serializer.validated_data)
+        try:
+            with transaction.atomic():
+                user = User.objects.create_user(**serializer.validated_data)
+        except IntegrityError:
+            # Someone took the name between the check above and now.
+            raise serializers.ValidationError({"username": [TAKEN]})
         return token_response(user, status.HTTP_201_CREATED)
 
 

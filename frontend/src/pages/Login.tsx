@@ -28,6 +28,7 @@ function generalError(err: unknown, errors: FieldErrors): string {
     return "Too many attempts. Wait a minute and try again.";
   if (errors.non_field_errors) return errors.non_field_errors.join(" ");
   if (Object.keys(errors).length > 0) return "";
+  if (err instanceof ApiError) return "Something went wrong. Try again.";
   return "Couldn’t reach the server. Check your connection and try again.";
 }
 

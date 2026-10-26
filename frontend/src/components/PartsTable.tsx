@@ -216,7 +216,7 @@ function PartForm({
   /** The part to edit; omit to add a new one. */
   part?: Part;
   /** Preselected when adding. */
-  category?: string;
+  category?: PartCategory | "";
   buildId: number;
   onSaved: () => void;
   onClose: () => void;

@@ -308,7 +308,7 @@ dialogs' form style. Replaces the read-only mode / "Unlock editing" work (the un
 off, new production `SECRET_KEY`), React on Vercel with `VITE_API_URL` and
 a SPA rewrite in `vercel.json`. The admin needs its CSS/JS served in production (`collectstatic`
 plus WhiteNoise, a new dependency to ask about), a production superuser, and
-`SECURE_PROXY_SSL_HEADER` so the admin login's CSRF check accepts Render's HTTPS proxy. You'll need to create the accounts yourself, and I'll walk
+`SECURE_PROXY_SSL_HEADER` so the admin login's CSRF check accepts Render's HTTPS proxy. Set `NUM_PROXIES` from the `X-Forwarded-For` Render actually sends, so the log-in rate limit counts real client IPs. You'll need to create the accounts yourself, and I'll walk
 through each dashboard step with you.
 
 **Acceptance criteria:**

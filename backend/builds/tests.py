@@ -1,5 +1,6 @@
 from decimal import Decimal as D
 from io import StringIO
+from unittest import mock
 
 from django.contrib.auth.models import User
 from django.core.cache import cache
@@ -447,6 +448,32 @@ class AuthTests(APITestCase):
         for _ in range(10):
             self.assertEqual(self.post("/api/auth/login/", wrong).status_code, 400)
         self.assertEqual(self.post("/api/auth/login/", wrong).status_code, 429)
+
+    def test_a_faked_forwarded_for_header_doesnt_reset_the_limit(self):
+        wrong = {"username": "carol", "password": "nope"}
+        codes = [
+            self.client.post(
+                "/api/auth/login/",
+                wrong,
+                format="json",
+                HTTP_X_FORWARDED_FOR=f"10.0.0.{i}",
+            ).status_code
+            for i in range(11)
+        ]
+        self.assertEqual(codes, [400] * 10 + [429])
+
+    def test_a_username_taken_at_the_same_moment_is_a_400(self):
+        User.objects.create_user("carol", password="x")
+        # As if the "taken" check ran just before another sign-up created carol.
+        with mock.patch(
+            "builds.auth.SignupSerializer.validate_username", lambda self, name: name
+        ):
+            res = self.post(
+                "/api/auth/signup/",
+                {"username": "carol", "password": "a long passphrase"},
+            )
+        self.assertEqual(res.status_code, 400)
+        self.assertEqual(res.json(), {"username": ["That username is taken."]})
 
 
 class IsolationTests(LoggedInApiTestCase):

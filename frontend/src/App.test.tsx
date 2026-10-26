@@ -1,6 +1,7 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
+import { getBuild } from "./api";
 import App from "./App";
 import { endSession, getToken, saveSession } from "./auth";
 import { makeBuild } from "./test/fixtures";
@@ -153,4 +154,41 @@ test("Log out deletes the token on the server and goes to log in", async () => {
     "Token abc",
   );
   expect(getToken()).toBe("");
+});
+
+test("a 401 for an older token doesn't end the current session", async () => {
+  saveSession({ token: "old", username: "carol" });
+  let respond: (response: Response) => void = () => {};
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(() => new Promise<Response>((resolve) => (respond = resolve))),
+  );
+  const request = getBuild(3).catch(() => {});
+
+  // Logged out and back in (as someone else) while that request was in flight.
+  saveSession({ token: "new", username: "dave" });
+  respond(Response.json({ detail: "Invalid token." }, { status: 401 }));
+  await request;
+
+  expect(getToken()).toBe("new");
+});
+
+test("a 500 on log in isn't blamed on the connection", async () => {
+  stubFetch(() => new Response("<h1>Server Error</h1>", { status: 500 }));
+  renderAt("/login");
+
+  fillIn("carol", "a long passphrase");
+  fireEvent.click(screen.getByRole("button", { name: "Log in" }));
+
+  expect((await screen.findByRole("alert")).textContent).toBe(
+    "Something went wrong. Try again.",
+  );
+});
+
+test("a saved session that isn't one is ignored", async () => {
+  localStorage.setItem("session", JSON.stringify({ token: 5 }));
+  vi.resetModules();
+  const auth = await import("./auth");
+
+  expect(auth.getToken()).toBe("");
 });
