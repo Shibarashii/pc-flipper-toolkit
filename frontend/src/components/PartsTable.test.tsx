@@ -5,10 +5,19 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react";
+import { useState, type ComponentProps } from "react";
 import { afterEach, expect, test, vi } from "vitest";
 import type { Part } from "../api";
 import { EMPTY_TOTALS } from "../test/fixtures";
-import { PartsTable } from "./PartsTable";
+import { PartsTable as Table, type PartsOpen } from "./PartsTable";
+
+/** The table with its open form held in state, as the page holds it. */
+function PartsTable(
+  props: Omit<ComponentProps<typeof Table>, "open" | "setOpen">,
+) {
+  const [open, setOpen] = useState<PartsOpen>(null);
+  return <Table {...props} open={open} setOpen={setOpen} />;
+}
 
 afterEach(() => {
   cleanup();

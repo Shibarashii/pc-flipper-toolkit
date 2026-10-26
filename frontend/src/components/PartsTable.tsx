@@ -22,19 +22,27 @@ const EMPTY = {
   bought_for: "",
 };
 
+/** Which form is open: the add row (maybe with a category picked), a part's id, or none. */
+export type PartsOpen = { category: PartCategory | "" } | number | null;
+
 export function PartsTable({
   buildId,
   parts,
   totals,
+  open,
+  setOpen,
   onChanged,
 }: {
   buildId: number;
   parts: Part[];
   totals: Totals;
+  // Lifted to the page, so the build checklist's "Add" links can open the add row.
+  open: PartsOpen;
+  setOpen: (open: PartsOpen) => void;
   onChanged: () => void;
 }) {
   // One form at a time: the add row, or the part being edited.
-  const [open, setOpen] = useState<"new" | number | null>(null);
+  const adding = open !== null && typeof open === "object" ? open : null;
   const [deleting, setDeleting] = useState<number | null>(null);
   const [deleteFailed, setDeleteFailed] = useState(false);
   const close = () => setOpen(null);
@@ -68,8 +76,8 @@ export function PartsTable({
         </p>
         <button
           type="button"
-          disabled={open === "new"}
-          onClick={() => setOpen("new")}
+          disabled={adding !== null}
+          onClick={() => setOpen({ category: "" })}
           className={buttonSecondary}
         >
           Add part
@@ -83,7 +91,7 @@ export function PartsTable({
       )}
 
       <div className="flex flex-col border-t border-line-strong">
-        {n === 0 && open !== "new" && (
+        {n === 0 && !adding && (
           <div className="py-6">
             <p className="text-[15px] leading-[22px] font-medium">
               No parts yet
@@ -135,10 +143,17 @@ export function PartsTable({
           </>
         )}
 
-        {open === "new" && (
+        {adding && (
           // On mobile the form sits above the list; on desktop it's the row after it.
           <div className="order-first py-3 sm:order-none sm:py-0">
-            <PartForm buildId={buildId} onSaved={onChanged} onClose={close} />
+            <PartForm
+              // A new category from the checklist starts a fresh form with it picked.
+              key={adding.category}
+              category={adding.category}
+              buildId={buildId}
+              onSaved={onChanged}
+              onClose={close}
+            />
           </div>
         )}
 
@@ -193,17 +208,22 @@ const EDIT_LAYOUT = {
 
 function PartForm({
   part,
+  category = "",
   buildId,
   onSaved,
   onClose,
 }: {
   /** The part to edit; omit to add a new one. */
   part?: Part;
+  /** Preselected when adding. */
+  category?: string;
   buildId: number;
   onSaved: () => void;
   onClose: () => void;
 }) {
-  const [form, setForm] = useState(part ? fromPart(part) : EMPTY);
+  const [form, setForm] = useState(
+    part ? fromPart(part) : { ...EMPTY, category },
+  );
   const [errors, setErrors] = useState<FieldErrors>({});
   const [failed, setFailed] = useState(false);
   const [saving, setSaving] = useState(false);

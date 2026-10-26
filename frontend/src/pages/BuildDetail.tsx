@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
 import { ApiError, getBuild, type BuildDetail as Build } from "../api";
+import { BuildChecklist } from "../components/BuildChecklist";
 import { BuildHeader } from "../components/BuildHeader";
 import { ExtraCosts } from "../components/ExtraCosts";
 import { Notes } from "../components/Notes";
-import { PartsTable } from "../components/PartsTable";
+import { PartsTable, type PartsOpen } from "../components/PartsTable";
 import { Summary } from "../components/Summary";
 
 type Result =
@@ -19,6 +20,7 @@ export function BuildDetail() {
   );
   // Bumped after every change; refetching keeps showing the current data meanwhile.
   const [version, setVersion] = useState(0);
+  const [partsOpen, setPartsOpen] = useState<PartsOpen>(null);
   const refresh = useCallback(() => setVersion((v) => v + 1), []);
   // Header and notes saves return the whole build, totals included: show it at once.
   // Then refetch anyway: a GET already in flight (after a part change) may have read
@@ -103,10 +105,16 @@ export function BuildDetail() {
               right-hand column (narrower than that, the add-part row gets too cramped). */}
           <div className="mt-8 grid gap-12 sm:mt-12 xl:grid-cols-[minmax(0,1fr)_320px] xl:gap-14">
             <div className="flex min-w-0 flex-col gap-12">
+              <BuildChecklist
+                parts={state.build.parts}
+                onAdd={(category) => setPartsOpen({ category })}
+              />
               <PartsTable
                 buildId={state.build.id}
                 parts={state.build.parts}
                 totals={state.build.totals}
+                open={partsOpen}
+                setOpen={setPartsOpen}
                 onChanged={refresh}
               />
               <ExtraCosts

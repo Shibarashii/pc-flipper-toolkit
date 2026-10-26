@@ -5,6 +5,7 @@
   --bg: #f5f2ec;
   --surface: #fffdf9;
   --sunken: #ede8df;
+  --slot-fill: #dde8df;
   --line: #e2dcd0;
   --line-strong: #cfc7b8;
   --ink: #1d1b17;
@@ -25,6 +26,7 @@
     --bg: #14130f;
     --surface: #1c1a16;
     --sunken: #24211c;
+    --slot-fill: #1e2e26;
     --line: #2e2b25;
     --line-strong: #3d3932;
     --ink: #eeeae2;
@@ -45,6 +47,7 @@
   --color-bg: var(--bg);
   --color-surface: var(--surface);
   --color-sunken: var(--sunken);
+  --color-slot-fill: var(--slot-fill);
   --color-line: var(--line);
   --color-line-strong: var(--line-strong);
   --color-ink: var(--ink);

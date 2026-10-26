@@ -102,3 +102,13 @@ test("a refetch that read the database before a header save doesn't undo it", as
 
   expect(screen.getByText("₱50,000.00")).toBeTruthy();
 });
+
+test("a checklist Add link opens the add-part row with its category picked", async () => {
+  renderAt("/builds/3", Response.json(makeBuild()));
+
+  fireEvent.click(await screen.findByRole("button", { name: "Add PSU" }));
+
+  const form = screen.getByRole("form", { name: "New part" });
+  expect((form.querySelector("select") as HTMLSelectElement).value).toBe("psu");
+  expect(screen.getByText("0 of 6 required parts")).toBeTruthy();
+});
