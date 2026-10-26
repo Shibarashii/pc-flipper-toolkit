@@ -87,9 +87,18 @@ BUILD_EXAMPLE = OpenApiExample(
     ),
 )
 class BuildViewSet(viewsets.ModelViewSet):
-    # The totals read parts and extra costs; prefetching keeps every endpoint at 3 queries.
-    queryset = Build.objects.prefetch_related("parts", "extra_costs")
+    queryset = Build.objects.all()
     http_method_names = METHODS
+
+    def get_queryset(self):
+        # Only the user's own builds: anyone else's are a 404. The totals read parts and
+        # extra costs; prefetching keeps every endpoint at 3 queries.
+        return Build.objects.filter(owner=self.request.user).prefetch_related(
+            "parts", "extra_costs"
+        )
+
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
 
     def get_serializer_class(self):
         return BuildSerializer if self.action == "list" else BuildDetailSerializer
@@ -97,7 +106,7 @@ class BuildViewSet(viewsets.ModelViewSet):
 
 @extend_schema_view(
     list=extend_schema(
-        summary="List all parts", description="Every part, across all builds."
+        summary="List all parts", description="Every part, across all your builds."
     ),
     create=extend_schema(summary="Add a part to a build"),
     retrieve=extend_schema(summary="Get a part"),
@@ -109,11 +118,14 @@ class PartViewSet(viewsets.ModelViewSet):
     serializer_class = PartSerializer
     http_method_names = METHODS
 
+    def get_queryset(self):
+        return Part.objects.filter(build__owner=self.request.user)
+
 
 @extend_schema_view(
     list=extend_schema(
         summary="List all extra costs",
-        description="Every extra cost, across all builds.",
+        description="Every extra cost, across all your builds.",
     ),
     create=extend_schema(
         summary="Add an extra cost to a build",
@@ -127,3 +139,6 @@ class ExtraCostViewSet(viewsets.ModelViewSet):
     queryset = ExtraCost.objects.all()
     serializer_class = ExtraCostSerializer
     http_method_names = METHODS
+
+    def get_queryset(self):
+        return ExtraCost.objects.filter(build__owner=self.request.user)

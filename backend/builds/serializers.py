@@ -69,7 +69,16 @@ class ModelSerializer(serializers.ModelSerializer):
 
 
 class ChildSerializer(ModelSerializer):
-    """A part or extra cost: it stays in the build it was created in."""
+    """A part or extra cost: it goes in one of the user's own builds, and stays there."""
+
+    def get_fields(self):
+        fields = super().get_fields()
+        request = self.context.get("request")
+        # Another user's build id is "object does not exist", as if it weren't there.
+        # (No user while the API docs are generated.)
+        if request and request.user.is_authenticated:
+            fields["build"].queryset = Build.objects.filter(owner=request.user)
+        return fields
 
     def validate_build(self, build):
         if self.instance is not None and build != self.instance.build:

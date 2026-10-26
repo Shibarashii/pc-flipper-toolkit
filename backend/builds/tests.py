@@ -2,34 +2,34 @@ from decimal import Decimal as D
 from io import StringIO
 
 from django.contrib.auth.models import User
+from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.management import call_command
 from django.db import IntegrityError, transaction
-from django.test import TestCase, override_settings
-from rest_framework.test import APIClient, APITestCase
+from django.test import TestCase
+from rest_framework.test import APITestCase
 
 from .models import Build, ExtraCost, Part
 
-KEY = "test-access-key"
+
+def alice() -> User:
+    """Owns the test builds, and is who the API tests are logged in as."""
+    return User.objects.get_or_create(username="alice")[0]
 
 
-class KeyedClient(APIClient):
-    """Sends the access key with every request, as the unlocked frontend does."""
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.credentials(HTTP_X_ACCESS_KEY=KEY)
+def new_build(owner: User | None = None, **fields) -> Build:
+    return Build.objects.create(owner=owner or alice(), **fields)
 
 
-@override_settings(ACCESS_KEY=KEY)
-class KeyedApiTestCase(APITestCase):
-    client_class = KeyedClient
+class LoggedInApiTestCase(APITestCase):
+    def setUp(self):
+        self.client.force_authenticate(alice())
 
 
-class BuildApiTests(KeyedApiTestCase):
+class BuildApiTests(LoggedInApiTestCase):
     def test_list_returns_newest_first_with_money_as_string(self):
-        Build.objects.create(name="Old", selling_price="41500.00")
-        Build.objects.create(name="New")
+        new_build(name="Old", selling_price="41500.00")
+        new_build(name="New")
 
         res = self.client.get("/api/builds/")
 
@@ -59,7 +59,7 @@ class BuildTotalsTests(TestCase):
     def make_build(self, selling_price=None, parts=(), extras=()):
         """parts: (listed_price, bought_for) pairs; extras: amounts. Returns a fresh
         instance so money comes back from Postgres as Decimal, not the str we passed."""
-        build = Build.objects.create(name="Test build", selling_price=selling_price)
+        build = new_build(name="Test build", selling_price=selling_price)
         for listed, bought in parts:
             build.parts.create(
                 name="Part",
@@ -142,7 +142,7 @@ class BuildTotalsTests(TestCase):
 
 class PriceValidationTests(TestCase):
     def test_negative_prices_fail_validation(self):
-        build = Build.objects.create(name="X")
+        build = new_build(name="X")
         part = Part(
             build=build,
             name="CPU",
@@ -161,9 +161,9 @@ class PriceValidationTests(TestCase):
             cost.full_clean()
 
     def test_database_rejects_negative_money_even_without_validation(self):
-        build = Build.objects.create(name="X")
+        build = new_build(name="X")
         writes = [
-            lambda: Build.objects.create(name="Y", selling_price="-1.00"),
+            lambda: new_build(name="Y", selling_price="-1.00"),
             lambda: build.parts.create(
                 name="CPU", category="cpu", listed_price="-1.00", bought_for="1.00"
             ),
@@ -177,9 +177,10 @@ class PriceValidationTests(TestCase):
                 write()
 
 
-class DetailApiTests(KeyedApiTestCase):
+class DetailApiTests(LoggedInApiTestCase):
     def setUp(self):
-        self.build = Build.objects.create(name="Spec example", selling_price="50000.00")
+        super().setUp()
+        self.build = new_build(name="Spec example", selling_price="50000.00")
         self.build.parts.create(
             name="RTX 4060",
             category="gpu",
@@ -224,7 +225,7 @@ class DetailApiTests(KeyedApiTestCase):
         )
 
     def test_without_selling_price_the_dependent_totals_are_null(self):
-        build = Build.objects.create(name="Unpriced")
+        build = new_build(name="Unpriced")
 
         totals = self.client.get(f"/api/builds/{build.id}/").json()["totals"]
 
@@ -241,7 +242,7 @@ class DetailApiTests(KeyedApiTestCase):
 
     def test_query_counts_do_not_grow_with_data(self):
         for i in range(5):
-            b = Build.objects.create(name=f"B{i}")
+            b = new_build(name=f"B{i}")
             b.parts.create(
                 name="P", category="ram", listed_price="1.00", bought_for="1.00"
             )
@@ -260,9 +261,10 @@ class DetailApiTests(KeyedApiTestCase):
         self.assertEqual(ExtraCost.objects.count(), 0)
 
 
-class ChildApiTests(KeyedApiTestCase):
+class ChildApiTests(LoggedInApiTestCase):
     def setUp(self):
-        self.build = Build.objects.create(name="B")
+        super().setUp()
+        self.build = new_build(name="B")
 
     def test_part_create_update_delete(self):
         res = self.client.post(
@@ -356,7 +358,7 @@ class ChildApiTests(KeyedApiTestCase):
         self.assertEqual(set(res.json()), {"build", "category"})
 
     def test_a_part_or_cost_cant_move_to_another_build(self):
-        other = Build.objects.create(name="Other")
+        other = new_build(name="Other")
         part = self.build.parts.create(
             name="P", category="cpu", listed_price="1.00", bought_for="1.00"
         )
@@ -375,67 +377,152 @@ class ChildApiTests(KeyedApiTestCase):
         self.assertEqual(ExtraCost.objects.get(pk=cost.id).build, self.build)
 
 
-class AccessKeyTests(APITestCase):
+class AuthTests(APITestCase):
     def setUp(self):
-        self.build = Build.objects.create(name="B")
+        cache.clear()  # the sign-up/log-in rate limit counts live in the cache
 
-    def write(self, key=None):
-        headers = {} if key is None else {"HTTP_X_ACCESS_KEY": key}
-        return self.client.patch(
-            f"/api/builds/{self.build.id}/", {"name": "X"}, format="json", **headers
+    def post(self, url, data=None):
+        return self.client.post(url, data or {}, format="json")
+
+    def test_sign_up_log_in_and_log_out(self):
+        res = self.post(
+            "/api/auth/signup/", {"username": "carol", "password": "a long passphrase"}
         )
+        self.assertEqual(res.status_code, 201)
+        self.assertEqual(res.json()["username"], "carol")
+        self.client.credentials(HTTP_AUTHORIZATION=f"Token {res.json()['token']}")
+        self.assertEqual(self.client.get("/api/auth/me/").json(), {"username": "carol"})
+        self.assertEqual(self.client.get("/api/builds/").json(), [])
 
-    @override_settings(ACCESS_KEY=KEY)
-    def test_writes_need_the_right_key(self):
-        self.assertEqual(self.write().status_code, 403)
-        self.assertEqual(self.write("wrong").status_code, 403)
-        self.assertEqual(self.write("wrongé").status_code, 403)
+        self.assertEqual(self.post("/api/auth/logout/").status_code, 204)
+        self.assertEqual(self.client.get("/api/auth/me/").status_code, 401)
+
+        self.client.credentials()
+        res = self.post(
+            "/api/auth/login/", {"username": "carol", "password": "wrong password"}
+        )
+        self.assertEqual(res.status_code, 400)
         self.assertEqual(
-            self.client.post(
-                "/api/parts/", {"build": self.build.id}, format="json"
-            ).status_code,
-            403,
+            res.json(), {"non_field_errors": ["Wrong username or password."]}
         )
+        res = self.post(
+            "/api/auth/login/", {"username": "carol", "password": "a long passphrase"}
+        )
+        self.assertEqual(res.status_code, 200)
+        self.client.credentials(HTTP_AUTHORIZATION=f"Token {res.json()['token']}")
+        self.assertEqual(self.client.get("/api/auth/me/").status_code, 200)
+
+    def test_sign_up_errors_are_under_their_field(self):
+        User.objects.create_user("carol", password="x")
+
+        res = self.post(
+            "/api/auth/signup/", {"username": "Carol", "password": "a long passphrase"}
+        )
+        self.assertEqual(res.json(), {"username": ["That username is taken."]})
+
+        res = self.post("/api/auth/signup/", {"username": "dave", "password": "123"})
+        self.assertEqual(res.status_code, 400)
+        self.assertEqual(set(res.json()), {"password"})
+        self.assertIn("This password is entirely numeric.", res.json()["password"])
+        self.assertFalse(User.objects.filter(username="dave").exists())
+
+    def test_without_a_token_everything_is_401(self):
+        build = new_build(name="B")
+        for url in [
+            "/api/builds/",
+            f"/api/builds/{build.id}/",
+            "/api/parts/",
+            "/api/extra-costs/",
+            "/api/auth/me/",
+        ]:
+            self.assertEqual(self.client.get(url).status_code, 401, url)
+        self.assertEqual(self.post("/api/builds/", {"name": "X"}).status_code, 401)
+        self.assertEqual(self.post("/api/auth/logout/").status_code, 401)
+
+        self.client.credentials(HTTP_AUTHORIZATION="Token not-a-real-token")
+        self.assertEqual(self.client.get("/api/builds/").status_code, 401)
+
+    def test_log_in_is_rate_limited(self):
+        wrong = {"username": "carol", "password": "nope"}
+        for _ in range(10):
+            self.assertEqual(self.post("/api/auth/login/", wrong).status_code, 400)
+        self.assertEqual(self.post("/api/auth/login/", wrong).status_code, 429)
+
+
+class IsolationTests(LoggedInApiTestCase):
+    """alice is logged in. Everything set up here belongs to bob."""
+
+    def setUp(self):
+        super().setUp()
+        bob = User.objects.create_user("bob")
+        self.build = new_build(owner=bob, name="Bob's build")
+        self.part = self.build.parts.create(
+            name="P", category="cpu", listed_price="1.00", bought_for="1.00"
+        )
+        self.cost = self.build.extra_costs.create(label="Shipping", amount="1.00")
+
+    def test_another_users_build_part_and_cost_are_404(self):
+        for url, patch in [
+            (f"/api/builds/{self.build.id}/", {"name": "Mine now"}),
+            (f"/api/parts/{self.part.id}/", {"name": "Mine now"}),
+            (f"/api/extra-costs/{self.cost.id}/", {"label": "Mine now"}),
+        ]:
+            self.assertEqual(self.client.get(url).status_code, 404, url)
+            self.assertEqual(
+                self.client.patch(url, patch, format="json").status_code, 404, url
+            )
+            self.assertEqual(self.client.delete(url).status_code, 404, url)
+
+        self.assertEqual(Build.objects.get().name, "Bob's build")
+        self.assertEqual(Part.objects.get().name, "P")
+        self.assertEqual(ExtraCost.objects.get().label, "Shipping")
+
+    def test_lists_only_show_your_own(self):
+        new_build(name="Mine")
+
         self.assertEqual(
-            self.client.delete(f"/api/builds/{self.build.id}/").status_code, 403
+            [b["name"] for b in self.client.get("/api/builds/").json()], ["Mine"]
         )
-        self.assertEqual(Build.objects.get().name, "B")
+        self.assertEqual(self.client.get("/api/parts/").json(), [])
+        self.assertEqual(self.client.get("/api/extra-costs/").json(), [])
 
-        self.assertEqual(self.write(KEY).status_code, 200)
-        self.assertEqual(Build.objects.get().name, "X")
+    def test_cant_add_to_another_users_build(self):
+        for url, data in [
+            (
+                "/api/parts/",
+                {
+                    "name": "X",
+                    "category": "cpu",
+                    "listed_price": "1.00",
+                    "bought_for": "1.00",
+                },
+            ),
+            ("/api/extra-costs/", {"label": "X", "amount": "1.00"}),
+        ]:
+            res = self.client.post(url, {"build": self.build.id, **data}, format="json")
+            self.assertEqual(res.status_code, 400, url)
+            self.assertIn("build", res.json())
+        self.assertEqual(Part.objects.count(), 1)
+        self.assertEqual(ExtraCost.objects.count(), 1)
 
-    @override_settings(ACCESS_KEY=KEY)
-    def test_reads_need_no_key(self):
-        for url in ("/api/builds/", f"/api/builds/{self.build.id}/", "/api/parts/"):
-            self.assertEqual(self.client.get(url).status_code, 200)
+    def test_a_new_build_belongs_to_whoever_created_it(self):
+        res = self.client.post("/api/builds/", {"name": "New"}, format="json")
 
-    @override_settings(ACCESS_KEY="")
-    def test_no_key_on_the_server_refuses_every_write(self):
-        self.assertEqual(self.write().status_code, 403)
-        self.assertEqual(self.write("").status_code, 403)
-
-    @override_settings(ACCESS_KEY=KEY, CORS_ALLOWED_ORIGINS=["https://example.com"])
-    def test_cors_preflight_allows_the_key_header(self):
-        res = self.client.options(
-            f"/api/builds/{self.build.id}/",
-            HTTP_ORIGIN="https://example.com",
-            HTTP_ACCESS_CONTROL_REQUEST_METHOD="PATCH",
-            HTTP_ACCESS_CONTROL_REQUEST_HEADERS="x-access-key",
-        )
-        self.assertIn("x-access-key", res["Access-Control-Allow-Headers"])
+        self.assertEqual(Build.objects.get(pk=res.json()["id"]).owner, alice())
 
 
-class ApiDocsTests(KeyedApiTestCase):
+class ApiDocsTests(LoggedInApiTestCase):
     def test_schema_is_valid_openapi_with_no_warnings(self):
         # Fails if a view or serializer change leaves the docs broken or ambiguous.
         call_command("spectacular", "--validate", "--fail-on-warn", stdout=StringIO())
 
-    def test_docs_page_and_schema_are_served(self):
+    def test_docs_page_and_schema_are_public(self):
+        self.client.force_authenticate(None)
         self.assertEqual(self.client.get("/api/docs/").status_code, 200)
         self.assertEqual(self.client.get("/api/schema/").status_code, 200)
 
     def test_put_is_not_offered(self):
-        build = Build.objects.create(name="B")
+        build = new_build(name="B")
 
         res = self.client.put(f"/api/builds/{build.id}/", {"name": "X"}, format="json")
 
@@ -444,7 +531,7 @@ class ApiDocsTests(KeyedApiTestCase):
 
 class AdminTests(TestCase):
     def test_admin_pages_load_for_a_superuser(self):
-        build = Build.objects.create(name="Admin build")
+        build = new_build(name="Admin build")
         Part.objects.create(
             build=build, name="Ryzen", category="cpu", listed_price=1, bought_for=1
         )

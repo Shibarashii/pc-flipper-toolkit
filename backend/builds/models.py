@@ -1,5 +1,6 @@
 from decimal import ROUND_HALF_UP, Decimal
 
+from django.conf import settings
 from django.core.validators import MinValueValidator
 from django.db import models
 
@@ -37,6 +38,9 @@ class Build(models.Model):
         LISTED = "listed"
         SOLD = "sold"
 
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="builds"
+    )
     name = models.CharField(max_length=200)
     status = models.CharField(max_length=10, choices=Status, default=Status.PLANNING)
     selling_price = money_field(null=True, blank=True)

@@ -15,8 +15,9 @@ class ExtraCostInline(admin.TabularInline):
 
 @admin.register(Build)
 class BuildAdmin(admin.ModelAdmin):
-    list_display = ["name", "status", "selling_price", "sold_at", "created_at"]
-    list_filter = ["status"]
+    list_display = ["name", "owner", "status", "selling_price", "sold_at", "created_at"]
+    list_filter = ["status", "owner"]
+    list_select_related = ["owner"]
     search_fields = ["name", "notes"]
     inlines = [PartInline, ExtraCostInline]
 

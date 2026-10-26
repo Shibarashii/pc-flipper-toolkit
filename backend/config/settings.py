@@ -2,7 +2,6 @@ import os
 from pathlib import Path
 
 import dj_database_url
-from corsheaders.defaults import default_headers
 from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -18,10 +17,6 @@ ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1").split(","
 CORS_ALLOWED_ORIGINS = [
     o for o in os.environ.get("CORS_ALLOWED_ORIGINS", "").split(",") if o
 ]
-CORS_ALLOW_HEADERS = (*default_headers, "x-access-key")
-
-# Required on POST/PATCH/DELETE (builds/permissions.py). Unset refuses every write.
-ACCESS_KEY = os.environ.get("ACCESS_KEY", "")
 
 INSTALLED_APPS = [
     # Django admin at /admin/ and what it needs (users, sessions, its CSS/JS).
@@ -33,6 +28,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "corsheaders",
     "rest_framework",
+    "rest_framework.authtoken",
     "drf_spectacular",
     "builds",
 ]
@@ -63,6 +59,17 @@ TEMPLATES = [
     }
 ]
 
+# Django's standard rules for new passwords (sign-up and createsuperuser).
+AUTH_PASSWORD_VALIDATORS = [
+    {"NAME": f"django.contrib.auth.password_validation.{name}"}
+    for name in [
+        "UserAttributeSimilarityValidator",
+        "MinimumLengthValidator",
+        "CommonPasswordValidator",
+        "NumericPasswordValidator",
+    ]
+]
+
 STATIC_URL = "static/"
 
 ROOT_URLCONF = "config.urls"
@@ -80,13 +87,18 @@ TIME_ZONE = "Asia/Manila"
 USE_I18N = False
 USE_TZ = True
 
-# JSON only. The API has no users or sessions (write protection comes from an access
-# key); those exist only for logging in to the admin.
+# JSON only. The API logs in with tokens (builds/auth.py), not session cookies: the
+# frontend and API are on different sites, where browsers restrict cookies. Sessions
+# are only for the admin.
 REST_FRAMEWORK = {
     "DEFAULT_RENDERER_CLASSES": ["rest_framework.renderers.JSONRenderer"],
-    "DEFAULT_AUTHENTICATION_CLASSES": [],
-    "DEFAULT_PERMISSION_CLASSES": ["builds.permissions.HasAccessKey"],
-    "UNAUTHENTICATED_USER": None,
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.TokenAuthentication"
+    ],
+    "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
+    # ponytail: counted in each process's memory, so the limit is per worker and
+    # resets on restart. Move to a shared cache if guessing becomes a real threat.
+    "DEFAULT_THROTTLE_RATES": {"auth": "10/min"},
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
@@ -102,8 +114,9 @@ SPECTACULAR_SETTINGS = {
         "**Errors**: invalid input returns `400` with the problem fields as keys, "
         '`{"listed_price": ["Must be 0 or more."]}`. '
         "A missing id returns `404`.\n\n"
-        "**Writes** (POST/PATCH/DELETE) need the `X-Access-Key` header, or they "
-        "return `403`. Reads need no key."
+        "**Accounts**: sign up or log in under `auth` to get a token, then send "
+        "`Authorization: Token <token>` with every other request (or get `401`). "
+        "Each user only sees their own builds; anyone else's return `404`."
     ),
     "VERSION": "1.0.0",
     # Separate request/response schemas, so read-only fields (id, totals) don't
