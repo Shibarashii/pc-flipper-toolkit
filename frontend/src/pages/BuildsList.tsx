@@ -7,6 +7,9 @@ import { StatusTag } from "../components/StatusTag";
 import { formatMoney } from "../money";
 import { buttonPrimary } from "../ui";
 
+// Insets the first and last columns, so text doesn't touch the hovered row's edges.
+const edgeCells = "[&>:first-child]:pl-3 [&>:last-child]:pr-3";
+
 export function BuildsList() {
   const [builds, setBuilds] = useState<Build[] | null>(null);
   const [error, setError] = useState(false);
@@ -73,7 +76,9 @@ export function BuildsList() {
           {/* Desktop table */}
           <table className="mt-8 hidden w-full border-t border-line-strong text-[15px] tabular-nums sm:table">
             <thead>
-              <tr className="border-b border-line-strong text-left text-[13px] font-medium text-muted">
+              <tr
+                className={`border-b border-line-strong text-left text-[13px] font-medium text-muted ${edgeCells}`}
+              >
                 <th className="w-12 py-2 font-medium">No.</th>
                 <th className="py-2 font-medium">Build</th>
                 <th className="w-28 py-2 font-medium">Status</th>
@@ -86,7 +91,7 @@ export function BuildsList() {
               {builds.map((b) => (
                 <tr
                   key={b.id}
-                  className="relative border-b border-line hover:bg-sunken"
+                  className={`relative border-b border-line hover:bg-sunken ${edgeCells}`}
                 >
                   <td className="py-3.5 text-[13px] text-faint">
                     {buildNo(b.id)}
