@@ -73,10 +73,10 @@ build id goes in the body). Use `prefetch_related` to avoid N+1 queries.
 **Scope:** M
 
 ### Checkpoint 1
-- [ ] All backend and frontend tests pass, and lint and build are clean
-- [ ] A build can be created in the UI, and its detail URL works
-- [ ] `/api/builds/<id>/` shows `parts`, `extra_costs` and `totals`
-- [ ] Review with the human before Phase 2
+- [x] All backend and frontend tests pass, and lint and build are clean
+- [x] A build can be created in the UI, and its detail URL works
+- [x] `/api/builds/<id>/` shows `parts`, `extra_costs` and `totals`
+- [x] Review with the human before Phase 2
 
 ---
 
@@ -239,6 +239,7 @@ added to `CORS_ALLOW_HEADERS`.
 - [ ] A write without the key or with the wrong key returns 403. With the right key, it succeeds. Reads never need a key.
 - [ ] An empty or unset `ACCESS_KEY` refuses all writes, so there's no "open by accident" state.
 - [ ] A CORS preflight allows `X-Access-Key`.
+- [ ] A part or extra cost can't be moved to another build: `build` is ignored or rejected on PATCH (checkpoint 1 review, #2).
 
 **Verification:**
 - [ ] Standard verification (backend) passes. Existing write tests send the key.
@@ -255,6 +256,7 @@ all writes send `X-Access-Key`. A 403 clears the saved key and returns the UI to
 
 **Acceptance criteria:**
 - [ ] Without a key, there are no add, edit or delete controls on either screen, and "Unlock editing" is visible.
+- [ ] `request()` in `api.ts` merges headers (`Content-Type` plus `X-Access-Key`) instead of replacing them (checkpoint 1 review, #3).
 - [ ] Entering the correct key enables editing, and it persists after a reload. A wrong key shows an error on the first write and goes back to read-only.
 
 **Verification:**

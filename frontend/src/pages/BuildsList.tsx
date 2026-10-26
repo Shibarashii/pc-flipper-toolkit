@@ -18,7 +18,8 @@ export function BuildsList() {
   let subtitle = "";
   if (builds) {
     const sold = builds.filter((b) => b.status === "sold").length;
-    subtitle = `${builds.length} builds · ${sold} sold`;
+    const n = builds.length;
+    subtitle = `${n} ${n === 1 ? "build" : "builds"} · ${sold} sold`;
   } else if (!error) {
     subtitle = "Loading…";
   }
