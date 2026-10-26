@@ -1,0 +1,51 @@
+import { useSyncExternalStore } from "react";
+
+// Who's logged in, saved in this browser so it survives a reload.
+const STORAGE_KEY = "session";
+
+export type Session = { token: string; username: string };
+
+type State = {
+  session: Session | null;
+  /** Shown on the log-in page, e.g. after the server ended the session. */
+  notice: string;
+};
+
+function load(): Session | null {
+  // Storage can throw (blocked site data, some private windows): then nobody's logged in.
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    return saved ? (JSON.parse(saved) as Session) : null;
+  } catch {
+    return null;
+  }
+}
+
+let state: State = { session: load(), notice: "" };
+const listeners = new Set<() => void>();
+
+function update(next: State) {
+  state = next;
+  try {
+    if (next.session)
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(next.session));
+    else localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    // Still logged in for this visit; it just won't survive a reload.
+  }
+  listeners.forEach((listener) => listener());
+}
+
+export const getToken = () => state.session?.token ?? "";
+
+export const saveSession = (session: Session) =>
+  update({ session, notice: "" });
+
+export const endSession = (notice = "") => update({ session: null, notice });
+
+function subscribe(listener: () => void) {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+}
+
+export const useAuth = () => useSyncExternalStore(subscribe, () => state);

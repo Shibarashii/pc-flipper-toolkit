@@ -1,3 +1,5 @@
+import { endSession, getToken, type Session } from "./auth";
+
 export type BuildStatus = "planning" | "building" | "listed" | "sold";
 
 /** Money and percentages arrive as decimal strings ("12500.00"), never floats. */
@@ -83,15 +85,35 @@ export class ApiError extends Error {
 const BASE = `${import.meta.env.VITE_API_URL ?? ""}/api`;
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(BASE + path, {
-    ...init,
-    // Only send Content-Type with a body, so plain GETs need no CORS preflight.
-    headers: init?.body ? { "Content-Type": "application/json" } : undefined,
-  });
+  const token = getToken();
+  const headers = new Headers(init?.headers);
+  if (init?.body) headers.set("Content-Type", "application/json");
+  if (token) headers.set("Authorization", `Token ${token}`);
+  const res = await fetch(BASE + path, { ...init, headers });
   const body = res.status === 204 ? null : await res.json().catch(() => null);
+  // The token was deleted (logged out elsewhere) or is no longer valid.
+  if (res.status === 401 && token)
+    endSession("Your session ended. Log in again.");
   if (!res.ok) throw new ApiError(res.status, body);
   return body as T;
 }
+
+export type Credentials = { username: string; password: string };
+
+export const signUp = (credentials: Credentials) =>
+  request<Session>("/auth/signup/", {
+    method: "POST",
+    body: JSON.stringify(credentials),
+  });
+
+export const logIn = (credentials: Credentials) =>
+  request<Session>("/auth/login/", {
+    method: "POST",
+    body: JSON.stringify(credentials),
+  });
+
+/** Deletes the token on the server, so it stops working everywhere. */
+export const logOut = () => request<null>("/auth/logout/", { method: "POST" });
 
 export const listBuilds = () => request<Build[]>("/builds/");
 
