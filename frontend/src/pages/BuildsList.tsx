@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router";
 import { listBuilds, type Build } from "../api";
+import { buildNo } from "../buildNo";
+import { NewBuildDialog } from "../components/NewBuildDialog";
 import { StatusTag } from "../components/StatusTag";
 import { formatMoney } from "../money";
-
-const buildNo = (id: number) => String(id).padStart(2, "0");
 
 export function BuildsList() {
   const [builds, setBuilds] = useState<Build[] | null>(null);
   const [error, setError] = useState(false);
+  const [creating, setCreating] = useState(false);
 
   useEffect(() => {
     listBuilds().then(setBuilds, () => setError(true));
@@ -23,10 +25,24 @@ export function BuildsList() {
 
   return (
     <main className="mx-auto max-w-5xl px-4 pt-7 pb-10 sm:px-8 sm:pt-12">
-      <h1 className="font-serif text-[40px] leading-[44px] font-medium tracking-[-0.01em]">
-        Builds
-      </h1>
-      <p className="mt-1.5 min-h-[18px] text-[13px] text-muted">{subtitle}</p>
+      <div className="flex items-end justify-between gap-4">
+        <div>
+          <h1 className="font-serif text-[40px] leading-[44px] font-medium tracking-[-0.01em]">
+            Builds
+          </h1>
+          <p className="mt-1.5 min-h-[18px] text-[13px] text-muted">
+            {subtitle}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setCreating(true)}
+          className="shrink-0 rounded bg-accent px-4 py-2 text-[14px] font-medium text-on-accent hover:bg-accent-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+        >
+          New build
+        </button>
+      </div>
+      {creating && <NewBuildDialog onClose={() => setCreating(false)} />}
 
       {error && (
         <div
@@ -66,11 +82,21 @@ export function BuildsList() {
             </thead>
             <tbody>
               {builds.map((b) => (
-                <tr key={b.id} className="border-b border-line">
+                <tr
+                  key={b.id}
+                  className="relative border-b border-line hover:bg-sunken"
+                >
                   <td className="py-3.5 text-[13px] text-faint">
                     {buildNo(b.id)}
                   </td>
-                  <td className="py-3.5 font-medium">{b.name}</td>
+                  <td className="py-3.5 font-medium">
+                    <Link
+                      to={`/builds/${b.id}`}
+                      className="after:absolute after:inset-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                    >
+                      {b.name}
+                    </Link>
+                  </td>
                   <td className="py-3.5">
                     <StatusTag status={b.status} />
                   </td>
@@ -87,9 +113,14 @@ export function BuildsList() {
           {/* Mobile cards */}
           <ul className="mt-6 border-t border-line-strong sm:hidden">
             {builds.map((b) => (
-              <li key={b.id} className="border-b border-line py-4">
+              <li key={b.id} className="relative border-b border-line py-4">
                 <div className="flex items-center gap-3">
-                  <span className="flex-1 font-medium">{b.name}</span>
+                  <Link
+                    to={`/builds/${b.id}`}
+                    className="flex-1 font-medium after:absolute after:inset-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                  >
+                    {b.name}
+                  </Link>
                   <StatusTag status={b.status} />
                 </div>
                 <p className="mt-2 text-[13px] text-muted">Selling</p>

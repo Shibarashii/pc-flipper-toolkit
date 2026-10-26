@@ -11,7 +11,7 @@ Full task details (acceptance criteria, verification, files) are in [todo.md](to
 
 ## Architecture Decisions
 
-- **React Router (`react-router` v7, declarative mode).** `<BrowserRouter>` with two
+- **React Router (`react-router` v8, declarative mode).** `<BrowserRouter>` with two
   `<Route>`s (`/` and `/builds/:id`), plus `<Link>`, `useNavigate` and `useParams`. Chosen
   over hand-rolled routing because it's the industry standard and reads well on a resume.
   No data loaders or framework mode, since plain fetch in components is enough for v1.
@@ -53,7 +53,7 @@ so their order is flexible.
 ## Task List
 
 ### Phase 1: Foundation
-- [ ] T1: Create a build from the list and land on its (stub) detail page
+- [x] T1: Create a build from the list and land on its (stub) detail page
 - [ ] T2: Part and ExtraCost models with build totals
 - [ ] T3: Build detail API with nested parts, extra costs and totals
 

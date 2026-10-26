@@ -12,7 +12,7 @@ Each task gets its own branch, `feat/<n>-<slug>`, which is fast-forwarded into `
 
 ## Phase 1: Foundation
 
-### - [ ] T1: Create a build from the list and land on its detail page
+### - [x] T1: Create a build from the list and land on its detail page
 
 **Description:** Install `react-router` and set up `<BrowserRouter>` with two routes (`/` and `/builds/:id`).
 "New build" on the list opens a dialog that asks only for a name, POSTs it, and navigates to
@@ -20,13 +20,13 @@ Each task gets its own branch, `feat/<n>-<slug>`, which is fast-forwarded into `
 and has loading and error states.
 
 **Acceptance criteria:**
-- [ ] "New build" opens a dialog. Submitting with an empty name is blocked. Submitting a name creates the build and goes to `/builds/<id>`.
-- [ ] Clicking a build row (desktop) or card (mobile) goes to its detail page. Browser back returns to the list.
-- [ ] Reloading `/builds/<id>` in dev loads that build. An unknown id shows a "Build not found" state.
+- [x] "New build" opens a dialog. Submitting with an empty name is blocked. Submitting a name creates the build and goes to `/builds/<id>`.
+- [x] Clicking a build row (desktop) or card (mobile) goes to its detail page. Browser back returns to the list.
+- [x] Reloading `/builds/<id>` in dev loads that build. An unknown id shows a "Build not found" state.
 
 **Verification:**
-- [ ] Standard verification passes
-- [ ] Manual: create 2 builds, click between list and detail, use back/forward, reload on a detail URL
+- [x] Standard verification passes
+- [ ] Manual (author, in a browser): create 2 builds, click between list and detail, use back/forward, reload on a detail URL
 
 **Dependencies:** None
 **Files:** `frontend/package.json`, `frontend/src/main.tsx`, `frontend/src/App.tsx`, `frontend/src/api.ts`, `frontend/src/pages/BuildsList.tsx`, `frontend/src/pages/BuildDetail.tsx`, `frontend/src/components/NewBuildDialog.tsx`
