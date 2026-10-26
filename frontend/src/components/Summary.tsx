@@ -1,5 +1,5 @@
 import type { Totals } from "../api";
-import { formatMoney, formatSignedMoney } from "../money";
+import { formatMoney, formatSignedMoney, profitColor } from "../money";
 
 function Item({
   label,
@@ -31,9 +31,7 @@ export function Summary({
   sellingPrice: string | null;
 }) {
   const { profit, profit_margin, below_market, below_market_pct } = totals;
-  const loss = profit !== null && Number(profit) < 0;
-  const heroColor =
-    profit === null ? "text-faint" : loss ? "text-loss" : "text-profit";
+  const heroColor = profitColor(profit);
 
   const hero = formatSignedMoney(profit);
   // ponytail: length-based step-down; "+₱3,700.00" (10 chars) is the widest that

@@ -14,3 +14,9 @@ export function formatSignedMoney(value: string | null): string {
   const n = Number(value);
   return (n < 0 ? "−" : "+") + peso.format(Math.abs(n));
 }
+
+/** Text colour for a profit: green, red, or faint "—" when there's no selling price. */
+export function profitColor(profit: string | null): string {
+  if (profit === null) return "text-faint";
+  return Number(profit) < 0 ? "text-loss" : "text-profit";
+}

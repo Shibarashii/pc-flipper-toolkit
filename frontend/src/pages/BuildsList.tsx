@@ -4,7 +4,7 @@ import { listBuilds, type Build } from "../api";
 import { buildNo } from "../buildNo";
 import { NewBuildDialog } from "../components/NewBuildDialog";
 import { StatusTag } from "../components/StatusTag";
-import { formatMoney } from "../money";
+import { formatMoney, formatSignedMoney, profitColor } from "../money";
 import { buttonPrimary } from "../ui";
 
 // Insets the first and last columns, so text doesn't touch the hovered row's edges.
@@ -81,9 +81,15 @@ export function BuildsList() {
               >
                 <th className="w-12 py-2 font-medium">No.</th>
                 <th className="py-2 font-medium">Build</th>
-                <th className="w-28 py-2 font-medium">Status</th>
-                <th className="w-36 py-2 text-right font-medium">
+                <th className="w-[110px] py-2 font-medium">Status</th>
+                <th className="w-[130px] py-2 text-right font-medium">
+                  Total cost
+                </th>
+                <th className="w-[130px] py-2 text-right font-medium">
                   Selling price
+                </th>
+                <th className="w-[130px] py-2 text-right font-medium">
+                  Profit
                 </th>
               </tr>
             </thead>
@@ -107,10 +113,18 @@ export function BuildsList() {
                   <td className="py-3.5">
                     <StatusTag status={b.status} />
                   </td>
+                  <td className="py-3.5 text-right">
+                    {formatMoney(b.totals.total_cost)}
+                  </td>
                   <td
                     className={`py-3.5 text-right ${b.selling_price === null ? "text-faint" : ""}`}
                   >
                     {formatMoney(b.selling_price)}
+                  </td>
+                  <td
+                    className={`py-3.5 text-right font-medium ${profitColor(b.totals.profit)}`}
+                  >
+                    {formatSignedMoney(b.totals.profit)}
                   </td>
                 </tr>
               ))}
@@ -130,17 +144,41 @@ export function BuildsList() {
                   </Link>
                   <StatusTag status={b.status} />
                 </div>
-                <p className="mt-2 text-[13px] text-muted">Selling</p>
-                <p
-                  className={`tabular-nums ${b.selling_price === null ? "text-faint" : ""}`}
-                >
-                  {formatMoney(b.selling_price)}
-                </p>
+                <dl className="mt-2.5 grid grid-cols-3 gap-3 tabular-nums">
+                  <Stat label="Cost" value={formatMoney(b.totals.total_cost)} />
+                  <Stat
+                    label="Selling"
+                    value={formatMoney(b.selling_price)}
+                    className={b.selling_price === null ? "text-faint" : ""}
+                  />
+                  <Stat
+                    label="Profit"
+                    value={formatSignedMoney(b.totals.profit)}
+                    className={`font-medium ${profitColor(b.totals.profit)}`}
+                  />
+                </dl>
               </li>
             ))}
           </ul>
         </>
       )}
     </main>
+  );
+}
+
+function Stat({
+  label,
+  value,
+  className = "",
+}: {
+  label: string;
+  value: string;
+  className?: string;
+}) {
+  return (
+    <div className="min-w-0">
+      <dt className="text-[13px] leading-[18px] text-muted">{label}</dt>
+      <dd className={`text-[15px] leading-[22px] ${className}`}>{value}</dd>
+    </div>
   );
 }
