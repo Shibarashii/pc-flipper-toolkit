@@ -104,18 +104,18 @@ saving, the page refetches the build so the totals update from the server.
 **Files:** `frontend/src/api.ts`, `frontend/src/pages/BuildDetail.tsx`, `frontend/src/components/PartsTable.tsx`, `frontend/src/components/Summary.tsx`, `frontend/src/components/Summary.test.tsx`
 **Scope:** M
 
-### - [ ] T5: Edit and delete parts inline
+### - [x] T5: Edit and delete parts inline
 
 **Description:** The pencil turns a part row into inputs with Save/Cancel. Enter saves and
 Esc cancels. The row also gets a delete action. It's the same input row component as the add row.
 
 **Acceptance criteria:**
-- [ ] Editing any field and pressing Enter saves it (PATCH) and the totals update. Esc restores the original values.
-- [ ] Delete removes the part and the totals update.
-- [ ] Only one row is in edit mode at a time.
+- [x] Editing any field and pressing Enter saves it (PATCH) and the totals update. Esc restores the original values.
+- [x] Delete removes the part and the totals update.
+- [x] Only one row is in edit mode at a time.
 
 **Verification:**
-- [ ] Standard verification passes
+- [x] Standard verification passes
 - [ ] Manual: edit and delete parts by keyboard and by mouse, on desktop and mobile
 
 **Dependencies:** T4
