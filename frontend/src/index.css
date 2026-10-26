@@ -65,3 +65,13 @@
 body {
   @apply bg-bg font-sans text-ink antialiased;
 }
+
+/* Tailwind v4 dropped the pointer cursor on buttons; bring it back for anything
+   clickable that isn't a link (links already have it). Disabled ones keep the arrow. */
+@layer base {
+  button:not(:disabled),
+  select:not(:disabled),
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+  }
+}
