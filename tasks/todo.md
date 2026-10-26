@@ -167,17 +167,17 @@ date (editable), and switching away clears it. The notes textarea under Extra co
 
 ## Phase 3: Complete v1 locally
 
-### - [ ] T8: Builds list shows total cost and profit
+### - [x] T8: Builds list shows total cost and profit
 
 **Description:** Add "Total cost" and "Profit" (signed, green/red) to the desktop table and the mobile cards, using the list's `totals`.
 
 **Acceptance criteria:**
-- [ ] Each row shows total cost, selling price and profit, and a build with no selling price shows "—" for profit.
-- [ ] The mobile cards show the same values without horizontal scroll at 375px.
+- [x] Each row shows total cost, selling price and profit, and a build with no selling price shows "—" for profit.
+- [x] The mobile cards show the same values without horizontal scroll at 375px.
 
 **Verification:**
-- [ ] Standard verification passes
-- [ ] Manual: compare the list values with each build's detail summary
+- [x] Standard verification passes
+- [x] Manual: compare the list values with each build's detail summary
 
 **Dependencies:** T3
 **Files:** `frontend/src/pages/BuildsList.tsx`, `frontend/src/api.ts`
