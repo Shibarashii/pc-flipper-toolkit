@@ -13,6 +13,16 @@ def money_field(**kwargs) -> models.DecimalField:
     )
 
 
+def non_negative(*fields: str) -> list[models.CheckConstraint]:
+    """DB-level >= 0 checks, so bad money can't sneak in around the validators."""
+    return [
+        models.CheckConstraint(
+            condition=models.Q(**{f"{f}__gte": 0}), name=f"%(class)s_{f}_gte_0"
+        )
+        for f in fields
+    ]
+
+
 def percent(part: Decimal, whole: Decimal) -> Decimal | None:
     """part / whole as a percentage rounded half-up to 2 places; None if whole is 0."""
     if not whole:
@@ -36,12 +46,13 @@ class Build(models.Model):
 
     class Meta:
         ordering = ["-created_at", "-id"]
+        constraints = non_negative("selling_price")
 
     def __str__(self) -> str:
         return self.name
 
-    # Totals. They read self.parts.all() / self.extra_costs.all(), so callers listing
-    # many builds should prefetch_related("parts", "extra_costs").
+    # Totals. Callers must prefetch_related("parts", "extra_costs"), even for a
+    # single build: each total re-reads them, which is 14 queries without it.
 
     @property
     def listed_total(self) -> Decimal:
@@ -107,6 +118,7 @@ class Part(models.Model):
 
     class Meta:
         ordering = ["id"]
+        constraints = non_negative("listed_price", "bought_for")
 
     def __str__(self) -> str:
         return self.name
@@ -121,6 +133,7 @@ class ExtraCost(models.Model):
 
     class Meta:
         ordering = ["id"]
+        constraints = non_negative("amount")
 
     def __str__(self) -> str:
         return self.label

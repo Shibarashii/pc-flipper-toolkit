@@ -1,6 +1,7 @@
 from decimal import Decimal as D
 
 from django.core.exceptions import ValidationError
+from django.db import IntegrityError, transaction
 from django.test import TestCase
 from rest_framework.test import APITestCase
 
@@ -140,3 +141,19 @@ class PriceValidationTests(TestCase):
         )
         with self.assertRaises(ValidationError):
             cost.full_clean()
+
+    def test_database_rejects_negative_money_even_without_validation(self):
+        build = Build.objects.create(name="X")
+        writes = [
+            lambda: Build.objects.create(name="Y", selling_price="-1.00"),
+            lambda: build.parts.create(
+                name="CPU", category="cpu", listed_price="-1.00", bought_for="1.00"
+            ),
+            lambda: build.parts.create(
+                name="CPU", category="cpu", listed_price="1.00", bought_for="-1.00"
+            ),
+            lambda: build.extra_costs.create(label="Fee", amount="-1.00"),
+        ]
+        for write in writes:
+            with self.assertRaises(IntegrityError), transaction.atomic():
+                write()

@@ -62,7 +62,7 @@ build id goes in the body). Use `prefetch_related` to avoid N+1 queries.
 **Acceptance criteria:**
 - [ ] Detail and list responses match the SPEC's API section, including `null` for the selling-price-dependent fields.
 - [ ] Create, update and delete work for parts and extra costs, and a negative price returns 400 with the field name.
-- [ ] Listing N builds takes a constant number of queries (`assertNumQueries`).
+- [ ] The list (N builds) and the detail endpoint each take a constant number of queries (`assertNumQueries`). The prefetch lives on the viewset `queryset`, so both endpoints get it.
 
 **Verification:**
 - [ ] Standard verification (backend) passes
