@@ -278,7 +278,7 @@ key permission, `ACCESS_KEY` and the `X-Access-Key` CORS header are removed.
 **Files:** `backend/builds/models.py` + migration, `backend/builds/views.py`, `backend/builds/serializers.py`, `backend/builds/auth.py` (new), `backend/config/settings.py`, `backend/config/urls.py`, `backend/builds/tests.py`; delete `backend/builds/permissions.py`
 **Scope:** M
 
-### - [ ] T13: Log in and sign up screens
+### - [x] T13: Log in and sign up screens
 
 **Description:** `/login` and `/signup` pages (username, password; linking to each other).
 Logged out, every other route redirects to `/login`. The token is kept in `localStorage`
@@ -289,14 +289,14 @@ dialogs' form style. Replaces the read-only mode / "Unlock editing" work (the un
 `feat/12-read-only-mode` branch); its `request()` header merging is kept.
 
 **Acceptance criteria:**
-- [ ] Logged out, `/` and `/builds/:id` redirect to `/login`. After logging in, the builds list shows only that user's builds.
-- [ ] Sign-up and log-in errors show under the right field (wrong password, username taken, weak password); a 429 shows "Too many attempts. Wait a minute and try again."
-- [ ] `request()` in `api.ts` merges headers (`Content-Type` plus `Authorization`) instead of replacing them (checkpoint 1 review, #3).
-- [ ] Logging in persists after a reload. Log out returns to `/login`. A 401 mid-session logs out with the message.
+- [x] Logged out, `/` and `/builds/:id` redirect to `/login`. After logging in, the builds list shows only that user's builds.
+- [x] Sign-up and log-in errors show under the right field (wrong password, username taken, weak password); a 429 shows "Too many attempts. Wait a minute and try again."
+- [x] `request()` in `api.ts` merges headers (`Content-Type` plus `Authorization`) instead of replacing them (checkpoint 1 review, #3).
+- [x] Logging in persists after a reload. Log out returns to `/login`. A 401 mid-session logs out with the message.
 
 **Verification:**
-- [ ] Standard verification passes
-- [ ] Manual: two accounts in two browsers (normal + private window) never see each other's builds; check at 375px
+- [x] Standard verification passes
+- [x] Manual: two accounts in two browsers (normal + private window) never see each other's builds; check at 375px
 
 **Dependencies:** T12
 **Files:** `frontend/src/api.ts`, `frontend/src/auth.ts`, `frontend/src/App.tsx`, `frontend/src/pages/Login.tsx` (log in + sign up), tests
