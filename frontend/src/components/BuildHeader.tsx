@@ -9,7 +9,8 @@ import {
 } from "../api";
 import { buildNo } from "../buildNo";
 import { formatMoney } from "../money";
-import { input } from "../ui";
+import { buttonDanger, input } from "../ui";
+import { DeleteBuildDialog } from "./DeleteBuildDialog";
 import {
   cleanMoney,
   Field,
@@ -66,6 +67,7 @@ export function BuildHeader({
   const [errors, setErrors] = useState<FieldErrors>({});
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [renaming, setRenaming] = useState(false);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [name, setName] = useState(build.name);
   // Esc closes the rename input; some browsers then fire blur, which must not save.
   const renameCancelled = useRef(false);
@@ -181,65 +183,81 @@ export function BuildHeader({
         </div>
       )}
 
-      <div className="mt-6 grid grid-cols-2 gap-3 sm:flex sm:items-start">
-        <Field label="Status" errors={errors.status} className="sm:w-[200px]">
-          <Select
-            value={shown.status}
-            onChange={(e) => changeStatus(e.target.value as BuildStatus)}
-            error={!!errors.status}
-          >
-            {Object.entries(STATUSES).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </Select>
-        </Field>
-        <Field
-          label="Selling price"
-          errors={errors.selling_price}
-          className="sm:w-[200px]"
-        >
-          <input
-            inputMode="decimal"
-            value={price}
-            placeholder="₱0.00"
-            onChange={(e) => setPrice(e.target.value)}
-            onBlur={savePrice}
-            onKeyDown={saveKeys(() => {
-              setPrice(priceText(build.selling_price));
-              setErrors((e) => without(e, "selling_price"));
-            })}
-            aria-invalid={!!errors.selling_price}
-            className={`${input(!!errors.selling_price)} tabular-nums`}
-          />
-        </Field>
-        {shown.status === "sold" && (
+      <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div className="grid grid-cols-2 gap-3 sm:flex sm:items-start">
+          <Field label="Status" errors={errors.status} className="sm:w-[200px]">
+            <Select
+              value={shown.status}
+              onChange={(e) => changeStatus(e.target.value as BuildStatus)}
+              error={!!errors.status}
+            >
+              {Object.entries(STATUSES).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </Select>
+          </Field>
           <Field
-            label="Sold on"
-            errors={errors.sold_at}
-            className="col-span-2 sm:w-[200px]"
+            label="Selling price"
+            errors={errors.selling_price}
+            className="sm:w-[200px]"
           >
             <input
-              type="date"
-              value={soldAt}
-              onChange={(e) => setSoldAt(e.target.value)}
-              onBlur={saveSoldAt}
+              inputMode="decimal"
+              value={price}
+              placeholder="₱0.00"
+              onChange={(e) => setPrice(e.target.value)}
+              onBlur={savePrice}
               onKeyDown={saveKeys(() => {
-                setSoldAt(build.sold_at ?? "");
-                setErrors((e) => without(e, "sold_at"));
+                setPrice(priceText(build.selling_price));
+                setErrors((e) => without(e, "selling_price"));
               })}
-              aria-invalid={!!errors.sold_at}
-              className={input(!!errors.sold_at)}
+              aria-invalid={!!errors.selling_price}
+              className={`${input(!!errors.selling_price)} tabular-nums`}
             />
           </Field>
-        )}
-        {/* Beside the fields on desktop, centred on the inputs; its own line on mobile. */}
-        <SaveStatus
-          state={saveState}
-          className={`col-span-2 sm:self-end sm:pb-[11px] ${saveState === "idle" ? "hidden sm:block" : ""}`}
-        />
+          {shown.status === "sold" && (
+            <Field
+              label="Sold on"
+              errors={errors.sold_at}
+              className="col-span-2 sm:w-[200px]"
+            >
+              <input
+                type="date"
+                value={soldAt}
+                onChange={(e) => setSoldAt(e.target.value)}
+                onBlur={saveSoldAt}
+                onKeyDown={saveKeys(() => {
+                  setSoldAt(build.sold_at ?? "");
+                  setErrors((e) => without(e, "sold_at"));
+                })}
+                aria-invalid={!!errors.sold_at}
+                className={input(!!errors.sold_at)}
+              />
+            </Field>
+          )}
+          {/* Beside the fields on desktop, centred on the inputs; its own line on mobile. */}
+          <SaveStatus
+            state={saveState}
+            className={`col-span-2 sm:self-end sm:pb-[11px] ${saveState === "idle" ? "hidden sm:block" : ""}`}
+          />
+        </div>
+        {/* Lines up with the inputs' bottom edge, even when a field shows an error. */}
+        <button
+          type="button"
+          onClick={() => setConfirmingDelete(true)}
+          className={`shrink-0 self-end ${buttonDanger}`}
+        >
+          Delete build
+        </button>
       </div>
+      {confirmingDelete && (
+        <DeleteBuildDialog
+          build={build}
+          onClose={() => setConfirmingDelete(false)}
+        />
+      )}
     </div>
   );
 }

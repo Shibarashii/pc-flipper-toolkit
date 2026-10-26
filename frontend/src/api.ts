@@ -113,6 +113,9 @@ export const updateBuild = (id: number, patch: BuildPatch) =>
     body: JSON.stringify(patch),
   });
 
+export const deleteBuild = (id: number) =>
+  request<null>(`/builds/${id}/`, { method: "DELETE" });
+
 export const createPart = (part: NewPart) =>
   request<Part>("/parts/", { method: "POST", body: JSON.stringify(part) });
 

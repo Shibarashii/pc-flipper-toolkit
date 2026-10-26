@@ -9,6 +9,9 @@ export const buttonPrimary = `${button} bg-accent text-on-accent hover:bg-accent
 
 export const buttonSecondary = `${button} border border-line-strong bg-surface text-ink hover:bg-sunken`;
 
+/** Secondary button with loss-coloured text, for destructive actions. */
+export const buttonDanger = `${button} border border-line-strong bg-surface text-loss hover:bg-sunken`;
+
 /** 28×28 ghost button around a 16px icon. Needs an aria-label. */
 export const iconButton = `flex size-7 items-center justify-center rounded hover:bg-sunken disabled:opacity-45 ${focusRing}`;
 
