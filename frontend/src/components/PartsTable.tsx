@@ -3,14 +3,18 @@ import {
   ApiError,
   CATEGORIES,
   createPart,
+  deletePart,
+  updatePart,
   type FieldErrors,
   type Part,
   type PartCategory,
   type Totals,
 } from "../api";
 import chevron from "../assets/chevron.svg";
+import pencil from "../assets/pencil.svg";
+import trash from "../assets/trash.svg";
 import { formatMoney } from "../money";
-import { buttonPrimary, buttonSecondary, input } from "../ui";
+import { buttonPrimary, buttonSecondary, iconButton, input } from "../ui";
 
 const EMPTY = {
   name: "",
@@ -35,48 +39,22 @@ export function PartsTable({
   totals: Totals;
   onChanged: () => void;
 }) {
-  const [adding, setAdding] = useState(false);
-  const [form, setForm] = useState(EMPTY);
-  const [errors, setErrors] = useState<FieldErrors>({});
-  const [failed, setFailed] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const nameRef = useRef<HTMLInputElement>(null);
+  // One form at a time: the add row, or the part being edited.
+  const [open, setOpen] = useState<"new" | number | null>(null);
+  const [deleting, setDeleting] = useState<number | null>(null);
+  const [deleteFailed, setDeleteFailed] = useState(false);
+  const close = () => setOpen(null);
 
-  const set = (field: keyof typeof EMPTY) => (value: string) =>
-    setForm((f) => ({ ...f, [field]: value }));
-
-  function close() {
-    setAdding(false);
-    setForm(EMPTY);
-    setErrors({});
-    setFailed(false);
-  }
-
-  async function submit(e: SubmitEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setSaving(true);
-    setErrors({});
-    setFailed(false);
+  async function remove(part: Part) {
+    setDeleting(part.id);
+    setDeleteFailed(false);
     try {
-      await createPart({
-        build: buildId,
-        name: form.name.trim(),
-        shop: form.shop.trim(),
-        category: form.category as PartCategory,
-        listed_price: cleanMoney(form.listed_price),
-        bought_for: cleanMoney(form.bought_for),
-      });
-      // Stay open for the next part: people usually enter a whole build at once.
-      setForm(EMPTY);
-      nameRef.current?.focus();
+      await deletePart(part.id);
       onChanged();
-    } catch (err) {
-      const fieldErrors = err instanceof ApiError ? err.fieldErrors : {};
-      setErrors(fieldErrors);
-      // Errors on fields this form doesn't show (e.g. "build") need the general message.
-      setFailed(!Object.keys(fieldErrors).some((key) => key in EMPTY));
+    } catch {
+      setDeleteFailed(true);
     } finally {
-      setSaving(false);
+      setDeleting(null);
     }
   }
 
@@ -96,16 +74,22 @@ export function PartsTable({
         </p>
         <button
           type="button"
-          disabled={adding}
-          onClick={() => setAdding(true)}
+          disabled={open === "new"}
+          onClick={() => setOpen("new")}
           className={buttonSecondary}
         >
           Add part
         </button>
       </div>
 
+      {deleteFailed && (
+        <p role="alert" className="pb-3 text-[13px] leading-[18px] text-loss">
+          Couldn’t delete the part. Check your connection and try again.
+        </p>
+      )}
+
       <div className="flex flex-col border-t border-line-strong">
-        {n === 0 && !adding && (
+        {n === 0 && open !== "new" && (
           <div className="py-6">
             <p className="text-[15px] leading-[22px] font-medium">
               No parts yet
@@ -130,135 +114,38 @@ export function PartsTable({
               <span className="w-[58px]" />
             </div>
             <ul>
-              {parts.map((p) => (
-                <PartItem key={p.id} part={p} />
-              ))}
+              {parts.map((p) =>
+                open === p.id ? (
+                  <li key={p.id} className="py-3 sm:py-2">
+                    <PartForm
+                      part={p}
+                      buildId={buildId}
+                      onSaved={() => {
+                        close();
+                        onChanged();
+                      }}
+                      onClose={close}
+                    />
+                  </li>
+                ) : (
+                  <PartItem
+                    key={p.id}
+                    part={p}
+                    deleting={deleting === p.id}
+                    onEdit={() => setOpen(p.id)}
+                    onDelete={() => remove(p)}
+                  />
+                ),
+              )}
             </ul>
           </>
         )}
 
-        {adding && (
+        {open === "new" && (
           // On mobile the form sits above the list; on desktop it's the row after it.
-          <form
-            noValidate
-            onSubmit={submit}
-            onKeyDown={(e) => e.key === "Escape" && close()}
-            aria-label="New part"
-            className="order-first py-3 sm:order-none sm:py-0"
-          >
-            <div className="flex flex-col gap-3 rounded bg-sunken p-3 sm:flex-row sm:items-start sm:gap-2 sm:p-2">
-              <p className="text-[13px] leading-[18px] font-medium sm:hidden">
-                New part
-              </p>
-              <Field label="Part" errors={errors.name} className="sm:flex-1">
-                <input
-                  ref={nameRef}
-                  autoFocus
-                  value={form.name}
-                  onChange={(e) => set("name")(e.target.value)}
-                  placeholder="Part name"
-                  maxLength={200}
-                  aria-invalid={!!errors.name}
-                  className={input(!!errors.name)}
-                />
-              </Field>
-              <Field label="Shop" errors={errors.shop} className="sm:w-[120px]">
-                <input
-                  value={form.shop}
-                  onChange={(e) => set("shop")(e.target.value)}
-                  placeholder="Shop"
-                  maxLength={200}
-                  aria-invalid={!!errors.shop}
-                  className={input(!!errors.shop)}
-                />
-              </Field>
-              <Field
-                label="Category"
-                errors={errors.category}
-                className="sm:w-[112px]"
-              >
-                <div className="relative">
-                  <select
-                    value={form.category}
-                    onChange={(e) => set("category")(e.target.value)}
-                    aria-invalid={!!errors.category}
-                    className={`${input(!!errors.category)} appearance-none pr-8 ${form.category ? "" : "text-faint"}`}
-                  >
-                    <option value="" disabled>
-                      Category
-                    </option>
-                    {Object.entries(CATEGORIES).map(([value, label]) => (
-                      <option key={value} value={value} className="text-ink">
-                        {label}
-                      </option>
-                    ))}
-                  </select>
-                  <img
-                    src={chevron}
-                    alt=""
-                    width={16}
-                    height={16}
-                    className="pointer-events-none absolute top-1/2 right-2.5 -translate-y-1/2"
-                  />
-                </div>
-              </Field>
-              <div className="flex gap-3 sm:contents">
-                <Field
-                  label="Listed price"
-                  errors={errors.listed_price}
-                  className="flex-1 sm:w-[96px] sm:flex-none"
-                >
-                  <input
-                    inputMode="decimal"
-                    value={form.listed_price}
-                    onChange={(e) => set("listed_price")(e.target.value)}
-                    placeholder="Listed ₱"
-                    aria-invalid={!!errors.listed_price}
-                    className={`${input(!!errors.listed_price)} tabular-nums`}
-                  />
-                </Field>
-                <Field
-                  label="Bought for"
-                  errors={errors.bought_for}
-                  className="flex-1 sm:w-[96px] sm:flex-none"
-                >
-                  <input
-                    inputMode="decimal"
-                    value={form.bought_for}
-                    onChange={(e) => set("bought_for")(e.target.value)}
-                    placeholder="Bought ₱"
-                    aria-invalid={!!errors.bought_for}
-                    className={`${input(!!errors.bought_for)} tabular-nums`}
-                  />
-                </Field>
-              </div>
-              <div className="flex justify-end gap-2 sm:contents">
-                <button
-                  type="button"
-                  onClick={close}
-                  className={buttonSecondary}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={saving}
-                  className={buttonPrimary}
-                >
-                  <span className="sm:hidden">Add part</span>
-                  <span className="hidden sm:inline">Save</span>
-                </button>
-              </div>
-            </div>
-            {failed && (
-              <p
-                role="alert"
-                className="mt-2 text-[13px] leading-[18px] text-loss"
-              >
-                Couldn’t save the part. Check your connection and try again.
-              </p>
-            )}
-          </form>
+          <div className="order-first py-3 sm:order-none sm:py-0">
+            <PartForm buildId={buildId} onSaved={onChanged} onClose={close} />
+          </div>
         )}
 
         {n > 0 && (
@@ -279,17 +166,267 @@ export function PartsTable({
   );
 }
 
-function PartItem({ part }: { part: Part }) {
-  const category = CATEGORIES[part.category];
+/** Prices are shown the way they're displayed elsewhere; cleanMoney undoes it on save. */
+const fromPart = (p: Part) => ({
+  name: p.name,
+  shop: p.shop,
+  category: p.category as string,
+  listed_price: formatMoney(p.listed_price),
+  bought_for: formatMoney(p.bought_for),
+});
+
+// Desktop layouts differ: adding is one compact row with hidden labels (Figma "Add part
+// row"), editing is two labelled rows (Figma "Part row (editing)"). Mobile is the same.
+const ADD_LAYOUT = {
+  box: "sm:flex-row sm:items-start sm:gap-2 sm:p-2",
+  row: "sm:contents",
+  label: "sm:sr-only",
+  shop: "sm:w-[120px]",
+  category: "sm:w-[112px]",
+  price: "sm:w-[96px]",
+  actions: "sm:contents",
+};
+const EDIT_LAYOUT = {
+  box: "",
+  row: "sm:flex-row sm:items-start sm:gap-2",
+  label: "",
+  shop: "sm:w-[200px]",
+  category: "sm:w-[140px]",
+  price: "sm:w-[140px]",
+  // Clears the label so the buttons line up with the inputs.
+  actions: "sm:mt-6 sm:ml-auto sm:gap-1.5",
+};
+
+function PartForm({
+  part,
+  buildId,
+  onSaved,
+  onClose,
+}: {
+  /** The part to edit; omit to add a new one. */
+  part?: Part;
+  buildId: number;
+  onSaved: () => void;
+  onClose: () => void;
+}) {
+  const [form, setForm] = useState(part ? fromPart(part) : EMPTY);
+  const [errors, setErrors] = useState<FieldErrors>({});
+  const [failed, setFailed] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const nameRef = useRef<HTMLInputElement>(null);
+  const layout = part ? EDIT_LAYOUT : ADD_LAYOUT;
+  const title = part ? "Edit part" : "New part";
+
+  const set = (field: keyof typeof EMPTY) => (value: string) =>
+    setForm((f) => ({ ...f, [field]: value }));
+
+  async function submit(e: SubmitEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setSaving(true);
+    setErrors({});
+    setFailed(false);
+    const fields = {
+      name: form.name.trim(),
+      shop: form.shop.trim(),
+      category: form.category as PartCategory,
+      listed_price: cleanMoney(form.listed_price),
+      bought_for: cleanMoney(form.bought_for),
+    };
+    try {
+      if (part) {
+        await updatePart(part.id, fields);
+      } else {
+        await createPart({ build: buildId, ...fields });
+        // Stay open for the next part: people usually enter a whole build at once.
+        setForm(EMPTY);
+        nameRef.current?.focus();
+      }
+      onSaved();
+    } catch (err) {
+      const fieldErrors = err instanceof ApiError ? err.fieldErrors : {};
+      setErrors(fieldErrors);
+      // Errors on fields this form doesn't show (e.g. "build") need the general message.
+      setFailed(!Object.keys(fieldErrors).some((key) => key in EMPTY));
+    } finally {
+      setSaving(false);
+    }
+  }
+
   return (
-    <li className="border-b border-line py-3.5 hover:bg-sunken sm:py-3">
+    <form
+      noValidate
+      onSubmit={submit}
+      // Esc drops the draft; an edited row goes back to its saved values.
+      onKeyDown={(e) => e.key === "Escape" && onClose()}
+      aria-label={part ? `Edit ${part.name}` : title}
+    >
+      <div
+        className={`flex flex-col gap-3 rounded bg-sunken p-3 ${layout.box}`}
+      >
+        <p className="text-[13px] leading-[18px] font-medium sm:hidden">
+          {title}
+        </p>
+        <div className={`flex flex-col gap-3 ${layout.row}`}>
+          <Field
+            label="Part"
+            errors={errors.name}
+            labelClass={layout.label}
+            className="sm:flex-1"
+          >
+            <input
+              ref={nameRef}
+              autoFocus
+              value={form.name}
+              onChange={(e) => set("name")(e.target.value)}
+              placeholder="Part name"
+              maxLength={200}
+              aria-invalid={!!errors.name}
+              className={input(!!errors.name)}
+            />
+          </Field>
+          <Field
+            label="Shop"
+            errors={errors.shop}
+            labelClass={layout.label}
+            className={layout.shop}
+          >
+            <input
+              value={form.shop}
+              onChange={(e) => set("shop")(e.target.value)}
+              placeholder="Shop"
+              maxLength={200}
+              aria-invalid={!!errors.shop}
+              className={input(!!errors.shop)}
+            />
+          </Field>
+        </div>
+        <div className={`flex flex-col gap-3 ${layout.row}`}>
+          <Field
+            label="Category"
+            errors={errors.category}
+            labelClass={layout.label}
+            className={layout.category}
+          >
+            <div className="relative">
+              <select
+                value={form.category}
+                onChange={(e) => set("category")(e.target.value)}
+                aria-invalid={!!errors.category}
+                className={`${input(!!errors.category)} appearance-none pr-8 ${form.category ? "" : "text-faint"}`}
+              >
+                <option value="" disabled>
+                  Category
+                </option>
+                {Object.entries(CATEGORIES).map(([value, label]) => (
+                  <option key={value} value={value} className="text-ink">
+                    {label}
+                  </option>
+                ))}
+              </select>
+              <img
+                src={chevron}
+                alt=""
+                width={16}
+                height={16}
+                className="pointer-events-none absolute top-1/2 right-2.5 -translate-y-1/2"
+              />
+            </div>
+          </Field>
+          <div className="flex gap-3 sm:contents">
+            <Field
+              label="Listed price"
+              errors={errors.listed_price}
+              labelClass={layout.label}
+              className={`flex-1 sm:flex-none ${layout.price}`}
+            >
+              <input
+                inputMode="decimal"
+                value={form.listed_price}
+                onChange={(e) => set("listed_price")(e.target.value)}
+                placeholder="Listed ₱"
+                aria-invalid={!!errors.listed_price}
+                className={`${input(!!errors.listed_price)} tabular-nums`}
+              />
+            </Field>
+            <Field
+              label="Bought for"
+              errors={errors.bought_for}
+              labelClass={layout.label}
+              className={`flex-1 sm:flex-none ${layout.price}`}
+            >
+              <input
+                inputMode="decimal"
+                value={form.bought_for}
+                onChange={(e) => set("bought_for")(e.target.value)}
+                placeholder="Bought ₱"
+                aria-invalid={!!errors.bought_for}
+                className={`${input(!!errors.bought_for)} tabular-nums`}
+              />
+            </Field>
+          </div>
+          <div className={`flex justify-end gap-2 ${layout.actions}`}>
+            <button type="button" onClick={onClose} className={buttonSecondary}>
+              Cancel
+            </button>
+            <button type="submit" disabled={saving} className={buttonPrimary}>
+              {part ? (
+                "Save"
+              ) : (
+                <>
+                  <span className="sm:hidden">Add part</span>
+                  <span className="hidden sm:inline">Save</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+      {failed && (
+        <p role="alert" className="mt-2 text-[13px] leading-[18px] text-loss">
+          Couldn’t save the part. Check your connection and try again.
+        </p>
+      )}
+    </form>
+  );
+}
+
+function PartItem({
+  part,
+  deleting,
+  onEdit,
+  onDelete,
+}: {
+  part: Part;
+  deleting: boolean;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  const category = CATEGORIES[part.category];
+  const actions = (
+    <div className="flex gap-0.5">
+      <IconButton icon={pencil} label={`Edit ${part.name}`} onClick={onEdit} />
+      <IconButton
+        icon={trash}
+        label={`Delete ${part.name}`}
+        onClick={onDelete}
+        disabled={deleting}
+      />
+    </div>
+  );
+  return (
+    <li className="border-b border-line py-3.5 sm:py-3">
       {/* Mobile card */}
       <div className="flex flex-col gap-2 sm:hidden">
-        <div>
-          <p className="text-[15px] leading-[22px] font-medium">{part.name}</p>
-          <p className="text-[13px] leading-[18px] text-muted">
-            {[category, part.shop].filter(Boolean).join(" · ")}
-          </p>
+        <div className="flex items-start gap-2">
+          <div className="min-w-0 flex-1">
+            <p className="text-[15px] leading-[22px] font-medium">
+              {part.name}
+            </p>
+            <p className="text-[13px] leading-[18px] text-muted">
+              {[category, part.shop].filter(Boolean).join(" · ")}
+            </p>
+          </div>
+          {actions}
         </div>
         <div className="flex gap-3 tabular-nums">
           <div className="flex-1 text-muted">
@@ -324,21 +461,48 @@ function PartItem({ part }: { part: Part }) {
         <span className="w-[110px] text-right text-[15px] leading-[22px] font-medium tabular-nums">
           {formatMoney(part.bought_for)}
         </span>
-        {/* Edit / delete actions arrive in T5. */}
-        <span className="w-[58px]" />
+        {actions}
       </div>
     </li>
+  );
+}
+
+function IconButton({
+  icon,
+  label,
+  onClick,
+  disabled = false,
+}: {
+  icon: string;
+  label: string;
+  onClick: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      title={label}
+      onClick={onClick}
+      disabled={disabled}
+      className={iconButton}
+    >
+      <img src={icon} alt="" width={16} height={16} />
+    </button>
   );
 }
 
 function Field({
   label,
   errors,
+  labelClass,
   className = "",
   children,
 }: {
   label: string;
   errors?: string[];
+  /** Extra classes for the label text, e.g. "sm:sr-only" on the compact add row. */
+  labelClass: string;
   className?: string;
   children: ReactNode;
 }) {
@@ -346,7 +510,9 @@ function Field({
   return (
     <div className={`flex flex-col gap-1.5 ${className}`}>
       <label className="flex flex-col gap-1.5">
-        <span className="text-[13px] leading-[18px] font-medium text-muted sm:sr-only">
+        <span
+          className={`text-[13px] leading-[18px] font-medium text-muted ${labelClass}`}
+        >
           {label}
         </span>
         {children}

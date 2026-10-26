@@ -105,3 +105,12 @@ export const createBuild = (name: string) =>
 
 export const createPart = (part: NewPart) =>
   request<Part>("/parts/", { method: "POST", body: JSON.stringify(part) });
+
+export const updatePart = (id: number, patch: Partial<NewPart>) =>
+  request<Part>(`/parts/${id}/`, {
+    method: "PATCH",
+    body: JSON.stringify(patch),
+  });
+
+export const deletePart = (id: number) =>
+  request<null>(`/parts/${id}/`, { method: "DELETE" });

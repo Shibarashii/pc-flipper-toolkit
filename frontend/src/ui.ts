@@ -9,6 +9,9 @@ export const buttonPrimary = `${button} bg-accent text-on-accent hover:bg-accent
 
 export const buttonSecondary = `${button} border border-line-strong bg-surface text-ink hover:bg-sunken`;
 
+/** 28×28 ghost button around a 16px icon. Needs an aria-label. */
+export const iconButton = `flex size-7 items-center justify-center rounded hover:bg-sunken disabled:opacity-45 ${focusRing}`;
+
 /** Text input / select. Pass `error` to switch the border to the loss color. */
 export const input = (error = false) =>
   `block w-full rounded border bg-surface py-2 pr-2.5 pl-3 text-[15px] leading-[22px] text-ink placeholder:text-faint ${focusRing} ${error ? "border-loss" : "border-line-strong"}`;
