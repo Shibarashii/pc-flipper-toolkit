@@ -42,6 +42,10 @@ const saveKeys =
     if (e.key === "Escape") restore();
   };
 
+/** Removes one field's messages, e.g. once Esc puts back its saved value. */
+const without = (errors: FieldErrors, field: string) =>
+  Object.fromEntries(Object.entries(errors).filter(([key]) => key !== field));
+
 export function BuildHeader({
   build,
   onUpdated,
@@ -79,11 +83,12 @@ export function BuildHeader({
     }
   }
 
-  function changeStatus(status: BuildStatus) {
+  async function changeStatus(status: BuildStatus) {
     // Switching to Sold fills in today (editable); switching away clears it.
     const sold_at = status === "sold" ? (build.sold_at ?? today()) : null;
     setSoldAt(sold_at ?? "");
-    save({ status, sold_at });
+    // On failure the build keeps its date; the draft must too, or a later blur saves "".
+    if (!(await save({ status, sold_at }))) setSoldAt(build.sold_at ?? "");
   }
 
   async function saveName() {
@@ -192,7 +197,10 @@ export function BuildHeader({
             placeholder="₱0.00"
             onChange={(e) => setPrice(e.target.value)}
             onBlur={savePrice}
-            onKeyDown={saveKeys(() => setPrice(priceText(build.selling_price)))}
+            onKeyDown={saveKeys(() => {
+              setPrice(priceText(build.selling_price));
+              setErrors((e) => without(e, "selling_price"));
+            })}
             aria-invalid={!!errors.selling_price}
             className={`${input(!!errors.selling_price)} tabular-nums`}
           />
@@ -208,7 +216,10 @@ export function BuildHeader({
               value={soldAt}
               onChange={(e) => setSoldAt(e.target.value)}
               onBlur={saveSoldAt}
-              onKeyDown={saveKeys(() => setSoldAt(build.sold_at ?? ""))}
+              onKeyDown={saveKeys(() => {
+                setSoldAt(build.sold_at ?? "");
+                setErrors((e) => without(e, "sold_at"));
+              })}
               aria-invalid={!!errors.sold_at}
               className={input(!!errors.sold_at)}
             />

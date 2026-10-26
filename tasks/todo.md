@@ -273,7 +273,8 @@ all writes send `X-Access-Key`. A 403 clears the saved key and returns the UI to
 **Description:** Postgres on Neon, Django on Render (migrations in the build step, `DEBUG`
 off, new production `SECRET_KEY` and `ACCESS_KEY`), React on Vercel with `VITE_API_URL` and
 a SPA rewrite in `vercel.json`. The admin needs its CSS/JS served in production (`collectstatic`
-plus WhiteNoise, a new dependency to ask about) and a production superuser. You'll need to create the accounts yourself, and I'll walk
+plus WhiteNoise, a new dependency to ask about), a production superuser, and
+`SECURE_PROXY_SSL_HEADER` so the admin login's CSRF check accepts Render's HTTPS proxy. You'll need to create the accounts yourself, and I'll walk
 through each dashboard step with you.
 
 **Acceptance criteria:**

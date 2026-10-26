@@ -155,3 +155,35 @@ test("Esc cancels a rename", () => {
   );
   expect(fetchMock).not.toHaveBeenCalled();
 });
+
+test("a failed switch away from Sold keeps the sold date", async () => {
+  renderHeader(
+    makeBuild({ status: "sold", sold_at: "2026-10-18" }),
+    Response.json({}, { status: 500 }),
+  );
+
+  fireEvent.change(screen.getByLabelText("Status"), {
+    target: { value: "listed" },
+  });
+
+  expect(await screen.findByRole("alert")).toBeTruthy();
+  expect((screen.getByLabelText("Sold on") as HTMLInputElement).value).toBe(
+    "2026-10-18",
+  );
+});
+
+test("Esc on a rejected price also clears its error", async () => {
+  renderHeader(
+    makeBuild(),
+    Response.json({ selling_price: ["Must be 0 or more."] }, { status: 400 }),
+  );
+  const price = screen.getByLabelText("Selling price");
+  fireEvent.change(price, { target: { value: "-1" } });
+  fireEvent.blur(price);
+  await screen.findByText("Must be 0 or more.");
+
+  fireEvent.keyDown(price, { key: "Escape" });
+
+  expect(screen.queryByText("Must be 0 or more.")).toBeNull();
+  expect(price.className).not.toContain("border-loss");
+});

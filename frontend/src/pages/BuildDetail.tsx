@@ -20,9 +20,13 @@ export function BuildDetail() {
   // Bumped after every change; refetching keeps showing the current data meanwhile.
   const [version, setVersion] = useState(0);
   const refresh = useCallback(() => setVersion((v) => v + 1), []);
-  // Header and notes saves return the whole build, totals included: show it directly.
-  const showBuild = (build: Build) =>
+  // Header and notes saves return the whole build, totals included: show it at once.
+  // Then refetch anyway: a GET already in flight (after a part change) may have read
+  // the database before this save, and refreshing makes the page ignore it.
+  const showBuild = (build: Build) => {
     setResult({ id: build.id, result: { kind: "ok", build } });
+    refresh();
+  };
 
   useEffect(() => {
     if (!validId) return;
