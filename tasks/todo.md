@@ -252,7 +252,7 @@ added to `CORS_ALLOW_HEADERS`.
 **Files:** `backend/builds/permissions.py`, `backend/config/settings.py`, `backend/builds/tests.py`
 **Scope:** S
 
-### - [ ] T12: Accounts on the API (owner, token auth, isolation)
+### - [x] T12: Accounts on the API (owner, token auth, isolation)
 
 **Description:** `Build.owner` (FK to Django's `User`, cascade). A migration adds it and gives
 existing builds to the first superuser. DRF token auth (`rest_framework.authtoken`, already
@@ -263,16 +263,16 @@ field only accepts the user's own builds. Sign-up and log-in are throttled per I
 key permission, `ACCESS_KEY` and the `X-Access-Key` CORS header are removed.
 
 **Acceptance criteria:**
-- [ ] Sign up returns a token. Log in with the right password returns one; a wrong one is 400. Log out deletes the token, so it then gets 401.
-- [ ] Without a token, every builds/parts/extra-costs endpoint returns 401.
-- [ ] User B gets 404 for user A's build, part and extra cost (read, PATCH, DELETE), sees none of them in lists, and gets 400 adding a part or cost to A's build.
-- [ ] New builds belong to whoever created them. Existing builds now belong to the superuser.
-- [ ] Too many log-in attempts return 429. Password validator messages come back under `password`.
-- [ ] The auth endpoints are documented in `/api/docs/` (schema test passes).
+- [x] Sign up returns a token. Log in with the right password returns one; a wrong one is 400. Log out deletes the token, so it then gets 401.
+- [x] Without a token, every builds/parts/extra-costs endpoint returns 401.
+- [x] User B gets 404 for user A's build, part and extra cost (read, PATCH, DELETE), sees none of them in lists, and gets 400 adding a part or cost to A's build.
+- [x] New builds belong to whoever created them. Existing builds now belong to the superuser.
+- [x] Too many log-in attempts return 429. Password validator messages come back under `password`.
+- [x] The auth endpoints are documented in `/api/docs/` (schema test passes).
 
 **Verification:**
-- [ ] Standard verification (backend) passes
-- [ ] Manual: `curl` sign up two users and check each sees only their own builds
+- [x] Standard verification (backend) passes
+- [x] Manual: `curl` sign up two users and check each sees only their own builds
 
 **Dependencies:** T11
 **Files:** `backend/builds/models.py` + migration, `backend/builds/views.py`, `backend/builds/serializers.py`, `backend/builds/auth.py` (new), `backend/config/settings.py`, `backend/config/urls.py`, `backend/builds/tests.py`; delete `backend/builds/permissions.py`
