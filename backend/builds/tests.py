@@ -1,6 +1,8 @@
 from decimal import Decimal as D
+from io import StringIO
 
 from django.core.exceptions import ValidationError
+from django.core.management import call_command
 from django.db import IntegrityError, transaction
 from django.test import TestCase
 from rest_framework.test import APITestCase
@@ -336,3 +338,20 @@ class ChildApiTests(APITestCase):
 
         self.assertEqual(res.status_code, 400)
         self.assertEqual(set(res.json()), {"build", "category"})
+
+
+class ApiDocsTests(APITestCase):
+    def test_schema_is_valid_openapi_with_no_warnings(self):
+        # Fails if a view or serializer change leaves the docs broken or ambiguous.
+        call_command("spectacular", "--validate", "--fail-on-warn", stdout=StringIO())
+
+    def test_docs_page_and_schema_are_served(self):
+        self.assertEqual(self.client.get("/api/docs/").status_code, 200)
+        self.assertEqual(self.client.get("/api/schema/").status_code, 200)
+
+    def test_put_is_not_offered(self):
+        build = Build.objects.create(name="B")
+
+        res = self.client.put(f"/api/builds/{build.id}/", {"name": "X"}, format="json")
+
+        self.assertEqual(res.status_code, 405)

@@ -36,7 +36,7 @@ compatibility checks, multiple currencies (amounts are in PHP ₱ only).
 
 | Layer | Choice |
 |---|---|
-| Backend | Python 3.14, Django 6.0, Django REST Framework, django-cors-headers, psycopg 3, dj-database-url, python-dotenv |
+| Backend | Python 3.14, Django 6.0, Django REST Framework, django-cors-headers, psycopg 3, dj-database-url, python-dotenv, drf-spectacular (OpenAPI docs) |
 | Database | PostgreSQL everywhere: local install (dev), Neon free tier (prod). Configured via `DATABASE_URL` |
 | Frontend | React 19 + TypeScript, Vite, Tailwind CSS v4, React Router v8 |
 | Backend tests | Django test runner (`manage.py test`) |
@@ -74,7 +74,9 @@ It is never a float. All prices must be ≥ 0.
 
 ## API
 
-All endpoints are under `/api/`. JSON in, JSON out.
+All endpoints are under `/api/`. JSON in, JSON out. Only `PATCH` is supported for updates (no `PUT`).
+
+**Reference docs:** an OpenAPI 3 schema is generated from the code with drf-spectacular. Interactive docs (Swagger UI) are at `/api/docs/` and the raw schema at `/api/schema/`. This table is the overview, and `/api/docs/` is the source of truth for fields and examples.
 
 | Method | Path | Purpose |
 |---|---|---|
@@ -139,7 +141,7 @@ pip install -r requirements.txt -r requirements-dev.txt
 cp .env.example .env               # one-time; edit values as needed
 createdb pc_flipper_toolkit         # one-time; needs CREATEDB (tests create test_pc_flipper_toolkit)
 python manage.py migrate
-python manage.py runserver          # http://localhost:8000
+python manage.py runserver          # http://localhost:8000 · API docs at /api/docs/
 python manage.py test               # run backend tests
 ruff check . && ruff format .       # lint + format
 ```
@@ -209,7 +211,7 @@ class Build(models.Model):
 
 ## Boundaries
 
-- **Always:** run the backend and frontend tests before every commit; keep money as Decimal (never float); compute totals only on the backend; validate that prices are ≥ 0; keep `SPEC.md` updated when a decision changes.
+- **Always:** run the backend and frontend tests before every commit; keep money as Decimal (never float); compute totals only on the backend; validate that prices are ≥ 0; keep `SPEC.md` updated when a decision changes; document every new or changed endpoint in the same change (summary, description, field `help_text`, and an example for non-trivial responses). The schema test (`spectacular --validate --fail-on-warn`) must pass.
 - **Ask first:** adding any dependency not listed above; changing the data model after the first migration ships; changing the deployment target; adding any feature from Out of scope.
 - **Never:** commit secrets or `.env` files (use environment variables); store money as float; remove or skip a failing test to get to green.
 

@@ -21,6 +21,7 @@ CORS_ALLOWED_ORIGINS = [
 INSTALLED_APPS = [
     "corsheaders",
     "rest_framework",
+    "drf_spectacular",
     "builds",
 ]
 
@@ -28,6 +29,14 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
+]
+
+# Only used by the API docs pages (Swagger UI at /api/docs/).
+TEMPLATES = [
+    {
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "APP_DIRS": True,
+    }
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -51,4 +60,25 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [],
     "DEFAULT_PERMISSION_CLASSES": [],
     "UNAUTHENTICATED_USER": None,
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+}
+
+# OpenAPI schema at /api/schema/, interactive docs at /api/docs/.
+SPECTACULAR_SETTINGS = {
+    "TITLE": "PC Flipper Toolkit API",
+    "DESCRIPTION": (
+        "Track the parts, extra costs and profit of each PC you build and resell.\n\n"
+        '**Money** is always a decimal string with 2 places in PHP (`"12500.00"`), '
+        "never a float.\n\n"
+        "**Totals** are computed by the server and read-only. Fields that depend on "
+        "the selling price are `null` until one is set.\n\n"
+        "**Errors**: invalid input returns `400` with the problem fields as keys, "
+        '`{"listed_price": ["Ensure this value is greater than or equal to 0."]}`. '
+        "A missing id returns `404`."
+    ),
+    "VERSION": "1.0.0",
+    # Separate request/response schemas, so read-only fields (id, totals) don't
+    # show up as inputs.
+    "COMPONENT_SPLIT_REQUEST": True,
+    "SERVE_INCLUDE_SCHEMA": False,
 }
