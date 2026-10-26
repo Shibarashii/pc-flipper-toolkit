@@ -98,7 +98,7 @@ saving, the page refetches the build so the totals update from the server.
 **Verification:**
 - [x] Standard verification passes, including a Vitest test that `Summary` renders the given totals and `null` → "—"
 - [x] Manual (headless screenshots vs. Figma, desktop + 375px, incl. add-part error state)
-- [ ] Manual (author, in a browser): add 3 real parts and check the totals by hand
+- [x] Manual (author, in a browser): add 3 real parts and check the totals by hand
 
 **Dependencies:** T1, T3
 **Files:** `frontend/src/api.ts`, `frontend/src/pages/BuildDetail.tsx`, `frontend/src/components/PartsTable.tsx`, `frontend/src/components/Summary.tsx`, `frontend/src/components/Summary.test.tsx`
@@ -116,7 +116,7 @@ Esc cancels. The row also gets a delete action. It's the same input row componen
 
 **Verification:**
 - [x] Standard verification passes
-- [ ] Manual: edit and delete parts by keyboard and by mouse, on desktop and mobile
+- [x] Manual: edit and delete parts by keyboard and by mouse, on desktop and mobile
 
 **Dependencies:** T4
 **Files:** `frontend/src/components/PartsTable.tsx`, `frontend/src/api.ts`
