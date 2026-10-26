@@ -309,7 +309,7 @@ class ChildApiTests(APITestCase):
             format="json",
         )
         self.assertEqual(res.status_code, 400)
-        self.assertIn("listed_price", res.json())
+        self.assertEqual(res.json()["listed_price"], ["Price can't be negative."])
 
         res = self.client.post(
             "/api/extra-costs/",

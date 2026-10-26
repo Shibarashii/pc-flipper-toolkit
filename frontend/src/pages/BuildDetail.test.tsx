@@ -1,6 +1,7 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router";
 import { afterEach, expect, test, vi } from "vitest";
+import { makeBuild } from "../test/fixtures";
 import { BuildDetail } from "./BuildDetail";
 
 afterEach(() => {
@@ -20,8 +21,7 @@ function renderAt(path: string, response: Response) {
 }
 
 test("shows the build's number and name", async () => {
-  const build = { id: 3, name: "Ryzen 5 7600 + RTX 4060", status: "planning" };
-  renderAt("/builds/3", Response.json(build));
+  renderAt("/builds/3", Response.json(makeBuild()));
 
   expect(await screen.findByText("Ryzen 5 7600 + RTX 4060")).toBeTruthy();
   expect(screen.getByText("Build 03")).toBeTruthy();

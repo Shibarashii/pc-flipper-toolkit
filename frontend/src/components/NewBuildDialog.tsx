@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type SubmitEvent } from "react";
 import { useNavigate } from "react-router";
 import { createBuild } from "../api";
+import { buttonPrimary, buttonSecondary, input } from "../ui";
 
 /** Render only while open; it opens itself as a modal on mount. */
 export function NewBuildDialog({ onClose }: { onClose: () => void }) {
@@ -50,7 +51,7 @@ export function NewBuildDialog({ onClose }: { onClose: () => void }) {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Ryzen 5 7600 + RTX 4060"
-            className="mt-1 block w-full rounded border border-line-strong bg-surface px-3 py-2 text-[15px] font-normal text-ink placeholder:text-faint focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+            className={`mt-1 font-normal ${input()}`}
           />
         </label>
         {error && (
@@ -59,17 +60,13 @@ export function NewBuildDialog({ onClose }: { onClose: () => void }) {
           </p>
         )}
         <div className="mt-6 flex justify-end gap-2">
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded border border-line-strong bg-surface px-4 py-2 text-[14px] font-medium hover:bg-sunken focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-          >
+          <button type="button" onClick={onClose} className={buttonSecondary}>
             Cancel
           </button>
           <button
             type="submit"
             disabled={saving || !name.trim()}
-            className="rounded bg-accent px-4 py-2 text-[14px] font-medium text-on-accent hover:bg-accent-hover disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+            className={buttonPrimary}
           >
             {saving ? "Creating…" : "Create build"}
           </button>

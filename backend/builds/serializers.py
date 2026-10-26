@@ -1,3 +1,4 @@
+from django.db import models
 from rest_framework import serializers
 
 from .models import Build, ExtraCost, Part
@@ -49,7 +50,25 @@ class TotalsSerializer(serializers.Serializer):
 MONEY_INPUT = "Decimal string in PHP, ≥ 0, up to 2 decimal places."
 
 
-class PartSerializer(serializers.ModelSerializer):
+class MoneyField(serializers.DecimalField):
+    # DRF turns the models' MinValueValidator(0) into its own min_value check,
+    # so the plain-language message has to live here.
+    default_error_messages = {
+        **serializers.DecimalField.default_error_messages,
+        "min_value": "Price can't be negative.",
+    }
+
+
+class ModelSerializer(serializers.ModelSerializer):
+    """ModelSerializer whose decimal (money) fields use MoneyField."""
+
+    serializer_field_mapping = {
+        **serializers.ModelSerializer.serializer_field_mapping,
+        models.DecimalField: MoneyField,
+    }
+
+
+class PartSerializer(ModelSerializer):
     class Meta:
         model = Part
         fields = [
@@ -72,7 +91,7 @@ class PartSerializer(serializers.ModelSerializer):
         }
 
 
-class ExtraCostSerializer(serializers.ModelSerializer):
+class ExtraCostSerializer(ModelSerializer):
     class Meta:
         model = ExtraCost
         fields = ["id", "build", "label", "amount"]
@@ -83,7 +102,7 @@ class ExtraCostSerializer(serializers.ModelSerializer):
         }
 
 
-class BuildSerializer(serializers.ModelSerializer):
+class BuildSerializer(ModelSerializer):
     totals = TotalsSerializer(source="*", read_only=True)
 
     class Meta:

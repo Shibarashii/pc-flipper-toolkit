@@ -82,7 +82,7 @@ build id goes in the body). Use `prefetch_related` to avoid N+1 queries.
 
 ## Phase 2: Core flow
 
-### - [ ] T4: Detail page shows parts and the summary, and can add a part
+### - [x] T4: Detail page shows parts and the summary, and can add a part
 
 **Description:** Replace the stub with the real detail page layout (brand guidelines and
 Figma). It has the Summary panel with every total, a parts table (desktop) or stacked cards
@@ -90,14 +90,15 @@ Figma). It has the Summary panel with every total, a parts table (desktop) or st
 saving, the page refetches the build so the totals update from the server.
 
 **Acceptance criteria:**
-- [ ] Summary shows all 8 totals from user story 5. `null` shows as "—", and a negative profit is red with a true minus sign.
-- [ ] A negative `below_market` (selling above market) reads as "₱X above market", not "−₱X below market".
-- [ ] Adding a part updates the table and the totals without a page reload. A server validation error (e.g. a negative price) is shown on that field.
-- [ ] The empty state ("no parts yet") and the loading and error states render.
+- [x] Summary shows all 8 totals from user story 5. `null` shows as "—", and a negative profit is red with a true minus sign.
+- [x] A negative `below_market` (selling above market) reads as "₱X above market", not "−₱X below market".
+- [x] Adding a part updates the table and the totals without a page reload. A server validation error (e.g. a negative price) is shown on that field.
+- [x] The empty state ("no parts yet") and the loading and error states render.
 
 **Verification:**
-- [ ] Standard verification passes, including a Vitest test that `Summary` renders the given totals and `null` → "—"
-- [ ] Manual: add 3 parts at desktop and 375px widths, and check the totals by hand
+- [x] Standard verification passes, including a Vitest test that `Summary` renders the given totals and `null` → "—"
+- [x] Manual (headless screenshots vs. Figma, desktop + 375px, incl. add-part error state)
+- [ ] Manual (author, in a browser): add 3 real parts and check the totals by hand
 
 **Dependencies:** T1, T3
 **Files:** `frontend/src/api.ts`, `frontend/src/pages/BuildDetail.tsx`, `frontend/src/components/PartsTable.tsx`, `frontend/src/components/Summary.tsx`, `frontend/src/components/Summary.test.tsx`

@@ -60,7 +60,7 @@ so their order is flexible.
 **Checkpoint 1:** all tests pass. You can create a build in the UI. `curl /api/builds/1/` shows `parts`, `extra_costs` and `totals`.
 
 ### Phase 2: Core flow, enough to log a real flip
-- [ ] T4: Detail page shows parts and the summary, and can add a part
+- [x] T4: Detail page shows parts and the summary, and can add a part
 - [ ] T5: Edit and delete parts inline
 - [ ] T6: Extra costs: add, edit, delete
 - [ ] T7: Header: status, selling price, sold date, name, notes

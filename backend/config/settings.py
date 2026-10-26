@@ -73,7 +73,7 @@ SPECTACULAR_SETTINGS = {
         "**Totals** are computed by the server and read-only. Fields that depend on "
         "the selling price are `null` until one is set.\n\n"
         "**Errors**: invalid input returns `400` with the problem fields as keys, "
-        '`{"listed_price": ["Ensure this value is greater than or equal to 0."]}`. '
+        '`{"listed_price": ["Price can\'t be negative."]}`. '
         "A missing id returns `404`."
     ),
     "VERSION": "1.0.0",

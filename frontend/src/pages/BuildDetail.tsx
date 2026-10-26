@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
-import { ApiError, getBuild, type Build } from "../api";
-import { StatusTag } from "../components/StatusTag";
+import { ApiError, getBuild, type BuildDetail as Build } from "../api";
 import { buildNo } from "../buildNo";
+import { PartsTable } from "../components/PartsTable";
+import { StatusTag } from "../components/StatusTag";
+import { Summary } from "../components/Summary";
 
 type Result =
   { kind: "error" } | { kind: "not-found" } | { kind: "ok"; build: Build };
@@ -14,6 +16,9 @@ export function BuildDetail() {
   const [result, setResult] = useState<{ id: number; result: Result } | null>(
     null,
   );
+  // Bumped after every change; refetching keeps showing the current data meanwhile.
+  const [version, setVersion] = useState(0);
+  const refresh = useCallback(() => setVersion((v) => v + 1), []);
 
   useEffect(() => {
     if (!validId) return;
@@ -33,7 +38,7 @@ export function BuildDetail() {
     return () => {
       ignore = true;
     };
-  }, [id, validId]);
+  }, [id, validId, version]);
 
   const state: Result | { kind: "loading" } = !validId
     ? { kind: "not-found" }
@@ -42,12 +47,12 @@ export function BuildDetail() {
       : { kind: "loading" };
 
   return (
-    <main className="mx-auto max-w-5xl px-4 pt-7 pb-10 sm:px-8 sm:pt-12">
+    <main className="mx-auto max-w-[1216px] px-4 pt-6 pb-10 sm:px-8 sm:pt-8">
       <Link
         to="/"
-        className="text-[13px] font-medium text-muted hover:text-ink"
+        className="text-[13px] leading-[18px] font-medium text-muted hover:text-ink"
       >
-        ← Builds
+        ← All builds
       </Link>
 
       {state.kind === "loading" && (
@@ -79,14 +84,32 @@ export function BuildDetail() {
 
       {state.kind === "ok" && (
         <>
-          <p className="mt-4 text-[13px] text-muted">
-            Build {buildNo(state.build.id)}
-          </p>
-          <div className="mt-1 flex flex-wrap items-center gap-3">
-            <h1 className="font-serif text-[40px] leading-[44px] font-medium tracking-[-0.01em]">
-              {state.build.name}
-            </h1>
+          <div className="mt-2.5 flex items-center gap-2.5 pt-2">
             <StatusTag status={state.build.status} />
+            <span className="text-[13px] leading-[18px] text-muted">
+              Build {buildNo(state.build.id)}
+            </span>
+          </div>
+          <h1 className="mt-2.5 font-serif text-[40px] leading-[44px] font-medium tracking-[-0.01em]">
+            {state.build.name}
+          </h1>
+
+          {/* Mobile: summary first. Desktop: summary is the right-hand column. */}
+          <div className="mt-8 grid gap-8 sm:mt-12 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-14">
+            <div className="lg:col-start-2 lg:row-start-1">
+              <Summary
+                totals={state.build.totals}
+                sellingPrice={state.build.selling_price}
+              />
+            </div>
+            <div className="min-w-0 lg:col-start-1 lg:row-start-1">
+              <PartsTable
+                buildId={state.build.id}
+                parts={state.build.parts}
+                totals={state.build.totals}
+                onChanged={refresh}
+              />
+            </div>
           </div>
         </>
       )}

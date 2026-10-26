@@ -5,6 +5,7 @@ import { buildNo } from "../buildNo";
 import { NewBuildDialog } from "../components/NewBuildDialog";
 import { StatusTag } from "../components/StatusTag";
 import { formatMoney } from "../money";
+import { buttonPrimary } from "../ui";
 
 export function BuildsList() {
   const [builds, setBuilds] = useState<Build[] | null>(null);
@@ -38,7 +39,7 @@ export function BuildsList() {
         <button
           type="button"
           onClick={() => setCreating(true)}
-          className="shrink-0 rounded bg-accent px-4 py-2 text-[14px] font-medium text-on-accent hover:bg-accent-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+          className={`shrink-0 ${buttonPrimary}`}
         >
           New build
         </button>
