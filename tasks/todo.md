@@ -183,24 +183,24 @@ date (editable), and switching away clears it. The notes textarea under Extra co
 **Files:** `frontend/src/pages/BuildsList.tsx`, `frontend/src/api.ts`
 **Scope:** S
 
-### - [ ] T9: Delete a build with confirmation
+### - [x] T9: Delete a build with confirmation
 
 **Description:** A "Delete build" action on the detail page opens a dialog that names how many
 parts and extra costs will be deleted with it. Confirming deletes the build and returns to the list.
 
 **Acceptance criteria:**
-- [ ] The dialog text includes the correct counts (e.g. "7 parts and 2 extra costs").
-- [ ] Cancel does nothing. Confirm deletes the build and navigates to `/`, and the build is gone from the list.
+- [x] The dialog text includes the correct counts (e.g. "7 parts and 2 extra costs").
+- [x] Cancel does nothing. Confirm deletes the build and navigates to `/`, and the build is gone from the list.
 
 **Verification:**
-- [ ] Standard verification passes
-- [ ] Manual: delete a build that has parts, then check `curl /api/parts/` no longer shows them
+- [x] Standard verification passes
+- [x] Manual: delete a build that has parts, then check `curl /api/parts/` no longer shows them
 
 **Dependencies:** T4
 **Files:** `frontend/src/pages/BuildDetail.tsx`, `frontend/src/components/ConfirmDialog.tsx`, `frontend/src/api.ts`
 **Scope:** S
 
-### - [ ] T10: Build checklist (part slots + case diagram)
+### - [x] T10: Build checklist (part slots + case diagram)
 
 **Description:** The Build section above Parts shows a case diagram and a checklist of the 8
 slots, computed in the frontend from the parts list. Six slots are required (CPU, Motherboard,
@@ -208,13 +208,13 @@ RAM, Storage, PSU, Case); Cooler and GPU are optional. It shows "N of 6 required
 progress bar. An "Add" link opens the add-part row with that category preselected.
 
 **Acceptance criteria:**
-- [ ] A slot is filled when there's ≥ 1 part in its category. `other` parts don't appear. Optional slots never count as missing.
-- [ ] The count and progress bar are correct for 0, some, and all 6 required parts.
-- [ ] "Add" on a slot opens the add row with the category preselected.
+- [x] A slot is filled when there's ≥ 1 part in its category. `other` parts don't appear. Optional slots never count as missing.
+- [x] The count and progress bar are correct for 0, some, and all 6 required parts.
+- [x] "Add" on a slot opens the add row with the category preselected.
 
 **Verification:**
-- [ ] Standard verification passes, including a Vitest test of the slot computation (pure function)
-- [ ] Manual: compare with the Figma frame at desktop and mobile widths
+- [x] Standard verification passes, including a Vitest test of the slot computation (pure function)
+- [x] Manual: compare with the Figma frame at desktop and mobile widths
 
 **Dependencies:** T4
 **Files:** `frontend/src/components/BuildChecklist.tsx`, `frontend/src/slots.ts`, `frontend/src/slots.test.ts`, `frontend/src/pages/BuildDetail.tsx`
