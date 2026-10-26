@@ -6,6 +6,8 @@ import { defineConfig } from "vite";
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
+    // Listen on the LAN too, so a phone on the same Wi-Fi can open the dev site.
+    host: true,
     proxy: { "/api": "http://localhost:8000" },
   },
   test: {

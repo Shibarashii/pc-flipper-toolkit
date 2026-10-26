@@ -154,6 +154,7 @@ Frontend (from `frontend/`):
 npm install
 cp .env.example .env               # one-time; set VITE_API_URL in production
 npm run dev                         # http://localhost:5173, proxies /api → :8000
+                                    # phone on the same Wi-Fi: use the "Network" URL it prints
 npm test                            # vitest run
 npm run lint                        # eslint
 npm run build                       # production build into dist/
