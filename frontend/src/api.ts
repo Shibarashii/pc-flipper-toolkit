@@ -103,6 +103,16 @@ export const createBuild = (name: string) =>
     body: JSON.stringify({ name }),
   });
 
+export type BuildPatch = Partial<
+  Pick<Build, "name" | "status" | "selling_price" | "sold_at" | "notes">
+>;
+
+export const updateBuild = (id: number, patch: BuildPatch) =>
+  request<BuildDetail>(`/builds/${id}/`, {
+    method: "PATCH",
+    body: JSON.stringify(patch),
+  });
+
 export const createPart = (part: NewPart) =>
   request<Part>("/parts/", { method: "POST", body: JSON.stringify(part) });
 

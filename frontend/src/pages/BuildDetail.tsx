@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
 import { ApiError, getBuild, type BuildDetail as Build } from "../api";
-import { buildNo } from "../buildNo";
+import { BuildHeader } from "../components/BuildHeader";
 import { ExtraCosts } from "../components/ExtraCosts";
+import { Notes } from "../components/Notes";
 import { PartsTable } from "../components/PartsTable";
-import { StatusTag } from "../components/StatusTag";
 import { Summary } from "../components/Summary";
 
 type Result =
@@ -20,6 +20,9 @@ export function BuildDetail() {
   // Bumped after every change; refetching keeps showing the current data meanwhile.
   const [version, setVersion] = useState(0);
   const refresh = useCallback(() => setVersion((v) => v + 1), []);
+  // Header and notes saves return the whole build, totals included: show it directly.
+  const showBuild = (build: Build) =>
+    setResult({ id: build.id, result: { kind: "ok", build } });
 
   useEffect(() => {
     if (!validId) return;
@@ -85,15 +88,12 @@ export function BuildDetail() {
 
       {state.kind === "ok" && (
         <>
-          <div className="mt-2.5 flex items-center gap-2.5 pt-2">
-            <StatusTag status={state.build.status} />
-            <span className="text-[13px] leading-[18px] text-muted">
-              Build {buildNo(state.build.id)}
-            </span>
-          </div>
-          <h1 className="mt-2.5 font-serif text-[40px] leading-[44px] font-medium tracking-[-0.01em]">
-            {state.build.name}
-          </h1>
+          <BuildHeader
+            // Remount per build so the drafts (name, price, date) start from its values.
+            key={state.build.id}
+            build={state.build}
+            onUpdated={showBuild}
+          />
 
           {/* Below 1280px: summary first, stacked. Wider: summary is the right-hand column
               (narrower than that, the add-part row gets too cramped). */}
@@ -116,6 +116,11 @@ export function BuildDetail() {
                 costs={state.build.extra_costs}
                 total={state.build.totals.extra_costs}
                 onChanged={refresh}
+              />
+              <Notes
+                key={state.build.id}
+                build={state.build}
+                onUpdated={showBuild}
               />
             </div>
           </div>

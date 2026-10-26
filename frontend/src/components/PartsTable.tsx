@@ -10,10 +10,9 @@ import {
   type PartCategory,
   type Totals,
 } from "../api";
-import chevron from "../assets/chevron.svg";
 import { formatMoney } from "../money";
 import { buttonPrimary, buttonSecondary, input } from "../ui";
-import { cleanMoney, Field, RowActions } from "./form";
+import { cleanMoney, Field, RowActions, Select } from "./form";
 
 const EMPTY = {
   name: "",
@@ -302,30 +301,21 @@ function PartForm({
             labelClass={layout.label}
             className={layout.category}
           >
-            <div className="relative">
-              <select
-                value={form.category}
-                onChange={(e) => set("category")(e.target.value)}
-                aria-invalid={!!errors.category}
-                className={`${input(!!errors.category)} appearance-none pr-8 ${form.category ? "" : "text-faint"}`}
-              >
-                <option value="" disabled>
-                  Category
+            <Select
+              value={form.category}
+              onChange={(e) => set("category")(e.target.value)}
+              error={!!errors.category}
+              className={form.category ? "" : "text-faint"}
+            >
+              <option value="" disabled>
+                Category
+              </option>
+              {Object.entries(CATEGORIES).map(([value, label]) => (
+                <option key={value} value={value} className="text-ink">
+                  {label}
                 </option>
-                {Object.entries(CATEGORIES).map(([value, label]) => (
-                  <option key={value} value={value} className="text-ink">
-                    {label}
-                  </option>
-                ))}
-              </select>
-              <img
-                src={chevron}
-                alt=""
-                width={16}
-                height={16}
-                className="pointer-events-none absolute top-1/2 right-2.5 -translate-y-1/2"
-              />
-            </div>
+              ))}
+            </Select>
           </Field>
           <div className="flex gap-3 sm:contents">
             <Field

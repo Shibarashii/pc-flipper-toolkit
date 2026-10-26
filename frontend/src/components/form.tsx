@@ -1,8 +1,9 @@
 // Pieces shared by the inline add/edit forms for parts and extra costs.
-import type { ReactNode } from "react";
+import type { ComponentProps, ReactNode } from "react";
+import chevron from "../assets/chevron.svg";
 import pencil from "../assets/pencil.svg";
 import trash from "../assets/trash.svg";
-import { iconButton } from "../ui";
+import { iconButton, input } from "../ui";
 
 /** "₱12,500" → "12500": people type (or paste from shops) the peso sign and
  * thousands separators; the API accepts neither. */
@@ -22,9 +23,9 @@ export function RowActions({
 }) {
   return (
     <div className="flex gap-0.5">
-      <IconButton icon={pencil} label={`Edit ${name}`} onClick={onEdit} />
+      <IconButton action="edit" label={`Edit ${name}`} onClick={onEdit} />
       <IconButton
-        icon={trash}
+        action="delete"
         label={`Delete ${name}`}
         onClick={onDelete}
         disabled={deleting}
@@ -33,13 +34,14 @@ export function RowActions({
   );
 }
 
-function IconButton({
-  icon,
+/** A 28×28 pencil or trash button. `label` is its accessible name. */
+export function IconButton({
+  action,
   label,
   onClick,
   disabled = false,
 }: {
-  icon: string;
+  action: "edit" | "delete";
   label: string;
   onClick: () => void;
   disabled?: boolean;
@@ -53,7 +55,12 @@ function IconButton({
       disabled={disabled}
       className={iconButton}
     >
-      <img src={icon} alt="" width={16} height={16} />
+      <img
+        src={action === "edit" ? pencil : trash}
+        alt=""
+        width={16}
+        height={16}
+      />
     </button>
   );
 }
@@ -88,6 +95,30 @@ export function Field({
           {message}
         </p>
       ))}
+    </div>
+  );
+}
+
+/** A native <select> styled like the inputs, with the brand chevron. */
+export function Select({
+  error = false,
+  className = "",
+  ...props
+}: ComponentProps<"select"> & { error?: boolean }) {
+  return (
+    <div className="relative">
+      <select
+        {...props}
+        aria-invalid={error}
+        className={`${input(error)} appearance-none pr-8 ${className}`}
+      />
+      <img
+        src={chevron}
+        alt=""
+        width={16}
+        height={16}
+        className="pointer-events-none absolute top-1/2 right-2.5 -translate-y-1/2"
+      />
     </div>
   );
 }
