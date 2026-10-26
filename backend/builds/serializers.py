@@ -55,7 +55,7 @@ class MoneyField(serializers.DecimalField):
     # so the plain-language message has to live here.
     default_error_messages = {
         **serializers.DecimalField.default_error_messages,
-        "min_value": "Price can't be negative.",
+        "min_value": "Must be 0 or more.",
     }
 
 

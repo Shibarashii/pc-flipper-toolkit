@@ -114,3 +114,20 @@ export const updatePart = (id: number, patch: Partial<NewPart>) =>
 
 export const deletePart = (id: number) =>
   request<null>(`/parts/${id}/`, { method: "DELETE" });
+
+export type NewExtraCost = Omit<ExtraCost, "id">;
+
+export const createExtraCost = (cost: NewExtraCost) =>
+  request<ExtraCost>("/extra-costs/", {
+    method: "POST",
+    body: JSON.stringify(cost),
+  });
+
+export const updateExtraCost = (id: number, patch: Partial<NewExtraCost>) =>
+  request<ExtraCost>(`/extra-costs/${id}/`, {
+    method: "PATCH",
+    body: JSON.stringify(patch),
+  });
+
+export const deleteExtraCost = (id: number) =>
+  request<null>(`/extra-costs/${id}/`, { method: "DELETE" });

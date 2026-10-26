@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
 import { ApiError, getBuild, type BuildDetail as Build } from "../api";
 import { buildNo } from "../buildNo";
+import { ExtraCosts } from "../components/ExtraCosts";
 import { PartsTable } from "../components/PartsTable";
 import { StatusTag } from "../components/StatusTag";
 import { Summary } from "../components/Summary";
@@ -103,11 +104,17 @@ export function BuildDetail() {
                 sellingPrice={state.build.selling_price}
               />
             </div>
-            <div className="min-w-0 xl:col-start-1 xl:row-start-1">
+            <div className="flex min-w-0 flex-col gap-12 xl:col-start-1 xl:row-start-1">
               <PartsTable
                 buildId={state.build.id}
                 parts={state.build.parts}
                 totals={state.build.totals}
+                onChanged={refresh}
+              />
+              <ExtraCosts
+                buildId={state.build.id}
+                costs={state.build.extra_costs}
+                total={state.build.totals.extra_costs}
                 onChanged={refresh}
               />
             </div>

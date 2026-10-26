@@ -72,13 +72,10 @@ test("adding a part posts it (without ₱ or separators) and refreshes", async (
 
 test("a server validation error is shown on its field", async () => {
   const { onChanged } = setup(
-    Response.json(
-      { bought_for: ["Price can't be negative."] },
-      { status: 400 },
-    ),
+    Response.json({ bought_for: ["Must be 0 or more."] }, { status: 400 }),
   );
 
-  expect(await screen.findByText("Price can't be negative.")).toBeTruthy();
+  expect(await screen.findByText("Must be 0 or more.")).toBeTruthy();
   expect(screen.getByLabelText("Bought for").className).toContain(
     "border-loss",
   );

@@ -1,4 +1,4 @@
-import { useRef, useState, type ReactNode, type SubmitEvent } from "react";
+import { useRef, useState, type SubmitEvent } from "react";
 import {
   ApiError,
   CATEGORIES,
@@ -11,10 +11,9 @@ import {
   type Totals,
 } from "../api";
 import chevron from "../assets/chevron.svg";
-import pencil from "../assets/pencil.svg";
-import trash from "../assets/trash.svg";
 import { formatMoney } from "../money";
-import { buttonPrimary, buttonSecondary, iconButton, input } from "../ui";
+import { buttonPrimary, buttonSecondary, input } from "../ui";
+import { cleanMoney, Field, RowActions } from "./form";
 
 const EMPTY = {
   name: "",
@@ -23,10 +22,6 @@ const EMPTY = {
   listed_price: "",
   bought_for: "",
 };
-
-/** "₱12,500" → "12500": people type (or paste from shops) the peso sign and
- * thousands separators; the API accepts neither. */
-const cleanMoney = (value: string) => value.replace(/[₱,]/g, "").trim();
 
 export function PartsTable({
   buildId,
@@ -403,15 +398,12 @@ function PartItem({
 }) {
   const category = CATEGORIES[part.category];
   const actions = (
-    <div className="flex gap-0.5">
-      <IconButton icon={pencil} label={`Edit ${part.name}`} onClick={onEdit} />
-      <IconButton
-        icon={trash}
-        label={`Delete ${part.name}`}
-        onClick={onDelete}
-        disabled={deleting}
-      />
-    </div>
+    <RowActions
+      name={part.name}
+      deleting={deleting}
+      onEdit={onEdit}
+      onDelete={onDelete}
+    />
   );
   return (
     <li className="border-b border-line py-3.5 sm:py-3">
@@ -464,64 +456,5 @@ function PartItem({
         {actions}
       </div>
     </li>
-  );
-}
-
-function IconButton({
-  icon,
-  label,
-  onClick,
-  disabled = false,
-}: {
-  icon: string;
-  label: string;
-  onClick: () => void;
-  disabled?: boolean;
-}) {
-  return (
-    <button
-      type="button"
-      aria-label={label}
-      title={label}
-      onClick={onClick}
-      disabled={disabled}
-      className={iconButton}
-    >
-      <img src={icon} alt="" width={16} height={16} />
-    </button>
-  );
-}
-
-function Field({
-  label,
-  errors,
-  labelClass,
-  className = "",
-  children,
-}: {
-  label: string;
-  errors?: string[];
-  /** Extra classes for the label text, e.g. "sm:sr-only" on the compact add row. */
-  labelClass: string;
-  className?: string;
-  children: ReactNode;
-}) {
-  // Errors sit outside the <label> so they aren't read as part of the field's name.
-  return (
-    <div className={`flex flex-col gap-1.5 ${className}`}>
-      <label className="flex flex-col gap-1.5">
-        <span
-          className={`text-[13px] leading-[18px] font-medium text-muted ${labelClass}`}
-        >
-          {label}
-        </span>
-        {children}
-      </label>
-      {errors?.map((message) => (
-        <p key={message} className="text-[13px] leading-[18px] text-loss">
-          {message}
-        </p>
-      ))}
-    </div>
   );
 }
