@@ -4,13 +4,14 @@ Source of intent: [docs/intent/pc-flipper-toolkit.md](docs/intent/pc-flipper-too
 
 ## Objective
 
-A web app for one person who buys PC parts, assembles them, and sells the whole PC.
-Each flip is a **build**. For every build the app shows what the parts are worth on the
+A web app for people who buy PC parts, assemble them, and sell the whole PC. Each person
+signs up for their own account and sees only their own builds. Each flip is a **build**. For every build the app shows what the parts are worth on the
 market, what they actually cost, the true profit after extra costs, and how far below
 market the PC is priced. It replaces the author's spreadsheet.
 
 ### User stories
 
+0. I can sign up with a username and password, log in, and log out. I only ever see my own builds.
 1. I can create a build with a name and see it in a list of all my builds.
 2. I can add parts to a build: name, category, shop, **listed price** (market price, e.g. Shopee) and **bought for** (what I actually paid).
 3. I can add extra costs to a build: a label and an amount (shipping, platform fee, thermal paste, cables).
@@ -29,8 +30,9 @@ market the PC is priced. It replaces the author's spreadsheet.
 8. Everything works on a phone-sized screen.
 
 ### Out of scope (v1)
-Price scraping, voucher detection, buyer-only build mode, multiple users or accounts, part
-compatibility checks, multiple currencies (amounts are in PHP ₱ only).
+Price scraping, voucher detection, buyer-only build mode, part compatibility checks,
+multiple currencies (amounts are in PHP ₱ only). For accounts: email, password reset,
+sharing a build with another user, a public demo account, and social login.
 
 ## Tech Stack
 
@@ -50,6 +52,7 @@ Exact versions get pinned in `requirements.txt` / `package.json` when the projec
 
 ```
 Build
+  owner           User (Django's built-in user), deleted with it
   name            text
   status          planning | building | listed | sold   (default planning)
   selling_price   decimal(10,2), nullable
@@ -69,6 +72,8 @@ ExtraCost        (belongs to Build, deleted with it)
   amount          decimal(10,2)
 ```
 
+Existing builds (made before accounts) are given to the first superuser by the migration.
+
 Money is always `Decimal` in Python and serialized as a string in JSON (`"12500.00"`).
 It is never a float. All prices must be ≥ 0.
 
@@ -78,10 +83,14 @@ All endpoints are under `/api/`. JSON in, JSON out. Only `PATCH` is supported fo
 
 **Reference docs:** an OpenAPI 3 schema is generated from the code with drf-spectacular. Interactive docs (Swagger UI) are at `/api/docs/` and the raw schema at `/api/schema/`. This table is the overview, and `/api/docs/` is the source of truth for fields and examples.
 
-**Admin:** the Django admin at `/admin/` can browse and fix builds, parts and extra costs directly. Logging in needs a superuser (`python manage.py createsuperuser`). The API itself still has no users.
+**Admin:** the Django admin at `/admin/` can browse and fix builds, parts and extra costs directly. Logging in needs a superuser (`python manage.py createsuperuser`). The admin shows every user's builds.
 
 | Method | Path | Purpose |
 |---|---|---|
+| POST | `/api/auth/signup/` | Create an account (`username`, `password`) → `{token, username}` |
+| POST | `/api/auth/login/` | Log in → `{token, username}` |
+| POST | `/api/auth/logout/` | Delete the current token |
+| GET | `/api/auth/me/` | The logged-in user (`{username}`) |
 | GET, POST | `/api/builds/` | List builds (with totals) / create a build |
 | GET, PATCH, DELETE | `/api/builds/{id}/` | Build detail, including `parts`, `extra_costs` and `totals` |
 | POST | `/api/parts/` | Add a part (`build` id in the body) |
@@ -100,14 +109,22 @@ All endpoints are under `/api/`. JSON in, JSON out. Only `PATCH` is supported fo
 `profit`, `profit_margin`, `below_market` and `below_market_pct` are `null` when there's no
 selling price yet. The percentage fields are also `null` when they would divide by zero.
 
-**Access key (write protection):** anyone can make GET requests. Requests that change data
-(POST/PATCH/DELETE) must include the header `X-Access-Key`, and it must match the `ACCESS_KEY`
-env var on the server. Otherwise the server returns 403. The frontend asks for the key once,
-saves it in `localStorage`, and hides the edit controls when it's missing. This gets built
-just before deployment, not first.
+**Accounts and auth:** every endpoint except sign-up and log-in needs
+`Authorization: Token <token>` (DRF's built-in token auth); without it the API returns 401.
+Token auth rather than session cookies because the frontend (Vercel) and API (Render) are on
+different sites, where browsers block or restrict cookies. Signing up or logging in returns
+the token; the frontend keeps it in `localStorage`. Logging out deletes it on the server.
+Passwords go through Django's password validators. Sign-up and log-in are rate-limited per IP.
+
+Every user sees and changes only their own data: builds are filtered by `owner`, and parts
+and extra costs by their build's owner. Another user's build, part or cost returns 404 (not
+403, so ids don't reveal what exists), and a part or cost can't be added to another user's
+build (400). A part or cost can't be moved to another build.
 
 ## Screens
 
+0. **Log in** (`/login`) and **Sign up** (`/signup`): username and password, linking to each other. Logged out, every other page redirects here; logging in goes to the builds list.
+   - The header shows the username and "Log out" when logged in.
 1. **Builds list** (`/`): one card or row per build showing name, status badge, total cost, selling price and profit (green if positive, red if negative). Has a "New build" button.
    - "New build" opens a dialog that asks only for the name. Creating it goes straight to the new build's detail page.
 2. **Build detail** (`/builds/:id`):
@@ -127,7 +144,8 @@ just before deployment, not first.
 States each screen must handle:
 - **Builds list:** no builds yet (message plus "New build").
 - **Build detail:** no parts or extra costs yet, no selling price (profit and margin show "—"), a loss (red), and a validation error on a field (e.g. negative price).
-- **Both:** loading, request failed, and read-only mode when no access key is saved. Read-only hides every edit control and shows an "Unlock editing" button in the header, which opens a dialog asking for the key.
+- **Both:** loading and request failed. A 401 (token deleted or expired) logs out and goes to `/login` with "Your session ended. Log in again."
+- **Log in / sign up:** wrong username or password, username taken, password rejected by the validators (their messages, under the field), and too many attempts (429).
 
 Visual design (colors, type, components, light/dark) follows [docs/brand-guidelines.md](docs/brand-guidelines.md).
 Builds are labeled `Build 01` (id zero-padded to 2 digits) in the UI.
@@ -207,6 +225,7 @@ class Build(models.Model):
 ## Testing Strategy
 
 - **Backend (this is where most tests go):** `builds/tests.py`
+  - Accounts: sign up, log in, log out; and isolation: one user can't list, read, edit or delete another user's builds, parts or extra costs, or add a part to their build.
   - Every value in `totals`, including edge cases: no parts, no selling price, selling price of 0, a negative profit (a loss), and decimal rounding.
   - API: create, read, update and delete for builds, parts and extra costs; rejects negative prices; deleting a build also deletes its parts and extra costs.
 - **Frontend:** a small set of Vitest tests: `₱` formatting, and the Summary component rendering the totals it's given (including `null` → "—").
@@ -223,7 +242,7 @@ class Build(models.Model):
 
 1. One real flip, with at least 6 parts and 2 extra costs, can be entered end to end, and its profit matches a hand calculation to the centavo.
 2. Every value in `totals` is covered by backend tests, and all tests pass.
-3. On the live site, a write request without the access key is rejected (403), and reads still work.
+3. On the live site, every request without a login is rejected (401), and two accounts never see each other's builds.
 4. The builds list and build detail pages are usable at 375px width without horizontal scrolling.
 5. The frontend is live on Vercel and the API on Render, both reachable by public link, and data survives a backend restart or redeploy.
 6. The README has a screenshot, the live link, and setup steps that work on a fresh clone.
@@ -231,7 +250,7 @@ class Build(models.Model):
 ## Open Questions
 
 None. Resolved: TypeScript (yes), `sold_at` (keep), PostgreSQL in dev and prod (yes), and
-write protection through an access key (yes).
+multiple users with their own accounts (yes; this replaced the earlier single-user access key).
 
 Build order preference: keep it minimal and visible. Get the smallest working page on screen
 first, then add features one at a time.

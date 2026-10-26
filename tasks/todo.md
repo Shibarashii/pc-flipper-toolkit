@@ -227,9 +227,12 @@ progress bar. An "Add" link opens the add-part row with that category preselecte
 
 ---
 
-## Phase 4: Protect and ship
+## Phase 4: Accounts and ship
 
 ### - [x] T11: Access key on the API
+
+> **Superseded by T12 (multi-user accounts).** The access key is removed there; the
+> no-moving-parts/costs check stays.
 
 **Description:** A DRF permission class lets GET/HEAD/OPTIONS through, and requires the
 `X-Access-Key` header to equal `settings.ACCESS_KEY` for writes (compared with
@@ -249,29 +252,60 @@ added to `CORS_ALLOW_HEADERS`.
 **Files:** `backend/builds/permissions.py`, `backend/config/settings.py`, `backend/builds/tests.py`
 **Scope:** S
 
-### - [ ] T12: Read-only mode and the "Unlock editing" dialog
+### - [ ] T12: Accounts on the API (owner, token auth, isolation)
 
-**Description:** With no saved key, the UI hides every edit control and shows "Unlock
-editing" in the header. The dialog saves the key to `localStorage` (wrapped in try/catch), and
-all writes send `X-Access-Key`. A 403 clears the saved key and returns the UI to read-only mode with a message.
+**Description:** `Build.owner` (FK to Django's `User`, cascade). A migration adds it and gives
+existing builds to the first superuser. DRF token auth (`rest_framework.authtoken`, already
+installed with DRF, no new dependency) replaces the access key: `POST /api/auth/signup/`,
+`/login/`, `/logout/` and `GET /api/auth/me/`. Every other endpoint needs a token. Querysets
+are filtered to the user's own builds (parts and costs through their build), and the `build`
+field only accepts the user's own builds. Sign-up and log-in are throttled per IP. The access
+key permission, `ACCESS_KEY` and the `X-Access-Key` CORS header are removed.
 
 **Acceptance criteria:**
-- [ ] Without a key, there are no add, edit or delete controls on either screen, and "Unlock editing" is visible.
-- [ ] `request()` in `api.ts` merges headers (`Content-Type` plus `X-Access-Key`) instead of replacing them (checkpoint 1 review, #3).
-- [ ] Entering the correct key enables editing, and it persists after a reload. A wrong key shows an error on the first write and goes back to read-only.
+- [ ] Sign up returns a token. Log in with the right password returns one; a wrong one is 400. Log out deletes the token, so it then gets 401.
+- [ ] Without a token, every builds/parts/extra-costs endpoint returns 401.
+- [ ] User B gets 404 for user A's build, part and extra cost (read, PATCH, DELETE), sees none of them in lists, and gets 400 adding a part or cost to A's build.
+- [ ] New builds belong to whoever created them. Existing builds now belong to the superuser.
+- [ ] Too many log-in attempts return 429. Password validator messages come back under `password`.
+- [ ] The auth endpoints are documented in `/api/docs/` (schema test passes).
+
+**Verification:**
+- [ ] Standard verification (backend) passes
+- [ ] Manual: `curl` sign up two users and check each sees only their own builds
+
+**Dependencies:** T11
+**Files:** `backend/builds/models.py` + migration, `backend/builds/views.py`, `backend/builds/serializers.py`, `backend/builds/auth.py` (new), `backend/config/settings.py`, `backend/config/urls.py`, `backend/builds/tests.py`; delete `backend/builds/permissions.py`
+**Scope:** M
+
+### - [ ] T13: Log in and sign up screens
+
+**Description:** `/login` and `/signup` pages (username, password; linking to each other).
+Logged out, every other route redirects to `/login`. The token is kept in `localStorage`
+(wrapped in try/catch) and sent as `Authorization: Token …`. A 401 logs out and returns to
+`/login` with "Your session ended. Log in again." The header shows the username and "Log out".
+There are no Figma frames for these, so they follow the brand guidelines and the existing
+dialogs' form style. Replaces the read-only mode / "Unlock editing" work (the unmerged
+`feat/12-read-only-mode` branch); its `request()` header merging is kept.
+
+**Acceptance criteria:**
+- [ ] Logged out, `/` and `/builds/:id` redirect to `/login`. After logging in, the builds list shows only that user's builds.
+- [ ] Sign-up and log-in errors show under the right field (wrong password, username taken, weak password); a 429 shows "Too many attempts. Wait a minute and try again."
+- [ ] `request()` in `api.ts` merges headers (`Content-Type` plus `Authorization`) instead of replacing them (checkpoint 1 review, #3).
+- [ ] Logging in persists after a reload. Log out returns to `/login`. A 401 mid-session logs out with the message.
 
 **Verification:**
 - [ ] Standard verification passes
-- [ ] Manual: use a private window (no key) vs. the normal window (key saved)
+- [ ] Manual: two accounts in two browsers (normal + private window) never see each other's builds; check at 375px
 
-**Dependencies:** T11, and the edit controls from T4–T10
-**Files:** `frontend/src/api.ts`, `frontend/src/accessKey.ts`, `frontend/src/App.tsx`, `frontend/src/components/UnlockDialog.tsx`
+**Dependencies:** T12
+**Files:** `frontend/src/api.ts`, `frontend/src/auth.ts`, `frontend/src/App.tsx`, `frontend/src/pages/Login.tsx` (log in + sign up), tests
 **Scope:** M
 
-### - [ ] T13: Deploy (Neon + Render + Vercel)
+### - [ ] T14: Deploy (Neon + Render + Vercel)
 
 **Description:** Postgres on Neon, Django on Render (migrations in the build step, `DEBUG`
-off, new production `SECRET_KEY` and `ACCESS_KEY`), React on Vercel with `VITE_API_URL` and
+off, new production `SECRET_KEY`), React on Vercel with `VITE_API_URL` and
 a SPA rewrite in `vercel.json`. The admin needs its CSS/JS served in production (`collectstatic`
 plus WhiteNoise, a new dependency to ask about), a production superuser, and
 `SECURE_PROXY_SSL_HEADER` so the admin login's CSRF check accepts Render's HTTPS proxy. You'll need to create the accounts yourself, and I'll walk
@@ -279,18 +313,18 @@ through each dashboard step with you.
 
 **Acceptance criteria:**
 - [ ] The live frontend loads builds from the live API, and a deep link to `/builds/<id>` works on refresh.
-- [ ] A write without the key returns 403 on the live API. With the key, a write from the Vercel site succeeds (CORS ok).
+- [ ] A request without a token returns 401 on the live API. Signing up and adding a build from the Vercel site works (CORS ok).
 - [ ] Data survives a Render redeploy.
 
 **Verification:**
-- [ ] `curl -X POST <api>/api/builds/` → 403. `curl <api>/api/builds/` → 200
+- [ ] `curl <api>/api/builds/` → 401. With a token from `curl -X POST <api>/api/auth/login/` → 200
 - [ ] Manual: phone plus desktop on the live URLs
 
-**Dependencies:** T12
+**Dependencies:** T13
 **Files:** `backend/requirements.txt` (WSGI server, asks first), `backend/config/settings.py`, `frontend/vercel.json`, `render.yaml` (optional)
 **Scope:** M
 
-### - [ ] T14: README with screenshot, live links, setup
+### - [ ] T15: README with screenshot, live links, setup
 
 **Acceptance criteria:**
 - [ ] The README has a one-paragraph pitch, a screenshot, the live app and API links, the stack, and setup steps.
@@ -300,7 +334,7 @@ through each dashboard step with you.
 **Verification:**
 - [ ] Manual: follow the README from a fresh `git clone` in a scratch directory
 
-**Dependencies:** T13
+**Dependencies:** T14
 **Files:** `README.md`, `docs/screenshot.png`
 **Scope:** S
 

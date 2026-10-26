@@ -24,9 +24,11 @@ Full task details (acceptance criteria, verification, files) are in [todo.md](to
   using a plain `ModelViewSet` each, as in the SPEC. After a write, the frontend refetches the
   build so the totals always come from the server. No client-side math except the
   part-slot checklist, which the SPEC says lives in the frontend.
-- **Access key is a DRF permission class**, about 10 lines: safe methods are allowed, and
-  writes must send `X-Access-Key == settings.ACCESS_KEY`. It's added in Phase 4, so none of
-  the earlier tasks have to think about it.
+- **Accounts use DRF token auth** (`rest_framework.authtoken`, part of DRF). Each build has an
+  `owner`, and every queryset is filtered to the logged-in user. Tokens rather than session
+  cookies, because the frontend and API are on different sites, where browsers restrict
+  cookies. This replaced the single-user access key (T11) once the app became multi-user.
+  ponytail: DRF tokens never expire; logging out deletes them. Add expiry if that matters.
 - **One branch per task** (`feat/<n>-<slug>`). It gets fast-forwarded into `main` once the
   task's verification passes.
 
@@ -44,8 +46,8 @@ Build model (done)
            │    ├─ T9 delete build
            │    └─ T10 build checklist
            └─ T8 list shows total cost + profit
-                 └─ T11 access key (backend) → T12 access key (frontend)
-                      └─ T13 deploy → T14 README
+                 └─ T11 access key (superseded) → T12 accounts API → T13 log in screens
+                      └─ T14 deploy → T15 README
 ```
 T1 and T2 are independent of each other. T5–T10 all depend on T4 but not on each other,
 so their order is flexible.
@@ -74,11 +76,12 @@ so their order is flexible.
 
 **Checkpoint 3:** every user story in the SPEC works locally. Both screens are usable at 375px with no horizontal scroll.
 
-### Phase 4: Protect and ship
-- [ ] T11: Access key on the API
-- [ ] T12: Read-only mode and the "Unlock editing" dialog
-- [ ] T13: Deploy (Neon + Render + Vercel)
-- [ ] T14: README with screenshot, live links, setup
+### Phase 4: Accounts and ship
+- [x] T11: Access key on the API (superseded by T12)
+- [ ] T12: Accounts on the API (owner, token auth, isolation)
+- [ ] T13: Log in and sign up screens
+- [ ] T14: Deploy (Neon + Render + Vercel)
+- [ ] T15: README with screenshot, live links, setup
 
 **Checkpoint 4 (done):** all six SPEC success criteria pass on the live site.
 
@@ -87,14 +90,15 @@ so their order is flexible.
 | Risk | Impact | Mitigation |
 |---|---|---|
 | Decimal rounding drifts from the hand calculation | High (it's the core feature) | All math in Decimal, percentages quantized once, edge-case tests in T2 |
-| `X-Access-Key` blocked by CORS in production | High (no writes on the live site) | T11 adds it to `CORS_ALLOW_HEADERS`. T13 verifies a write from the Vercel domain |
-| Deep link `/builds/3` returns 404 on Vercel | Med | T13 adds a `vercel.json` SPA rewrite |
+| `Authorization` blocked by CORS in production | High (nothing works on the live site) | It's in django-cors-headers' default allowed headers. T14 verifies sign-up and a write from the Vercel domain |
+| One user reads or changes another's data | High | Every queryset filters by owner; T12 tests each endpoint as a second user |
+| Deep link `/builds/3` returns 404 on Vercel | Med | T14 adds a `vercel.json` SPA rewrite |
 | Render's free tier sleeps, so the first load takes ~30–60 s | Med (bad first impression) | Accept it for v1. Show a clear loading state, and mention it in the README |
 | Totals cause one query per build on the list (N+1) | Low at this scale | `prefetch_related` in T3. A test asserts the query count is constant |
 | Scope creep from the spec's extra UI (diagram, dialogs) | Med | The diagram is isolated in T10, last in Phase 3, and can slip without blocking deploy |
 
 ## Open Questions
 
-1. **Production server (T13):** `gunicorn`, explained to the author on 2026-10-26. Confirm it before adding it in T13.
+1. **Production server (T14):** `gunicorn`, explained to the author on 2026-10-26. Confirm it before adding it in T14.
 
 Resolved: React Router (yes).
