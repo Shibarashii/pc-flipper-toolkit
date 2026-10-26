@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 
 import dj_database_url
+from corsheaders.defaults import default_headers
 from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -17,6 +18,10 @@ ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1").split(","
 CORS_ALLOWED_ORIGINS = [
     o for o in os.environ.get("CORS_ALLOWED_ORIGINS", "").split(",") if o
 ]
+CORS_ALLOW_HEADERS = (*default_headers, "x-access-key")
+
+# Required on POST/PATCH/DELETE (builds/permissions.py). Unset refuses every write.
+ACCESS_KEY = os.environ.get("ACCESS_KEY", "")
 
 INSTALLED_APPS = [
     # Django admin at /admin/ and what it needs (users, sessions, its CSS/JS).
@@ -80,7 +85,7 @@ USE_TZ = True
 REST_FRAMEWORK = {
     "DEFAULT_RENDERER_CLASSES": ["rest_framework.renderers.JSONRenderer"],
     "DEFAULT_AUTHENTICATION_CLASSES": [],
-    "DEFAULT_PERMISSION_CLASSES": [],
+    "DEFAULT_PERMISSION_CLASSES": ["builds.permissions.HasAccessKey"],
     "UNAUTHENTICATED_USER": None,
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
@@ -96,7 +101,9 @@ SPECTACULAR_SETTINGS = {
         "the selling price are `null` until one is set.\n\n"
         "**Errors**: invalid input returns `400` with the problem fields as keys, "
         '`{"listed_price": ["Must be 0 or more."]}`. '
-        "A missing id returns `404`."
+        "A missing id returns `404`.\n\n"
+        "**Writes** (POST/PATCH/DELETE) need the `X-Access-Key` header, or they "
+        "return `403`. Reads need no key."
     ),
     "VERSION": "1.0.0",
     # Separate request/response schemas, so read-only fields (id, totals) don't

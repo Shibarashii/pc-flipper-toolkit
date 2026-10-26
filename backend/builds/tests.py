@@ -5,13 +5,28 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.management import call_command
 from django.db import IntegrityError, transaction
-from django.test import TestCase
-from rest_framework.test import APITestCase
+from django.test import TestCase, override_settings
+from rest_framework.test import APIClient, APITestCase
 
 from .models import Build, ExtraCost, Part
 
+KEY = "test-access-key"
 
-class BuildApiTests(APITestCase):
+
+class KeyedClient(APIClient):
+    """Sends the access key with every request, as the unlocked frontend does."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.credentials(HTTP_X_ACCESS_KEY=KEY)
+
+
+@override_settings(ACCESS_KEY=KEY)
+class KeyedApiTestCase(APITestCase):
+    client_class = KeyedClient
+
+
+class BuildApiTests(KeyedApiTestCase):
     def test_list_returns_newest_first_with_money_as_string(self):
         Build.objects.create(name="Old", selling_price="41500.00")
         Build.objects.create(name="New")
@@ -162,7 +177,7 @@ class PriceValidationTests(TestCase):
                 write()
 
 
-class DetailApiTests(APITestCase):
+class DetailApiTests(KeyedApiTestCase):
     def setUp(self):
         self.build = Build.objects.create(name="Spec example", selling_price="50000.00")
         self.build.parts.create(
@@ -245,7 +260,7 @@ class DetailApiTests(APITestCase):
         self.assertEqual(ExtraCost.objects.count(), 0)
 
 
-class ChildApiTests(APITestCase):
+class ChildApiTests(KeyedApiTestCase):
     def setUp(self):
         self.build = Build.objects.create(name="B")
 
@@ -340,8 +355,77 @@ class ChildApiTests(APITestCase):
         self.assertEqual(res.status_code, 400)
         self.assertEqual(set(res.json()), {"build", "category"})
 
+    def test_a_part_or_cost_cant_move_to_another_build(self):
+        other = Build.objects.create(name="Other")
+        part = self.build.parts.create(
+            name="P", category="cpu", listed_price="1.00", bought_for="1.00"
+        )
+        cost = self.build.extra_costs.create(label="Shipping", amount="1.00")
 
-class ApiDocsTests(APITestCase):
+        for url in (f"/api/parts/{part.id}/", f"/api/extra-costs/{cost.id}/"):
+            res = self.client.patch(url, {"build": other.id}, format="json")
+            self.assertEqual(res.status_code, 400)
+            self.assertIn("build", res.json())
+        # Sending its own build is fine.
+        res = self.client.patch(
+            f"/api/parts/{part.id}/", {"build": self.build.id}, format="json"
+        )
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(Part.objects.get(pk=part.id).build, self.build)
+        self.assertEqual(ExtraCost.objects.get(pk=cost.id).build, self.build)
+
+
+class AccessKeyTests(APITestCase):
+    def setUp(self):
+        self.build = Build.objects.create(name="B")
+
+    def write(self, key=None):
+        headers = {} if key is None else {"HTTP_X_ACCESS_KEY": key}
+        return self.client.patch(
+            f"/api/builds/{self.build.id}/", {"name": "X"}, format="json", **headers
+        )
+
+    @override_settings(ACCESS_KEY=KEY)
+    def test_writes_need_the_right_key(self):
+        self.assertEqual(self.write().status_code, 403)
+        self.assertEqual(self.write("wrong").status_code, 403)
+        self.assertEqual(self.write("wrongé").status_code, 403)
+        self.assertEqual(
+            self.client.post(
+                "/api/parts/", {"build": self.build.id}, format="json"
+            ).status_code,
+            403,
+        )
+        self.assertEqual(
+            self.client.delete(f"/api/builds/{self.build.id}/").status_code, 403
+        )
+        self.assertEqual(Build.objects.get().name, "B")
+
+        self.assertEqual(self.write(KEY).status_code, 200)
+        self.assertEqual(Build.objects.get().name, "X")
+
+    @override_settings(ACCESS_KEY=KEY)
+    def test_reads_need_no_key(self):
+        for url in ("/api/builds/", f"/api/builds/{self.build.id}/", "/api/parts/"):
+            self.assertEqual(self.client.get(url).status_code, 200)
+
+    @override_settings(ACCESS_KEY="")
+    def test_no_key_on_the_server_refuses_every_write(self):
+        self.assertEqual(self.write().status_code, 403)
+        self.assertEqual(self.write("").status_code, 403)
+
+    @override_settings(ACCESS_KEY=KEY, CORS_ALLOWED_ORIGINS=["https://example.com"])
+    def test_cors_preflight_allows_the_key_header(self):
+        res = self.client.options(
+            f"/api/builds/{self.build.id}/",
+            HTTP_ORIGIN="https://example.com",
+            HTTP_ACCESS_CONTROL_REQUEST_METHOD="PATCH",
+            HTTP_ACCESS_CONTROL_REQUEST_HEADERS="x-access-key",
+        )
+        self.assertIn("x-access-key", res["Access-Control-Allow-Headers"])
+
+
+class ApiDocsTests(KeyedApiTestCase):
     def test_schema_is_valid_openapi_with_no_warnings(self):
         # Fails if a view or serializer change leaves the docs broken or ambiguous.
         call_command("spectacular", "--validate", "--fail-on-warn", stdout=StringIO())

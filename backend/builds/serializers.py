@@ -68,7 +68,16 @@ class ModelSerializer(serializers.ModelSerializer):
     }
 
 
-class PartSerializer(ModelSerializer):
+class ChildSerializer(ModelSerializer):
+    """A part or extra cost: it stays in the build it was created in."""
+
+    def validate_build(self, build):
+        if self.instance is not None and build != self.instance.build:
+            raise serializers.ValidationError("Can't be moved to another build.")
+        return build
+
+
+class PartSerializer(ChildSerializer):
     class Meta:
         model = Part
         fields = [
@@ -91,7 +100,7 @@ class PartSerializer(ModelSerializer):
         }
 
 
-class ExtraCostSerializer(ModelSerializer):
+class ExtraCostSerializer(ChildSerializer):
     class Meta:
         model = ExtraCost
         fields = ["id", "build", "label", "amount"]
