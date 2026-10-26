@@ -52,7 +52,7 @@ below_market_pct and voucher_savings. Everything uses Decimal, with percentages 
 **Files:** `backend/builds/models.py`, `backend/builds/migrations/0002_*.py`, `backend/builds/tests.py`
 **Scope:** S
 
-### - [ ] T3: Build detail API with nested parts, extra costs and totals
+### - [x] T3: Build detail API with nested parts, extra costs and totals
 
 **Description:** `GET /api/builds/{id}/` returns the build with nested `parts`, `extra_costs`
 and a read-only `totals` object (money as strings). The list returns `totals` without nesting.
@@ -60,13 +60,13 @@ Add `ModelViewSet`s at `/api/parts/` and `/api/extra-costs/` (POST, PATCH and DE
 build id goes in the body). Use `prefetch_related` to avoid N+1 queries.
 
 **Acceptance criteria:**
-- [ ] Detail and list responses match the SPEC's API section, including `null` for the selling-price-dependent fields.
-- [ ] Create, update and delete work for parts and extra costs, and a negative price returns 400 with the field name.
-- [ ] The list (N builds) and the detail endpoint each take a constant number of queries (`assertNumQueries`). The prefetch lives on the viewset `queryset`, so both endpoints get it.
+- [x] Detail and list responses match the SPEC's API section, including `null` for the selling-price-dependent fields.
+- [x] Create, update and delete work for parts and extra costs, and a negative price returns 400 with the field name.
+- [x] The list (N builds) and the detail endpoint each take a constant number of queries (`assertNumQueries`). The prefetch lives on the viewset `queryset`, so both endpoints get it.
 
 **Verification:**
-- [ ] Standard verification (backend) passes
-- [ ] Manual: `curl localhost:8000/api/builds/<id>/` after adding a part with `curl -X POST`
+- [x] Standard verification (backend) passes
+- [x] Manual: `curl localhost:8000/api/builds/<id>/` after adding a part with `curl -X POST`
 
 **Dependencies:** T2
 **Files:** `backend/builds/serializers.py`, `backend/builds/views.py`, `backend/config/urls.py`, `backend/builds/tests.py`
@@ -91,6 +91,7 @@ saving, the page refetches the build so the totals update from the server.
 
 **Acceptance criteria:**
 - [ ] Summary shows all 8 totals from user story 5. `null` shows as "—", and a negative profit is red with a true minus sign.
+- [ ] A negative `below_market` (selling above market) reads as "₱X above market", not "−₱X below market".
 - [ ] Adding a part updates the table and the totals without a page reload. A server validation error (e.g. a negative price) is shown on that field.
 - [ ] The empty state ("no parts yet") and the loading and error states render.
 

@@ -157,3 +157,182 @@ class PriceValidationTests(TestCase):
         for write in writes:
             with self.assertRaises(IntegrityError), transaction.atomic():
                 write()
+
+
+class DetailApiTests(APITestCase):
+    def setUp(self):
+        self.build = Build.objects.create(name="Spec example", selling_price="50000.00")
+        self.build.parts.create(
+            name="RTX 4060",
+            category="gpu",
+            shop="Shopee",
+            listed_price="30000.00",
+            bought_for="26000.00",
+        )
+        self.build.parts.create(
+            name="Ryzen 5 7600",
+            category="cpu",
+            listed_price="22000.00",
+            bought_for="19500.00",
+        )
+        self.build.extra_costs.create(label="Shipping", amount="500.00")
+        self.build.extra_costs.create(label="Platform fee", amount="300.00")
+
+    def test_detail_nests_parts_extra_costs_and_spec_totals(self):
+        res = self.client.get(f"/api/builds/{self.build.id}/")
+
+        self.assertEqual(res.status_code, 200)
+        body = res.json()
+        self.assertEqual(
+            [p["name"] for p in body["parts"]], ["RTX 4060", "Ryzen 5 7600"]
+        )
+        self.assertEqual(body["parts"][0]["listed_price"], "30000.00")
+        self.assertEqual(
+            [c["label"] for c in body["extra_costs"]], ["Shipping", "Platform fee"]
+        )
+        self.assertEqual(
+            body["totals"],
+            {
+                "listed_total": "52000.00",
+                "parts_cost": "45500.00",
+                "extra_costs": "800.00",
+                "total_cost": "46300.00",
+                "profit": "3700.00",
+                "profit_margin": "7.40",
+                "below_market": "2000.00",
+                "below_market_pct": "3.85",
+                "voucher_savings": "6500.00",
+            },
+        )
+
+    def test_without_selling_price_the_dependent_totals_are_null(self):
+        build = Build.objects.create(name="Unpriced")
+
+        totals = self.client.get(f"/api/builds/{build.id}/").json()["totals"]
+
+        self.assertEqual(totals["total_cost"], "0.00")
+        for key in ["profit", "profit_margin", "below_market", "below_market_pct"]:
+            self.assertIsNone(totals[key], key)
+
+    def test_list_has_totals_but_no_nesting(self):
+        row = self.client.get("/api/builds/").json()[0]
+
+        self.assertEqual(row["totals"]["profit"], "3700.00")
+        self.assertNotIn("parts", row)
+        self.assertNotIn("extra_costs", row)
+
+    def test_query_counts_do_not_grow_with_data(self):
+        for i in range(5):
+            b = Build.objects.create(name=f"B{i}")
+            b.parts.create(
+                name="P", category="ram", listed_price="1.00", bought_for="1.00"
+            )
+            b.extra_costs.create(label="C", amount="1.00")
+
+        with self.assertNumQueries(3):  # builds, parts, extra costs
+            self.client.get("/api/builds/")
+        with self.assertNumQueries(3):
+            self.client.get(f"/api/builds/{self.build.id}/")
+
+    def test_deleting_a_build_via_api_deletes_its_children(self):
+        res = self.client.delete(f"/api/builds/{self.build.id}/")
+
+        self.assertEqual(res.status_code, 204)
+        self.assertEqual(Part.objects.count(), 0)
+        self.assertEqual(ExtraCost.objects.count(), 0)
+
+
+class ChildApiTests(APITestCase):
+    def setUp(self):
+        self.build = Build.objects.create(name="B")
+
+    def test_part_create_update_delete(self):
+        res = self.client.post(
+            "/api/parts/",
+            {
+                "build": self.build.id,
+                "name": "Ryzen 5 7600",
+                "category": "cpu",
+                "shop": "Shopee",
+                "listed_price": "12000.00",
+                "bought_for": "10500.00",
+            },
+            format="json",
+        )
+        self.assertEqual(res.status_code, 201)
+        part_id = res.json()["id"]
+
+        res = self.client.patch(
+            f"/api/parts/{part_id}/", {"bought_for": "10000.00"}, format="json"
+        )
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(Part.objects.get(pk=part_id).bought_for, D("10000.00"))
+
+        self.assertEqual(self.client.delete(f"/api/parts/{part_id}/").status_code, 204)
+        self.assertFalse(Part.objects.exists())
+
+    def test_extra_cost_create_update_delete(self):
+        res = self.client.post(
+            "/api/extra-costs/",
+            {
+                "build": self.build.id,
+                "label": "Shipping",
+                "amount": "150.00",
+            },
+            format="json",
+        )
+        self.assertEqual(res.status_code, 201)
+        cost_id = res.json()["id"]
+
+        res = self.client.patch(
+            f"/api/extra-costs/{cost_id}/", {"amount": "180.00"}, format="json"
+        )
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(ExtraCost.objects.get(pk=cost_id).amount, D("180.00"))
+
+        self.assertEqual(
+            self.client.delete(f"/api/extra-costs/{cost_id}/").status_code, 204
+        )
+
+    def test_negative_prices_are_400_with_the_field_name(self):
+        res = self.client.post(
+            "/api/parts/",
+            {
+                "build": self.build.id,
+                "name": "X",
+                "category": "cpu",
+                "listed_price": "-1.00",
+                "bought_for": "5.00",
+            },
+            format="json",
+        )
+        self.assertEqual(res.status_code, 400)
+        self.assertIn("listed_price", res.json())
+
+        res = self.client.post(
+            "/api/extra-costs/",
+            {
+                "build": self.build.id,
+                "label": "Fee",
+                "amount": "-1.00",
+            },
+            format="json",
+        )
+        self.assertEqual(res.status_code, 400)
+        self.assertIn("amount", res.json())
+
+    def test_unknown_build_or_category_is_400(self):
+        res = self.client.post(
+            "/api/parts/",
+            {
+                "build": 999999,
+                "name": "X",
+                "category": "toaster",
+                "listed_price": "1.00",
+                "bought_for": "1.00",
+            },
+            format="json",
+        )
+
+        self.assertEqual(res.status_code, 400)
+        self.assertEqual(set(res.json()), {"build", "category"})
