@@ -229,7 +229,7 @@ progress bar. An "Add" link opens the add-part row with that category preselecte
 
 ## Phase 4: Protect and ship
 
-### - [ ] T11: Access key on the API
+### - [x] T11: Access key on the API
 
 **Description:** A DRF permission class lets GET/HEAD/OPTIONS through, and requires the
 `X-Access-Key` header to equal `settings.ACCESS_KEY` for writes (compared with
@@ -237,13 +237,13 @@ progress bar. An "Add" link opens the add-part row with that category preselecte
 added to `CORS_ALLOW_HEADERS`.
 
 **Acceptance criteria:**
-- [ ] A write without the key or with the wrong key returns 403. With the right key, it succeeds. Reads never need a key.
-- [ ] An empty or unset `ACCESS_KEY` refuses all writes, so there's no "open by accident" state.
-- [ ] A CORS preflight allows `X-Access-Key`.
-- [ ] A part or extra cost can't be moved to another build: `build` is ignored or rejected on PATCH (checkpoint 1 review, #2).
+- [x] A write without the key or with the wrong key returns 403. With the right key, it succeeds. Reads never need a key.
+- [x] An empty or unset `ACCESS_KEY` refuses all writes, so there's no "open by accident" state.
+- [x] A CORS preflight allows `X-Access-Key`.
+- [x] A part or extra cost can't be moved to another build: `build` is ignored or rejected on PATCH (checkpoint 1 review, #2).
 
 **Verification:**
-- [ ] Standard verification (backend) passes. Existing write tests send the key.
+- [x] Standard verification (backend) passes. Existing write tests send the key.
 
 **Dependencies:** T3
 **Files:** `backend/builds/permissions.py`, `backend/config/settings.py`, `backend/builds/tests.py`
