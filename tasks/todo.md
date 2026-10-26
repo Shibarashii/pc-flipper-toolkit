@@ -159,9 +159,9 @@ date (editable), and switching away clears it. The notes textarea under Extra co
 **Scope:** S
 
 ### Checkpoint 2
-- [ ] One real flip entered (≥ 6 parts, ≥ 2 extra costs), and its profit matches the hand calculation to the centavo
-- [ ] All tests pass
-- [ ] Review the UI with the human before Phase 3
+- [x] One real flip entered (≥ 6 parts, ≥ 2 extra costs), and its profit matches the hand calculation to the centavo
+- [x] All tests pass
+- [x] Review the UI with the human before Phase 3
 
 ---
 
