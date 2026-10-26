@@ -122,3 +122,30 @@ export function Select({
     </div>
   );
 }
+
+export type SaveState = "idle" | "saving" | "saved" | "failed";
+
+const SAVE_TEXT: Record<SaveState, string> = {
+  idle: "",
+  saving: "Saving…",
+  saved: "Saved",
+  failed: "Couldn’t save. Check your connection and try again.",
+};
+
+/** "Saving…" → "Saved" next to fields that save on their own (no Save button). */
+export function SaveStatus({
+  state,
+  className = "",
+}: {
+  state: SaveState;
+  className?: string;
+}) {
+  return (
+    <p
+      role={state === "failed" ? "alert" : "status"}
+      className={`text-[13px] leading-[18px] ${state === "failed" ? "text-loss" : "text-muted"} ${className}`}
+    >
+      {SAVE_TEXT[state]}
+    </p>
+  );
+}

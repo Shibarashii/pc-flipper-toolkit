@@ -75,16 +75,18 @@ test("switching away from Sold clears the date", async () => {
   expect(screen.queryByLabelText("Sold on")).toBeNull();
 });
 
-test("the selling price saves on blur, cleaned", async () => {
+test("the selling price saves on blur, cleaned, and says so", async () => {
   const { onUpdated, sent } = renderHeader(makeBuild());
   const price = screen.getByLabelText("Selling price");
 
   fireEvent.change(price, { target: { value: "₱50,000" } });
   fireEvent.blur(price);
+  expect(screen.getByRole("status").textContent).toBe("Saving…");
 
   await waitFor(() => expect(onUpdated).toHaveBeenCalled());
   expect(sent()).toEqual({ selling_price: "50000" });
   expect((price as HTMLInputElement).value).toBe("₱50,000.00");
+  expect(screen.getByRole("status").textContent).toBe("Saved");
 });
 
 test("clearing the selling price sends null", async () => {
@@ -127,6 +129,8 @@ test("a negative price shows the error on the field", async () => {
   expect(await screen.findByText("Must be 0 or more.")).toBeTruthy();
   expect(price.className).toContain("border-loss");
   expect(onUpdated).not.toHaveBeenCalled();
+  // The field shows the problem, so the save status stays quiet.
+  expect(screen.getByRole("status").textContent).toBe("");
 });
 
 test("renaming saves the new name on Enter", async () => {

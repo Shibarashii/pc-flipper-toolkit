@@ -10,7 +10,14 @@ import {
 import { buildNo } from "../buildNo";
 import { formatMoney } from "../money";
 import { input } from "../ui";
-import { cleanMoney, Field, IconButton, Select } from "./form";
+import {
+  cleanMoney,
+  Field,
+  IconButton,
+  SaveStatus,
+  Select,
+  type SaveState,
+} from "./form";
 import { StatusTag } from "./StatusTag";
 
 const STATUSES: Record<BuildStatus, string> = {
@@ -57,7 +64,7 @@ export function BuildHeader({
   // Shown while a save is in flight, so a select doesn't snap back to the old value.
   const [pending, setPending] = useState<BuildPatch>({});
   const [errors, setErrors] = useState<FieldErrors>({});
-  const [failed, setFailed] = useState(false);
+  const [saveState, setSaveState] = useState<SaveState>("idle");
   const [renaming, setRenaming] = useState(false);
   const [name, setName] = useState(build.name);
   // Esc closes the rename input; some browsers then fire blur, which must not save.
@@ -69,14 +76,16 @@ export function BuildHeader({
   async function save(patch: BuildPatch) {
     setPending(patch);
     setErrors({});
-    setFailed(false);
+    setSaveState("saving");
     try {
       onUpdated(await updateBuild(build.id, patch));
+      setSaveState("saved");
       return true;
     } catch (err) {
       const fieldErrors = err instanceof ApiError ? err.fieldErrors : {};
       setErrors(fieldErrors);
-      setFailed(Object.keys(fieldErrors).length === 0);
+      // A field error is shown under its field; anything else needs the general message.
+      setSaveState(Object.keys(fieldErrors).length > 0 ? "idle" : "failed");
       return false;
     } finally {
       setPending({});
@@ -225,13 +234,12 @@ export function BuildHeader({
             />
           </Field>
         )}
+        {/* Beside the fields on desktop, centred on the inputs; its own line on mobile. */}
+        <SaveStatus
+          state={saveState}
+          className={`col-span-2 sm:self-end sm:pb-[11px] ${saveState === "idle" ? "hidden sm:block" : ""}`}
+        />
       </div>
-
-      {failed && (
-        <p role="alert" className="mt-2 text-[13px] leading-[18px] text-loss">
-          Couldn’t save the change. Check your connection and try again.
-        </p>
-      )}
     </div>
   );
 }

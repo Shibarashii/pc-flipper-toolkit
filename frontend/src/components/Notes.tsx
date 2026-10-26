@@ -1,14 +1,6 @@
 import { useState } from "react";
 import { updateBuild, type BuildDetail } from "../api";
-
-type SaveState = "idle" | "saving" | "saved" | "failed";
-
-const STATUS_TEXT: Record<SaveState, string> = {
-  idle: "",
-  saving: "Saving…",
-  saved: "Saved",
-  failed: "Couldn’t save. Check your connection and try again.",
-};
+import { SaveStatus, type SaveState } from "./form";
 
 /** A plain textarea that saves on blur. */
 export function Notes({
@@ -41,12 +33,7 @@ export function Notes({
         >
           Notes
         </h2>
-        <p
-          role={state === "failed" ? "alert" : "status"}
-          className={`flex-1 text-[13px] leading-[18px] ${state === "failed" ? "text-loss" : "text-faint"}`}
-        >
-          {STATUS_TEXT[state]}
-        </p>
+        <SaveStatus state={state} className="flex-1" />
       </div>
       <textarea
         aria-labelledby="notes-title"
