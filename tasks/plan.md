@@ -54,7 +54,7 @@ so their order is flexible.
 
 ### Phase 1: Foundation
 - [x] T1: Create a build from the list and land on its (stub) detail page
-- [ ] T2: Part and ExtraCost models with build totals
+- [x] T2: Part and ExtraCost models with build totals
 - [ ] T3: Build detail API with nested parts, extra costs and totals
 
 **Checkpoint 1:** all tests pass. You can create a build in the UI. `curl /api/builds/1/` shows `parts`, `extra_costs` and `totals`.

@@ -32,7 +32,7 @@ and has loading and error states.
 **Files:** `frontend/package.json`, `frontend/src/main.tsx`, `frontend/src/App.tsx`, `frontend/src/api.ts`, `frontend/src/pages/BuildsList.tsx`, `frontend/src/pages/BuildDetail.tsx`, `frontend/src/components/NewBuildDialog.tsx`
 **Scope:** M
 
-### - [ ] T2: Part and ExtraCost models with build totals
+### - [x] T2: Part and ExtraCost models with build totals
 
 **Description:** Add the `Part` and `ExtraCost` models from the SPEC (FK to Build, cascade on
 delete, prices ≥ 0) and a migration. Add totals properties on `Build`: listed_total,
@@ -40,13 +40,13 @@ parts_cost, extra_costs_total, total_cost, profit, profit_margin, below_market,
 below_market_pct and voucher_savings. Everything uses Decimal, with percentages rounded to 2 places.
 
 **Acceptance criteria:**
-- [ ] The migration applies cleanly on the local Postgres. Deleting a build deletes its parts and extra costs.
-- [ ] Every total matches the SPEC's example JSON for that example's inputs.
-- [ ] Edge cases are tested: no parts, no selling price (the four selling-price fields are `None`), a selling price of 0 (percentages are `None`, profit is negative), a loss, and rounding (e.g. 1/3 → `33.33`).
+- [x] The migration applies cleanly on the local Postgres. Deleting a build deletes its parts and extra costs.
+- [x] Every total matches the SPEC's example JSON for that example's inputs.
+- [x] Edge cases are tested: no parts, no selling price (the four selling-price fields are `None`), a selling price of 0 (profit margin is `None`, profit is negative), no listed prices (below-market % is `None`), a loss, and rounding (e.g. 1/3 → `33.33`).
 
 **Verification:**
-- [ ] Standard verification (backend) passes
-- [ ] `python manage.py makemigrations --check` reports no changes
+- [x] Standard verification (backend) passes
+- [x] `python manage.py makemigrations --check` reports no changes
 
 **Dependencies:** None
 **Files:** `backend/builds/models.py`, `backend/builds/migrations/0002_*.py`, `backend/builds/tests.py`
