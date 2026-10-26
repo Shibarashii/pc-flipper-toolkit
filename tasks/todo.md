@@ -139,20 +139,20 @@ same inline add/edit/delete pattern as parts.
 **Files:** `frontend/src/components/ExtraCosts.tsx`, `frontend/src/pages/BuildDetail.tsx`, `frontend/src/api.ts`
 **Scope:** S
 
-### - [ ] T7: Header: status, selling price, sold date, name, notes
+### - [x] T7: Header: status, selling price, sold date, name, notes
 
 **Description:** The build header lets you edit the name, set the status, and enter a selling
 price. The sold date shows only when the status is Sold: switching to Sold fills in today's
 date (editable), and switching away clears it. The notes textarea under Extra costs saves on blur.
 
 **Acceptance criteria:**
-- [ ] Setting a selling price fills in profit, margin and below market. Clearing it shows "—" again.
-- [ ] The sold date behaves as described above and is saved to the server.
-- [ ] Notes persist after a reload.
+- [x] Setting a selling price fills in profit, margin and below market. Clearing it shows "—" again.
+- [x] The sold date behaves as described above and is saved to the server.
+- [x] Notes persist after a reload.
 
 **Verification:**
-- [ ] Standard verification passes
-- [ ] Manual: take a build through planning → sold and back, and reload after each step
+- [x] Standard verification passes
+- [x] Manual: take a build through planning → sold and back, and reload after each step
 
 **Dependencies:** T4
 **Files:** `frontend/src/pages/BuildDetail.tsx`, `frontend/src/components/BuildHeader.tsx`, `frontend/src/api.ts`
