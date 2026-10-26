@@ -122,18 +122,18 @@ Esc cancels. The row also gets a delete action. It's the same input row componen
 **Files:** `frontend/src/components/PartsTable.tsx`, `frontend/src/api.ts`
 **Scope:** S
 
-### - [ ] T6: Extra costs: add, edit, delete
+### - [x] T6: Extra costs: add, edit, delete
 
 **Description:** An extra costs list under the parts, with label and amount. It uses the
 same inline add/edit/delete pattern as parts.
 
 **Acceptance criteria:**
-- [ ] Adding, editing and deleting an extra cost updates "Extra costs" and "Total cost" in the summary.
-- [ ] A negative amount shows a field error. The empty state renders.
+- [x] Adding, editing and deleting an extra cost updates "Extra costs" and "Total cost" in the summary.
+- [x] A negative amount shows a field error. The empty state renders.
 
 **Verification:**
-- [ ] Standard verification passes
-- [ ] Manual: add shipping plus a platform fee, and check that total cost = parts cost + extras
+- [x] Standard verification passes
+- [x] Manual: add shipping plus a platform fee, and check that total cost = parts cost + extras
 
 **Dependencies:** T4
 **Files:** `frontend/src/components/ExtraCosts.tsx`, `frontend/src/pages/BuildDetail.tsx`, `frontend/src/api.ts`
