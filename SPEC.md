@@ -38,7 +38,7 @@ compatibility checks, multiple currencies (amounts are in PHP ₱ only).
 |---|---|
 | Backend | Python 3.14, Django 6.0, Django REST Framework, django-cors-headers, psycopg 3, dj-database-url, python-dotenv |
 | Database | PostgreSQL everywhere: local install (dev), Neon free tier (prod). Configured via `DATABASE_URL` |
-| Frontend | React 19 + TypeScript, Vite, Tailwind CSS v4 |
+| Frontend | React 19 + TypeScript, Vite, Tailwind CSS v4, React Router v7 |
 | Backend tests | Django test runner (`manage.py test`) |
 | Frontend tests | Vitest + React Testing Library |
 | Lint/format | Ruff (Python), ESLint + Prettier (TS) |
