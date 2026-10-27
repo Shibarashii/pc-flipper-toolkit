@@ -9,6 +9,10 @@ import { PartsTable, type PartsOpen } from "../components/PartsTable";
 import { Bone, Skeleton } from "../components/Skeleton";
 import { Summary } from "../components/Summary";
 
+// The page's two columns; the loading skeleton uses them too, so it keeps matching.
+const columns =
+  "mt-8 grid gap-12 sm:mt-12 xl:grid-cols-[minmax(0,1fr)_320px] xl:gap-14";
+
 type Result =
   { kind: "error" } | { kind: "not-found" } | { kind: "ok"; build: Build };
 
@@ -102,7 +106,7 @@ export function BuildDetail() {
 
           {/* Below 1280px: stacked, with the summary last. Wider: the summary is the
               right-hand column (narrower than that, the add-part row gets too cramped). */}
-          <div className="mt-8 grid gap-12 sm:mt-12 xl:grid-cols-[minmax(0,1fr)_320px] xl:gap-14">
+          <div className={columns}>
             <div className="flex min-w-0 flex-col gap-12">
               <BuildChecklist
                 parts={state.build.parts}
@@ -153,7 +157,7 @@ function DetailSkeleton() {
         <Bone className="h-[66px] sm:w-[200px]" />
       </div>
 
-      <div className="mt-8 grid gap-12 sm:mt-12 xl:grid-cols-[minmax(0,1fr)_320px] xl:gap-14">
+      <div className={columns}>
         <div className="flex min-w-0 flex-col gap-12">
           <div>
             <Bone className="h-7 w-40" />
