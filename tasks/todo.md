@@ -365,3 +365,55 @@ No new dependencies. Render's auto-deploy is then set to wait for the checks.
 **Dependencies:** T15
 **Files:** `.github/workflows/ci.yml`, `README.md`
 **Scope:** S
+
+### - [ ] T17: Cooler label no longer hidden behind the CPU
+
+**Description:** In the case diagram the cooler circle and the CPU box share a centre, so
+the "Cooler" label sits under "CPU" (and shows through when the CPU isn't filled). Move
+the label to the top of the cooler ring.
+
+**Acceptance criteria:**
+- [ ] "Cooler" and "CPU" never overlap, whatever state each slot is in.
+
+**Verification:**
+- [ ] Manual: diagram with CPU missing, filled; cooler optional, filled
+
+**Files:** `frontend/src/components/BuildChecklist.tsx`
+**Scope:** XS
+
+### - [ ] T18: Skeleton loading
+
+**Description:** Replace the "Loading…" text on the builds list and build detail with
+skeletons shaped like the content that's coming, so the page doesn't jump when it loads.
+Screen readers still hear that it's loading.
+
+**Acceptance criteria:**
+- [ ] The builds list shows placeholder rows (table on desktop, cards on phone) while loading.
+- [ ] The build detail shows placeholder title, checklist, parts and summary blocks.
+- [ ] Skeletons are announced as loading (`role="status"`, hidden text) and stop pulsing with reduced motion.
+
+**Verification:**
+- [ ] Tests: each page shows a loading status before the data arrives
+- [ ] Manual: throttle the network in DevTools and watch both pages load, light and dark
+
+**Files:** `frontend/src/components/Skeleton.tsx`, `frontend/src/pages/BuildsList.tsx`, `frontend/src/pages/BuildDetail.tsx`, tests
+**Scope:** S
+
+### - [ ] T19: Light / dark mode button
+
+**Description:** A button in the header switches between light and dark. It starts from
+the device setting and remembers the choice in this browser. The tokens move to CSS
+`light-dark()`, so each colour is written once and the theme is just `color-scheme`.
+
+**Acceptance criteria:**
+- [ ] The header button switches the theme at once, on every page (logged in or out).
+- [ ] The choice survives a reload, with no flash of the other theme.
+- [ ] With no choice saved, the app follows the device setting, as now.
+- [ ] The button has an accessible name saying what it switches to.
+
+**Verification:**
+- [ ] Tests: the toggle switches and saves the theme
+- [ ] Manual: toggle, reload, both themes on desktop and phone
+
+**Files:** `frontend/src/index.css`, `frontend/index.html`, `frontend/src/theme.ts`, `frontend/src/App.tsx`, tests
+**Scope:** S
