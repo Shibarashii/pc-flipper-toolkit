@@ -26,7 +26,7 @@ and has loading and error states.
 
 **Verification:**
 - [x] Standard verification passes
-- [ ] Manual (author, in a browser): create 2 builds, click between list and detail, use back/forward, reload on a detail URL
+- [x] Manual (author, in a browser): create 2 builds, click between list and detail, use back/forward, reload on a detail URL
 
 **Dependencies:** None
 **Files:** `frontend/package.json`, `frontend/src/main.tsx`, `frontend/src/App.tsx`, `frontend/src/api.ts`, `frontend/src/pages/BuildsList.tsx`, `frontend/src/pages/BuildDetail.tsx`, `frontend/src/components/NewBuildDialog.tsx`
