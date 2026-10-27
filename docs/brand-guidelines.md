@@ -20,7 +20,8 @@ Figma: [PC Flipper Toolkit — v1 Screens](https://www.figma.com/design/Wp4dGW94
 
 ## Color
 
-Semantic tokens; each has a light and a dark value.
+Semantic tokens; each has a light and a dark value. The app follows the device's setting, unless changed
+with the sun/moon button in the header (remembered in the browser).
 
 | Token | Light | Dark | Use |
 |---|---|---|---|

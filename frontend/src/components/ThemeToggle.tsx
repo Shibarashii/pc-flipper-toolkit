@@ -9,7 +9,7 @@ type Theme = "light" | "dark";
 function currentTheme(): Theme {
   const saved = document.documentElement.dataset.theme;
   if (saved === "light" || saved === "dark") return saved;
-  return window.matchMedia?.("(prefers-color-scheme: dark)").matches
+  return window.matchMedia("(prefers-color-scheme: dark)").matches
     ? "dark"
     : "light";
 }
