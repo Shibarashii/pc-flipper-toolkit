@@ -415,5 +415,5 @@ the device setting and remembers the choice in this browser. The tokens move to 
 - [ ] Tests: the toggle switches and saves the theme
 - [ ] Manual: toggle, reload, both themes on desktop and phone
 
-**Files:** `frontend/src/index.css`, `frontend/index.html`, `frontend/src/theme.ts`, `frontend/src/App.tsx`, tests
+**Files:** `frontend/src/index.css`, `frontend/index.html`, `frontend/src/components/ThemeToggle.tsx`, `frontend/src/App.tsx`, tests
 **Scope:** S

@@ -11,6 +11,14 @@
       rel="stylesheet"
     />
     <title>PC Flipper Toolkit</title>
+    <script>
+      // The theme picked with the header button, applied before first paint (no flash).
+      try {
+        const theme = localStorage.getItem("theme");
+        if (theme === "light" || theme === "dark")
+          document.documentElement.dataset.theme = theme;
+      } catch {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

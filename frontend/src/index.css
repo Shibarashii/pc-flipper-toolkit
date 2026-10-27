@@ -1,46 +1,32 @@
 @import "tailwindcss";
 
-/* Brand tokens: docs/brand-guidelines.md. Light values here, dark below. */
+/* Brand tokens: docs/brand-guidelines.md, as light-dark(light, dark). The theme is just
+   color-scheme: the device's setting, unless the header button saved a choice
+   (data-theme on <html>, set before first paint in index.html). */
 :root {
-  --bg: #f5f2ec;
-  --surface: #fffdf9;
-  --sunken: #ede8df;
-  --slot-fill: #dde8df;
-  --line: #e2dcd0;
-  --line-strong: #cfc7b8;
-  --ink: #1d1b17;
-  --muted: #6e685d;
-  --faint: #a29b8e;
-  --accent: #1e5b43;
-  --accent-hover: #174a36;
-  --on-accent: #ffffff;
-  --profit: #1e6b45;
-  --loss: #a63a2b;
-  --status-building: #8a6100;
-  --status-listed: #2f5d8a;
+  color-scheme: light dark;
+  --bg: light-dark(#f5f2ec, #14130f);
+  --surface: light-dark(#fffdf9, #1c1a16);
+  --sunken: light-dark(#ede8df, #24211c);
+  --slot-fill: light-dark(#dde8df, #1e2e26);
+  --line: light-dark(#e2dcd0, #2e2b25);
+  --line-strong: light-dark(#cfc7b8, #3d3932);
+  --ink: light-dark(#1d1b17, #eeeae2);
+  --muted: light-dark(#6e685d, #a39d91);
+  --faint: light-dark(#a29b8e, #6d675d);
+  --accent: light-dark(#1e5b43, #5fb58c);
+  --accent-hover: light-dark(#174a36, #7dc7a0);
+  --on-accent: light-dark(#ffffff, #0f1a14);
+  --profit: light-dark(#1e6b45, #6cc497);
+  --loss: light-dark(#a63a2b, #e07a66);
+  --status-building: light-dark(#8a6100, #d9a441);
+  --status-listed: light-dark(#2f5d8a, #7fa8d6);
+}
+:root[data-theme="light"] {
   color-scheme: light;
 }
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #14130f;
-    --surface: #1c1a16;
-    --sunken: #24211c;
-    --slot-fill: #1e2e26;
-    --line: #2e2b25;
-    --line-strong: #3d3932;
-    --ink: #eeeae2;
-    --muted: #a39d91;
-    --faint: #6d675d;
-    --accent: #5fb58c;
-    --accent-hover: #7dc7a0;
-    --on-accent: #0f1a14;
-    --profit: #6cc497;
-    --loss: #e07a66;
-    --status-building: #d9a441;
-    --status-listed: #7fa8d6;
-    color-scheme: dark;
-  }
+:root[data-theme="dark"] {
+  color-scheme: dark;
 }
 
 @theme inline {

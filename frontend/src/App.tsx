@@ -1,6 +1,7 @@
 import { Link, Navigate, Route, Routes, useLocation } from "react-router";
 import { logOut } from "./api";
 import { endSession, useAuth } from "./auth";
+import { ThemeToggle } from "./components/ThemeToggle";
 import { BuildDetail } from "./pages/BuildDetail";
 import { BuildsList } from "./pages/BuildsList";
 import { Login } from "./pages/Login";
@@ -24,20 +25,23 @@ export default function App() {
         <Link to="/" className="font-serif text-xl leading-7 font-medium">
           PC Flipper Toolkit
         </Link>
-        {session && (
-          <div className="flex min-w-0 items-center gap-4">
-            <span className="hidden truncate text-[13px] font-medium text-muted sm:block">
-              {session.username}
-            </span>
-            <button
-              type="button"
-              onClick={logOutEverywhere}
-              className={`shrink-0 ${buttonSecondary}`}
-            >
-              Log out
-            </button>
-          </div>
-        )}
+        <div className="flex min-w-0 items-center gap-4">
+          <ThemeToggle />
+          {session && (
+            <>
+              <span className="hidden truncate text-[13px] font-medium text-muted sm:block">
+                {session.username}
+              </span>
+              <button
+                type="button"
+                onClick={logOutEverywhere}
+                className={`shrink-0 ${buttonSecondary}`}
+              >
+                Log out
+              </button>
+            </>
+          )}
+        </div>
       </header>
       {session ? (
         <Routes>
