@@ -335,7 +335,7 @@ through each dashboard step with you.
 - [ ] Manual: follow the README from a fresh `git clone` in a scratch directory
 
 **Dependencies:** T14
-**Files:** `README.md`, `docs/screenshot.png`
+**Files:** `README.md`, `img/*.png`
 **Scope:** S
 
 ### Checkpoint 4: Done

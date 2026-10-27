@@ -8,7 +8,9 @@ spreadsheet, with an account per user.
 **Live app:** https://pc-flipper-toolkit.vercel.app
 **API docs:** https://pc-flipper-toolkit.onrender.com/api/docs/
 
-![A build's detail page: the parts checklist, parts table and profit totals](docs/screenshot.png)
+![A build's detail page: the parts checklist, parts table and profit summary](img/builds-screenshot.png)
+
+![The builds list with each build's status, total cost, selling price and profit](img/homepage-screenshot.png)
 
 > The API runs on Render's free tier, which sleeps after 15 minutes idle. The first request
 > after that takes up to a minute while it wakes up.
