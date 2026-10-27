@@ -3,6 +3,7 @@ import { Link } from "react-router";
 import { listBuilds, type Build } from "../api";
 import { buildNo } from "../buildNo";
 import { NewBuildDialog } from "../components/NewBuildDialog";
+import { Bone, Skeleton } from "../components/Skeleton";
 import { StatusTag } from "../components/StatusTag";
 import { formatMoney, formatSignedMoney, profitColor } from "../money";
 import { buttonPrimary } from "../ui";
@@ -19,13 +20,12 @@ export function BuildsList() {
     listBuilds().then(setBuilds, () => setError(true));
   }, []);
 
-  let subtitle = "";
+  // A blank line while loading, so the header doesn't shift when the count arrives.
+  let subtitle = "\u00a0";
   if (builds) {
     const sold = builds.filter((b) => b.status === "sold").length;
     const n = builds.length;
     subtitle = `${n} ${n === 1 ? "build" : "builds"} · ${sold} sold`;
-  } else if (!error) {
-    subtitle = "Loading…";
   }
 
   return (
@@ -60,6 +60,8 @@ export function BuildsList() {
           </p>
         </div>
       )}
+
+      {!builds && !error && <ListSkeleton />}
 
       {builds?.length === 0 && (
         <div className="mt-8 border-t border-line-strong py-20 text-center">
@@ -163,6 +165,41 @@ export function BuildsList() {
         </>
       )}
     </main>
+  );
+}
+
+/** Three placeholder rows, shaped like the table (desktop) and the cards (phone). */
+function ListSkeleton() {
+  return (
+    <Skeleton
+      label="Loading builds"
+      className="mt-6 border-t border-line-strong sm:mt-8"
+    >
+      {[0, 1, 2].map((i) => (
+        <div key={i} className="border-b border-line py-4 sm:px-3">
+          <div className="hidden items-center gap-4 sm:flex">
+            <Bone className="h-4 w-6" />
+            <Bone className="h-5 w-56" />
+            <div className="flex-1" />
+            <Bone className="h-6 w-[72px]" />
+            <Bone className="ml-8 h-5 w-24" />
+            <Bone className="ml-8 h-5 w-24" />
+            <Bone className="ml-8 h-5 w-24" />
+          </div>
+          <div className="sm:hidden">
+            <div className="flex items-center justify-between gap-3">
+              <Bone className="h-5 w-40" />
+              <Bone className="h-6 w-[72px]" />
+            </div>
+            <div className="mt-3 grid grid-cols-3 gap-3">
+              <Bone className="h-10" />
+              <Bone className="h-10" />
+              <Bone className="h-10" />
+            </div>
+          </div>
+        </div>
+      ))}
+    </Skeleton>
   );
 }
 

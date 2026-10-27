@@ -35,6 +35,14 @@ test("shows the build's number and name", async () => {
   expect(screen.getByText("Build 03")).toBeTruthy();
 });
 
+test("shows a loading skeleton until the build arrives", async () => {
+  renderAt("/builds/3", Response.json(makeBuild()));
+
+  expect(screen.getByRole("status").textContent).toBe("Loading build");
+  await screen.findByText("Ryzen 5 7600 + RTX 4060");
+  expect(screen.queryByText("Loading build")).toBeNull();
+});
+
 test("a 404 shows the not-found state", async () => {
   renderAt(
     "/builds/99",

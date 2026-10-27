@@ -6,6 +6,7 @@ import { BuildHeader } from "../components/BuildHeader";
 import { ExtraCosts } from "../components/ExtraCosts";
 import { Notes } from "../components/Notes";
 import { PartsTable, type PartsOpen } from "../components/PartsTable";
+import { Bone, Skeleton } from "../components/Skeleton";
 import { Summary } from "../components/Summary";
 
 type Result =
@@ -65,9 +66,7 @@ export function BuildDetail() {
         ← All builds
       </Link>
 
-      {state.kind === "loading" && (
-        <p className="mt-4 text-[13px] text-muted">Loading…</p>
-      )}
+      {state.kind === "loading" && <DetailSkeleton />}
 
       {state.kind === "not-found" && (
         <div className="mt-8 border-t border-line-strong py-20 text-center">
@@ -137,5 +136,50 @@ export function BuildDetail() {
         </>
       )}
     </main>
+  );
+}
+
+/** Shaped like the page: header, then checklist and parts beside the summary. */
+function DetailSkeleton() {
+  return (
+    <Skeleton label="Loading build">
+      <div className="mt-2.5 flex items-center gap-2.5 pt-2">
+        <Bone className="h-[26px] w-[72px]" />
+        <Bone className="h-4 w-14" />
+      </div>
+      <Bone className="mt-2.5 h-11 w-72 max-w-full" />
+      <div className="mt-6 grid grid-cols-2 gap-3 sm:flex">
+        <Bone className="h-[66px] sm:w-[200px]" />
+        <Bone className="h-[66px] sm:w-[200px]" />
+      </div>
+
+      <div className="mt-8 grid gap-12 sm:mt-12 xl:grid-cols-[minmax(0,1fr)_320px] xl:gap-14">
+        <div className="flex min-w-0 flex-col gap-12">
+          <div>
+            <Bone className="h-7 w-40" />
+            <div className="mt-6 flex flex-col items-center gap-5 sm:flex-row sm:items-start sm:gap-8">
+              <Bone className="h-[380px] w-[300px] shrink-0 rounded-[12px]" />
+              <div className="flex w-full flex-1 flex-col gap-4 pt-2">
+                {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
+                  <Bone key={i} className="h-[22px]" />
+                ))}
+              </div>
+            </div>
+          </div>
+          <div className="flex flex-col gap-3">
+            <Bone className="h-7 w-32" />
+            <Bone className="h-12" />
+            <Bone className="h-12" />
+          </div>
+        </div>
+        <div className="flex flex-col gap-3">
+          <Bone className="h-7 w-28" />
+          <Bone className="h-[72px] w-48" />
+          {[0, 1, 2, 3, 4].map((i) => (
+            <Bone key={i} className="h-[22px]" />
+          ))}
+        </div>
+      </div>
+    </Skeleton>
   );
 }

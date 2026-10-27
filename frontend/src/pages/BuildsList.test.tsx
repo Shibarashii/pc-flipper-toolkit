@@ -47,3 +47,16 @@ test("each build shows its total cost, selling price and signed profit", async (
   // The unpriced build: "—" for both selling price and profit, in table and card.
   expect(screen.getAllByText("—")).toHaveLength(4);
 });
+
+test("shows a loading skeleton until the builds arrive", async () => {
+  vi.stubGlobal("fetch", vi.fn().mockResolvedValue(Response.json([])));
+  render(
+    <MemoryRouter>
+      <BuildsList />
+    </MemoryRouter>,
+  );
+
+  expect(screen.getByRole("status").textContent).toBe("Loading builds");
+  await screen.findByText("No builds yet");
+  expect(screen.queryByText("Loading builds")).toBeNull();
+});
