@@ -1,0 +1,76 @@
+# PC Flipper Toolkit
+
+Track the profit on every PC you flip. Log each part with its market price and what you
+actually paid, add the extras (shipping, fees, thermal paste), set a selling price, and see
+your true profit, margin, and how far below market you're selling. Built to replace a
+spreadsheet, with an account per user.
+
+**Live app:** https://pc-flipper-toolkit.vercel.app
+**API docs:** https://pc-flipper-toolkit.onrender.com/api/docs/
+
+![A build's detail page: the parts checklist, parts table and profit totals](docs/screenshot.png)
+
+> The API runs on Render's free tier, which sleeps after 15 minutes idle. The first request
+> after that takes up to a minute while it wakes up.
+
+## Stack
+
+| Layer | Choice |
+|---|---|
+| Frontend | React 19, TypeScript, Vite, Tailwind CSS v4, on Vercel |
+| API | Django 6, Django REST Framework, token auth, drf-spectacular docs, on Render (gunicorn + WhiteNoise) |
+| Database | PostgreSQL, on Neon |
+
+Money is stored as `Decimal` and travels as strings, so totals are exact to the centavo.
+
+## Run it locally
+
+You need Python 3.14, Node 24 and a local PostgreSQL server.
+
+```sh
+git clone https://github.com/Shibarashii/pc-flipper-toolkit.git
+cd pc-flipper-toolkit
+createdb pc_flipper_toolkit
+```
+
+**API** (http://localhost:8000):
+
+```sh
+cd backend
+python -m venv .venv
+.venv/bin/pip install -r requirements.txt -r requirements-dev.txt
+cp .env.example .env
+.venv/bin/python manage.py migrate
+.venv/bin/python manage.py runserver
+```
+
+**Frontend** (http://localhost:5173, in a second terminal; Vite forwards `/api` to the API):
+
+```sh
+cd frontend
+npm ci
+npm run dev
+```
+
+Open http://localhost:5173 and sign up.
+
+## Tests
+
+```sh
+cd backend && .venv/bin/python manage.py test && .venv/bin/ruff check .
+cd frontend && npm test && npm run lint && npm run build
+```
+
+## Deployment
+
+- **Render** (root `backend`): build `pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate`, start `gunicorn config.wsgi`. Environment: `SECRET_KEY`, `ALLOWED_HOSTS`, `DATABASE_URL` (Neon), `CORS_ALLOWED_ORIGINS` (the Vercel URL), `NUM_PROXIES=3`.
+- **Vercel** (root `frontend`): Vite preset, `VITE_API_URL` set to the Render URL. `vercel.json` sends every path to `index.html` so deep links work.
+
+Both redeploy on every push to `main`. See [`backend/.env.example`](backend/.env.example) for what each setting does.
+
+## Known limits
+
+- The log-in rate limit (10 a minute per IP) is counted in each server process's memory, and
+  it finds the visitor's IP by counting proxies (`NUM_PROXIES`). That's right for one free
+  Render instance; more servers would need a shared store like Redis.
+- No email or password reset (out of scope for v1).
