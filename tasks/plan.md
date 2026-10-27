@@ -89,7 +89,7 @@ so their order is flexible.
 - [x] T16: CI on GitHub Actions (tests on every push; Render deploys only after they pass)
 - [x] T17: Cooler label no longer hidden behind the CPU
 - [x] T18: Skeleton loading
-- [ ] T19: Light / dark mode button
+- [x] T19: Light / dark mode button
 
 ## Risks and Mitigations
 

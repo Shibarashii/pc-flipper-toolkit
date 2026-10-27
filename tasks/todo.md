@@ -399,21 +399,21 @@ Screen readers still hear that it's loading.
 **Files:** `frontend/src/components/Skeleton.tsx`, `frontend/src/pages/BuildsList.tsx`, `frontend/src/pages/BuildDetail.tsx`, tests
 **Scope:** S
 
-### - [ ] T19: Light / dark mode button
+### - [x] T19: Light / dark mode button
 
 **Description:** A button in the header switches between light and dark. It starts from
 the device setting and remembers the choice in this browser. The tokens move to CSS
 `light-dark()`, so each colour is written once and the theme is just `color-scheme`.
 
 **Acceptance criteria:**
-- [ ] The header button switches the theme at once, on every page (logged in or out).
-- [ ] The choice survives a reload, with no flash of the other theme.
-- [ ] With no choice saved, the app follows the device setting, as now.
-- [ ] The button has an accessible name saying what it switches to.
+- [x] The header button switches the theme at once, on every page (logged in or out).
+- [x] The choice survives a reload, with no flash of the other theme.
+- [x] With no choice saved, the app follows the device setting, as now.
+- [x] The button has an accessible name saying what it switches to.
 
 **Verification:**
-- [ ] Tests: the toggle switches and saves the theme
-- [ ] Manual: toggle, reload, both themes on desktop and phone
+- [x] Tests: the toggle switches and saves the theme
+- [x] Manual: toggle, reload, both themes on desktop and phone
 
 **Files:** `frontend/src/index.css`, `frontend/index.html`, `frontend/src/components/ThemeToggle.tsx`, `frontend/src/App.tsx`, tests
 **Scope:** S
