@@ -1,5 +1,7 @@
 # PC Flipper Toolkit
 
+[![CI](https://github.com/Shibarashii/pc-flipper-toolkit/actions/workflows/ci.yml/badge.svg)](https://github.com/Shibarashii/pc-flipper-toolkit/actions/workflows/ci.yml)
+
 Track the profit on every PC you flip. Log each part with its market price and what you
 actually paid, add the extras (shipping, fees, thermal paste), set a selling price, and see
 your true profit, margin, and how far below market you're selling. Built to replace a

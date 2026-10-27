@@ -85,6 +85,9 @@ so their order is flexible.
 
 **Checkpoint 4 (done):** all six SPEC success criteria pass on the live site.
 
+### Phase 5: After v1
+- [ ] T16: CI on GitHub Actions (tests on every push; Render deploys only after they pass)
+
 ## Risks and Mitigations
 
 | Risk | Impact | Mitigation |

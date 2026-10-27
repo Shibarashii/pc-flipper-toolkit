@@ -341,3 +341,27 @@ through each dashboard step with you.
 ### Checkpoint 4: Done
 - [x] All six SPEC success criteria pass on the live site
 - [x] All tests pass on `main`
+
+---
+
+## Phase 5: After v1
+
+### - [ ] T16: CI on GitHub Actions
+
+**Description:** One workflow, `.github/workflows/ci.yml`, on every push and pull request.
+Backend job: Python 3.14 with a PostgreSQL service, `ruff check`, `ruff format --check`,
+`manage.py test`. Frontend job: Node 24, `npm ci`, `tsc -b` (in the build), lint, tests, build.
+No new dependencies. Render's auto-deploy is then set to wait for the checks.
+
+**Acceptance criteria:**
+- [ ] Pushing to `main` shows a CI check next to Vercel's on GitHub, and it passes.
+- [ ] A failing test turns the check red (tried on a throwaway branch).
+- [ ] Render's Auto-Deploy is set to "After CI Checks Pass". The README has a CI badge.
+
+**Verification:**
+- [ ] The workflow's commands pass locally first
+- [ ] Manual: the green run on GitHub, and the red run on the throwaway branch
+
+**Dependencies:** T15
+**Files:** `.github/workflows/ci.yml`, `README.md`
+**Scope:** S
