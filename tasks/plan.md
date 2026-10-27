@@ -80,7 +80,7 @@ so their order is flexible.
 - [x] T11: Access key on the API (superseded by T12)
 - [x] T12: Accounts on the API (owner, token auth, isolation)
 - [x] T13: Log in and sign up screens
-- [ ] T14: Deploy (Neon + Render + Vercel)
+- [x] T14: Deploy (Neon + Render + Vercel)
 - [ ] T15: README with screenshot, live links, setup
 
 **Checkpoint 4 (done):** all six SPEC success criteria pass on the live site.

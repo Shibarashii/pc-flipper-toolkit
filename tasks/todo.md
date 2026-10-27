@@ -302,7 +302,7 @@ dialogs' form style. Replaces the read-only mode / "Unlock editing" work (the un
 **Files:** `frontend/src/api.ts`, `frontend/src/auth.ts`, `frontend/src/App.tsx`, `frontend/src/pages/Login.tsx` (log in + sign up), tests
 **Scope:** M
 
-### - [ ] T14: Deploy (Neon + Render + Vercel)
+### - [x] T14: Deploy (Neon + Render + Vercel)
 
 **Description:** Postgres on Neon, Django on Render (migrations in the build step, `DEBUG`
 off, new production `SECRET_KEY`), React on Vercel with `VITE_API_URL` and
@@ -312,13 +312,13 @@ plus WhiteNoise, a new dependency to ask about), a production superuser, and
 through each dashboard step with you.
 
 **Acceptance criteria:**
-- [ ] The live frontend loads builds from the live API, and a deep link to `/builds/<id>` works on refresh.
-- [ ] A request without a token returns 401 on the live API. Signing up and adding a build from the Vercel site works (CORS ok).
-- [ ] Data survives a Render redeploy.
+- [x] The live frontend loads builds from the live API, and a deep link to `/builds/<id>` works on refresh.
+- [x] A request without a token returns 401 on the live API. Signing up and adding a build from the Vercel site works (CORS ok).
+- [x] Data survives a Render redeploy.
 
 **Verification:**
-- [ ] `curl <api>/api/builds/` → 401. With a token from `curl -X POST <api>/api/auth/login/` → 200
-- [ ] Manual: phone plus desktop on the live URLs
+- [x] `curl <api>/api/builds/` → 401. With a token from `curl -X POST <api>/api/auth/login/` → 200
+- [x] Manual: phone plus desktop on the live URLs
 
 **Dependencies:** T13
 **Files:** `backend/requirements.txt` (WSGI server, asks first), `backend/config/settings.py`, `frontend/vercel.json`, `render.yaml` (optional)
