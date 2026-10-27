@@ -221,9 +221,9 @@ progress bar. An "Add" link opens the add-part row with that category preselecte
 **Scope:** M
 
 ### Checkpoint 3
-- [ ] Every user story in the SPEC works locally
-- [ ] Both screens are usable at 375px with no horizontal scroll, in light and dark mode
-- [ ] Review with the human before Phase 4
+- [x] Every user story in the SPEC works locally
+- [x] Both screens are usable at 375px with no horizontal scroll, in light and dark mode
+- [x] Review with the human before Phase 4
 
 ---
 
@@ -324,15 +324,15 @@ through each dashboard step with you.
 **Files:** `backend/requirements.txt` (WSGI server, asks first), `backend/config/settings.py`, `frontend/vercel.json`, `render.yaml` (optional)
 **Scope:** M
 
-### - [ ] T15: README with screenshot, live links, setup
+### - [x] T15: README with screenshot, live links, setup
 
 **Acceptance criteria:**
-- [ ] The README has a one-paragraph pitch, a screenshot, the live app and API links, the stack, and setup steps.
-- [ ] The setup steps work on a fresh clone into a temp directory (backend tests and the frontend build pass).
-- [ ] It mentions the Render cold start.
+- [x] The README has a one-paragraph pitch, a screenshot, the live app and API links, the stack, and setup steps.
+- [x] The setup steps work on a fresh clone into a temp directory (backend tests and the frontend build pass).
+- [x] It mentions the Render cold start.
 
 **Verification:**
-- [ ] Manual: follow the README from a fresh `git clone` in a scratch directory
+- [x] Manual: follow the README from a fresh `git clone` in a scratch directory
 
 **Dependencies:** T14
 **Files:** `README.md`, `img/*.png`
