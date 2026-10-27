@@ -11,7 +11,9 @@ const DIAGRAM: Record<Exclude<PartCategory, "other">, string> = {
   case: "inset-0 items-end justify-end rounded-[12px] pr-[14px] pb-[10px]",
   motherboard:
     "top-[20px] left-[20px] h-[236px] w-[204px] items-start justify-start pt-[8px] pl-[10px]",
-  cooler: "top-[44px] left-[40px] size-[96px] rounded-full",
+  // Label at the top of the ring: the CPU sits in the middle, over the centre.
+  cooler:
+    "top-[44px] left-[40px] size-[96px] items-start rounded-full pt-[3px]",
   cpu: "top-[64px] left-[60px] size-[56px]",
   ram: "top-[44px] left-[150px] h-[104px] w-[48px]",
   storage: "top-[154px] left-[40px] h-[26px] w-[116px]",
