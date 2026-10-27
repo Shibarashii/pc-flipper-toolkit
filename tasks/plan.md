@@ -88,7 +88,7 @@ so their order is flexible.
 ### Phase 5: After v1
 - [x] T16: CI on GitHub Actions (tests on every push; Render deploys only after they pass)
 - [x] T17: Cooler label no longer hidden behind the CPU
-- [ ] T18: Skeleton loading
+- [x] T18: Skeleton loading
 - [ ] T19: Light / dark mode button
 
 ## Risks and Mitigations

@@ -381,20 +381,20 @@ the label to the top of the cooler ring.
 **Files:** `frontend/src/components/BuildChecklist.tsx`
 **Scope:** XS
 
-### - [ ] T18: Skeleton loading
+### - [x] T18: Skeleton loading
 
 **Description:** Replace the "Loading…" text on the builds list and build detail with
 skeletons shaped like the content that's coming, so the page doesn't jump when it loads.
 Screen readers still hear that it's loading.
 
 **Acceptance criteria:**
-- [ ] The builds list shows placeholder rows (table on desktop, cards on phone) while loading.
-- [ ] The build detail shows placeholder title, checklist, parts and summary blocks.
-- [ ] Skeletons are announced as loading (`role="status"`, hidden text) and stop pulsing with reduced motion.
+- [x] The builds list shows placeholder rows (table on desktop, cards on phone) while loading.
+- [x] The build detail shows placeholder title, checklist, parts and summary blocks.
+- [x] Skeletons are announced as loading (`role="status"`, hidden text) and stop pulsing with reduced motion.
 
 **Verification:**
-- [ ] Tests: each page shows a loading status before the data arrives
-- [ ] Manual: throttle the network in DevTools and watch both pages load, light and dark
+- [x] Tests: each page shows a loading status before the data arrives
+- [x] Manual: throttle the network in DevTools and watch both pages load, light and dark
 
 **Files:** `frontend/src/components/Skeleton.tsx`, `frontend/src/pages/BuildsList.tsx`, `frontend/src/pages/BuildDetail.tsx`, tests
 **Scope:** S
