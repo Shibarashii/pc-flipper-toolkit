@@ -13,7 +13,7 @@ SECRET_KEY = os.environ.get("SECRET_KEY") or "dev-only-insecure-key"
 if not DEBUG and SECRET_KEY == "dev-only-insecure-key":
     raise RuntimeError("Set SECRET_KEY when DEBUG is off.")
 
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+ALLOWED_HOSTS = (os.environ.get("ALLOWED_HOSTS") or "localhost,127.0.0.1").split(",")
 CORS_ALLOWED_ORIGINS = [
     o for o in os.environ.get("CORS_ALLOWED_ORIGINS", "").split(",") if o
 ]
@@ -117,7 +117,7 @@ REST_FRAMEWORK = {
     # counts per client IP, taken that many entries from the end; 0 uses the
     # connection's address. Unset, DRF would trust the whole header, which clients
     # can fake to get a fresh limit on every request.
-    "NUM_PROXIES": int(os.environ.get("NUM_PROXIES", "0")),
+    "NUM_PROXIES": int(os.environ.get("NUM_PROXIES") or 0),
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 

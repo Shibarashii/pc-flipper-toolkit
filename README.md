@@ -59,8 +59,8 @@ Open http://localhost:5173 and sign up.
 ## Tests
 
 ```sh
-cd backend && .venv/bin/python manage.py test && .venv/bin/ruff check .
-cd frontend && npm test && npm run lint && npm run build
+(cd backend && .venv/bin/python manage.py test && .venv/bin/ruff check .)
+(cd frontend && npm test && npm run lint && npm run build)
 ```
 
 ## Deployment
