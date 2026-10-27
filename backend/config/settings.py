@@ -35,6 +35,8 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    # Serves the admin's and API docs' CSS/JS in production, where DEBUG is off.
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -71,6 +73,18 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 STATIC_URL = "static/"
+# `collectstatic` (in Render's build) gathers them here for WhiteNoise, compressed.
+STATIC_ROOT = BASE_DIR / "staticfiles"
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {"BACKEND": "whitenoise.storage.CompressedStaticFilesStorage"},
+}
+
+# Render ends HTTPS at its proxy and forwards plain HTTP with this header, so Django
+# knows the request was secure (the admin's CSRF check needs that).
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+# Cookies (admin login only) are sent over HTTPS only, except in local development.
+SESSION_COOKIE_SECURE = CSRF_COOKIE_SECURE = not DEBUG
 
 ROOT_URLCONF = "config.urls"
 WSGI_APPLICATION = "config.wsgi.application"

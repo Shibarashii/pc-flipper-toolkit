@@ -38,7 +38,7 @@ sharing a build with another user, a public demo account, and social login.
 
 | Layer | Choice |
 |---|---|
-| Backend | Python 3.14, Django 6.0, Django REST Framework, django-cors-headers, psycopg 3, dj-database-url, python-dotenv, drf-spectacular (OpenAPI docs) |
+| Backend | Python 3.14, Django 6.0, Django REST Framework, django-cors-headers, psycopg 3, dj-database-url, python-dotenv, drf-spectacular (OpenAPI docs); in production, gunicorn (web server) and WhiteNoise (static files) |
 | Database | PostgreSQL everywhere: local install (dev), Neon free tier (prod). Configured via `DATABASE_URL` |
 | Frontend | React 19 + TypeScript, Vite, Tailwind CSS v4, React Router v8 |
 | Backend tests | Django test runner (`manage.py test`) |
