@@ -366,17 +366,17 @@ No new dependencies. Render's auto-deploy is then set to wait for the checks.
 **Files:** `.github/workflows/ci.yml`, `README.md`
 **Scope:** S
 
-### - [ ] T17: Cooler label no longer hidden behind the CPU
+### - [x] T17: Cooler label no longer hidden behind the CPU
 
 **Description:** In the case diagram the cooler circle and the CPU box share a centre, so
 the "Cooler" label sits under "CPU" (and shows through when the CPU isn't filled). Move
 the label to the top of the cooler ring.
 
 **Acceptance criteria:**
-- [ ] "Cooler" and "CPU" never overlap, whatever state each slot is in.
+- [x] "Cooler" and "CPU" never overlap, whatever state each slot is in.
 
 **Verification:**
-- [ ] Manual: diagram with CPU missing, filled; cooler optional, filled
+- [x] Manual: diagram with CPU missing, filled; cooler optional, filled
 
 **Files:** `frontend/src/components/BuildChecklist.tsx`
 **Scope:** XS
