@@ -9,7 +9,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
 
 DEBUG = os.environ.get("DEBUG", "0") == "1"
-SECRET_KEY = os.environ.get("SECRET_KEY", "dev-only-insecure-key")
+SECRET_KEY = os.environ.get("SECRET_KEY") or "dev-only-insecure-key"
 if not DEBUG and SECRET_KEY == "dev-only-insecure-key":
     raise RuntimeError("Set SECRET_KEY when DEBUG is off.")
 
