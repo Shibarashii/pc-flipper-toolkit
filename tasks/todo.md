@@ -339,5 +339,5 @@ through each dashboard step with you.
 **Scope:** S
 
 ### Checkpoint 4: Done
-- [ ] All six SPEC success criteria pass on the live site
-- [ ] All tests pass on `main`
+- [x] All six SPEC success criteria pass on the live site
+- [x] All tests pass on `main`

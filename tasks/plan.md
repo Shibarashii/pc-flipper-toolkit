@@ -63,16 +63,16 @@ so their order is flexible.
 
 ### Phase 2: Core flow, enough to log a real flip
 - [x] T4: Detail page shows parts and the summary, and can add a part
-- [ ] T5: Edit and delete parts inline
-- [ ] T6: Extra costs: add, edit, delete
-- [ ] T7: Header: status, selling price, sold date, name, notes
+- [x] T5: Edit and delete parts inline
+- [x] T6: Extra costs: add, edit, delete
+- [x] T7: Header: status, selling price, sold date, name, notes
 
 **Checkpoint 2:** enter one real flip (≥ 6 parts, ≥ 2 extra costs). Profit matches your hand calculation to the centavo (SPEC success criterion 1). Review the UI together.
 
 ### Phase 3: Complete v1 locally
-- [ ] T8: Builds list shows total cost and profit
-- [ ] T9: Delete a build with confirmation
-- [ ] T10: Build checklist (part slots + case diagram)
+- [x] T8: Builds list shows total cost and profit
+- [x] T9: Delete a build with confirmation
+- [x] T10: Build checklist (part slots + case diagram)
 
 **Checkpoint 3:** every user story in the SPEC works locally. Both screens are usable at 375px with no horizontal scroll.
 
