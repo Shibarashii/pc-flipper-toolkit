@@ -110,7 +110,8 @@ USE_TZ = True
 REST_FRAMEWORK = {
     "DEFAULT_RENDERER_CLASSES": ["rest_framework.renderers.JSONRenderer"],
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework.authentication.TokenAuthentication"
+        # DRF's TokenAuthentication with a 30-day lifetime.
+        "builds.authentication.ExpiringTokenAuthentication"
     ],
     "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
     # ponytail: counted in each process's memory, so the limit is per worker and
@@ -138,6 +139,8 @@ SPECTACULAR_SETTINGS = {
         "A missing id returns `404`.\n\n"
         "**Accounts**: sign up or log in under `auth` to get a token, then send "
         "`Authorization: Token <token>` with every other request (or get `401`). "
+        "A token works for 30 days from when it was made; then it's `401` and "
+        "logging in again gives a new one. "
         "Each user only sees their own builds; anyone else's return `404`."
     ),
     "VERSION": "1.0.0",

@@ -12,6 +12,8 @@ from rest_framework.response import Response
 from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 
+from .authentication import expired
+
 User = get_user_model()
 
 TAKEN = "That username is taken."
@@ -56,6 +58,9 @@ class TokenSerializer(UserSerializer):
 
 def token_response(user, status_code=status.HTTP_200_OK) -> Response:
     token, _ = Token.objects.get_or_create(user=user)
+    if expired(token):
+        token.delete()
+        token = Token.objects.create(user=user)
     return Response({"token": token.key, "username": user.username}, status_code)
 
 

@@ -137,6 +137,8 @@ bundle's `bought_for` when lowering it); a `bundle` from another build.
 Token auth rather than session cookies because the frontend (Vercel) and API (Render) are on
 different sites, where browsers block or restrict cookies. Signing up or logging in returns
 the token; the frontend keeps it in `localStorage`. Logging out deletes it on the server.
+A token works for 30 days from when it was made, then returns 401; logging in again gives a
+new one.
 Passwords go through Django's password validators. Sign-up and log-in are rate-limited per IP.
 
 Every user sees and changes only their own data: builds are filtered by `owner`, and parts
