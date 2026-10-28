@@ -59,6 +59,8 @@ class TokenSerializer(UserSerializer):
 def token_response(user, status_code=status.HTTP_200_OK) -> Response:
     token, _ = Token.objects.get_or_create(user=user)
     if expired(token):
+        # ponytail: two log-ins at the same moment on an expired token can 500 the second
+        # (one token per user); retrying works. Catch IntegrityError if it ever shows up.
         token.delete()
         token = Token.objects.create(user=user)
     return Response({"token": token.key, "username": user.username}, status_code)
