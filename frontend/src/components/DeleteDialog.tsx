@@ -3,7 +3,7 @@ import { buttonDanger, buttonSecondary } from "../ui";
 
 /** "Delete this {what}?" with Cancel and a red "Delete {what}". Render only while open;
  * it opens itself as a modal on mount. */
-export function ConfirmDialog({
+export function DeleteDialog({
   what,
   message,
   onConfirm,

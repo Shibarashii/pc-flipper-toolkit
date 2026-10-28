@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router";
 import { deleteBuild, type BuildDetail } from "../api";
-import { ConfirmDialog } from "./ConfirmDialog";
+import { DeleteDialog } from "./DeleteDialog";
 
 const count = (n: number, one: string, many: string) =>
   `${n} ${n === 1 ? one : many}`;
@@ -29,7 +29,7 @@ export function DeleteBuildDialog({
 }) {
   const navigate = useNavigate();
   return (
-    <ConfirmDialog
+    <DeleteDialog
       what="build"
       message={deleteMessage(build)}
       onConfirm={async () => {

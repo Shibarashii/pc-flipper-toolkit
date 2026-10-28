@@ -13,7 +13,7 @@ export const cleanMoney = (value: string) => value.replace(/[₱,]/g, "").trim()
 /** Saving state for an inline form. `save(work)` runs the request; a 400 puts each
  * message under its field, and `failed` covers the rest (no connection, or an error on
  * a field the form doesn't show). `shown` is the form's fields, e.g. its EMPTY. */
-export function useSave(shown: object) {
+export function useSave(shown: Record<string, string>) {
   const [errors, setErrors] = useState<FieldErrors>({});
   const [failed, setFailed] = useState(false);
   const [saving, setSaving] = useState(false);

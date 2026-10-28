@@ -8,7 +8,7 @@ import {
 } from "../api";
 import { formatMoney } from "../money";
 import { buttonPrimary, buttonSecondary, input } from "../ui";
-import { ConfirmDialog } from "./ConfirmDialog";
+import { DeleteDialog } from "./DeleteDialog";
 import { cleanMoney, Field, RowActions, useSave } from "./form";
 
 const tag =
@@ -259,7 +259,7 @@ export function DeleteBundleDialog({
       ? ` and its ${n} ${n === 1 ? "part" : "parts"} (${parts.map((p) => p.name).join(", ")})`
       : "";
   return (
-    <ConfirmDialog
+    <DeleteDialog
       what="bundle"
       message={`“${bundle.name}”${its} will be deleted. This can’t be undone.`}
       onConfirm={async () => {
