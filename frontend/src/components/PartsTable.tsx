@@ -1,8 +1,14 @@
 import { useState } from "react";
-import { deletePart, type Part, type PartCategory, type Totals } from "../api";
+import {
+  deletePart,
+  type Bundle,
+  type Part,
+  type PartCategory,
+  type Totals,
+} from "../api";
 import { formatMoney } from "../money";
 import { buttonSecondary } from "../ui";
-import { PartForm, PartItem } from "./PartRow";
+import { BundleItem, PartForm, PartItem } from "./PartRow";
 
 /** Which form is open: the add row (maybe with a category picked), a part's id, or none. */
 export type PartsOpen = { category: PartCategory | "" } | number | null;
@@ -10,6 +16,7 @@ export type PartsOpen = { category: PartCategory | "" } | number | null;
 export function PartsTable({
   buildId,
   parts,
+  bundles,
   totals,
   open,
   setOpen,
@@ -17,6 +24,7 @@ export function PartsTable({
 }: {
   buildId: number;
   parts: Part[];
+  bundles: Bundle[];
   totals: Totals;
   // Lifted to the page, so the build checklist's "Add" links can open the add row.
   open: PartsOpen;
@@ -43,6 +51,30 @@ export function PartsTable({
   }
 
   const n = parts.length;
+  const any = n > 0 || bundles.length > 0;
+
+  const renderPart = (p: Part) =>
+    open === p.id ? (
+      <li key={p.id} className="py-3 sm:py-2">
+        <PartForm
+          part={p}
+          buildId={buildId}
+          onSaved={() => {
+            close();
+            onChanged();
+          }}
+          onClose={close}
+        />
+      </li>
+    ) : (
+      <PartItem
+        key={p.id}
+        part={p}
+        deleting={deleting === p.id}
+        onEdit={() => setOpen(p.id)}
+        onDelete={() => remove(p)}
+      />
+    );
 
   return (
     <section aria-labelledby="parts-title">
@@ -73,7 +105,7 @@ export function PartsTable({
       )}
 
       <div className="flex flex-col border-t border-line-strong">
-        {n === 0 && !adding && (
+        {!any && !adding && (
           <div className="py-6">
             <p className="text-[15px] leading-[22px] font-medium">
               No parts yet
@@ -85,7 +117,7 @@ export function PartsTable({
           </div>
         )}
 
-        {n > 0 && (
+        {any && (
           <>
             <div
               aria-hidden
@@ -98,29 +130,22 @@ export function PartsTable({
               <span className="w-[58px]" />
             </div>
             <ul>
-              {parts.map((p) =>
-                open === p.id ? (
-                  <li key={p.id} className="py-3 sm:py-2">
-                    <PartForm
-                      part={p}
-                      buildId={buildId}
-                      onSaved={() => {
-                        close();
-                        onChanged();
-                      }}
-                      onClose={close}
-                    />
+              {/* Bundles first, each with its parts indented under it. */}
+              {bundles.map((b) => {
+                const inside = parts.filter((p) => p.bundle === b.id);
+                return (
+                  <li key={`bundle-${b.id}`}>
+                    <BundleItem bundle={b} count={inside.length} />
+                    <ul
+                      aria-label={`Parts in ${b.name}`}
+                      className="pl-4 sm:pl-6"
+                    >
+                      {inside.map(renderPart)}
+                    </ul>
                   </li>
-                ) : (
-                  <PartItem
-                    key={p.id}
-                    part={p}
-                    deleting={deleting === p.id}
-                    onEdit={() => setOpen(p.id)}
-                    onDelete={() => remove(p)}
-                  />
-                ),
-              )}
+                );
+              })}
+              {parts.filter((p) => p.bundle === null).map(renderPart)}
             </ul>
           </>
         )}
@@ -139,7 +164,7 @@ export function PartsTable({
           </div>
         )}
 
-        {n > 0 && (
+        {any && (
           <div className="hidden gap-4 border-t border-line-strong py-3 text-[15px] leading-[22px] font-medium tabular-nums sm:flex">
             <span className="flex-1">Total</span>
             <span className="w-[100px]" />

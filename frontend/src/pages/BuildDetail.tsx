@@ -115,6 +115,7 @@ export function BuildDetail() {
               <PartsTable
                 buildId={state.build.id}
                 parts={state.build.parts}
+                bundles={state.build.bundles}
                 totals={state.build.totals}
                 open={partsOpen}
                 setOpen={setPartsOpen}
