@@ -47,7 +47,21 @@ export type Part = {
   category: PartCategory;
   shop: string;
   listed_price: string;
+  /** null only for a part in a bundle whose share wasn't typed in. */
+  bought_for: string | null;
+  bundle: number | null;
+};
+
+/** Parts bought together for one price. Their own bought-for is an optional breakdown. */
+export type Bundle = {
+  id: number;
+  build: number;
+  name: string;
+  shop: string;
   bought_for: string;
+  /** Read-only: its parts' listed prices, and its price minus their typed amounts. */
+  listed_total: string;
+  unassigned: string;
 };
 
 export type ExtraCost = {
@@ -57,9 +71,13 @@ export type ExtraCost = {
   amount: string;
 };
 
-export type BuildDetail = Build & { parts: Part[]; extra_costs: ExtraCost[] };
+export type BuildDetail = Build & {
+  parts: Part[];
+  bundles: Bundle[];
+  extra_costs: ExtraCost[];
+};
 
-export type NewPart = Omit<Part, "id">;
+export type NewPart = Omit<Part, "id" | "bundle"> & { bundle?: number | null };
 
 /** DRF validation errors: field name → messages. */
 export type FieldErrors = Record<string, string[]>;

@@ -37,6 +37,7 @@ export const makeBuild = (
   created_at: "2026-10-26T14:30:00+08:00",
   totals: EMPTY_TOTALS,
   parts: [],
+  bundles: [],
   extra_costs: [],
   ...overrides,
 });

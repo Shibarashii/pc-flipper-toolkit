@@ -445,7 +445,7 @@ isolation like parts, and the admin. The migration is additive: existing parts a
 **Files:** `backend/builds/models.py`, migration, `serializers.py`, `views.py`, `config/urls.py`, `admin.py`, `tests.py`
 **Scope:** M
 
-### - [ ] T21: Show bundles in the parts table
+### - [x] T21: Show bundles in the parts table
 
 **Description:** First move the part row and part form out of `PartsTable.tsx` (470 lines)
 into their own file, with no behaviour change. Then, read-only: the parts table groups bundled parts under their bundle row
@@ -453,13 +453,13 @@ into their own file, with no behaviour change. Then, read-only: the parts table 
 typed amounts don't cover the price. Desktop rows and phone cards. API types for bundles.
 
 **Acceptance criteria:**
-- [ ] A build with a bundle shows the bundle row with its parts under it, desktop and phone.
-- [ ] Blank bought-for shows "—"; an under-assigned bundle shows the remainder.
-- [ ] The checklist fills from bundled parts with no change to its logic.
+- [x] A build with a bundle shows the bundle row with its parts under it, desktop and phone.
+- [x] Blank bought-for shows "—"; an under-assigned bundle shows the remainder.
+- [x] The checklist fills from bundled parts with no change to its logic.
 
 **Verification:**
-- [ ] Tests: grouping, "—", not-assigned amount
-- [ ] Screenshots: desktop and 375px, light and dark
+- [x] Tests: grouping, "—", not-assigned amount
+- [x] Screenshots: desktop and 375px, light and dark
 
 **Dependencies:** T20
 **Files:** `frontend/src/api.ts`, `frontend/src/components/PartsTable.tsx`, `frontend/src/components/PartRow.tsx` (split out), tests

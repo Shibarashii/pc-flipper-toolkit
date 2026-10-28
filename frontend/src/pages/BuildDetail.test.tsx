@@ -68,6 +68,7 @@ test("a refetch that read the database before a header save doesn't undo it", as
     shop: "",
     listed_price: "1.00",
     bought_for: "1.00",
+    bundle: null,
   };
   const before = makeBuild({ parts: [part] });
   const saved = makeBuild({ selling_price: "50000.00" });

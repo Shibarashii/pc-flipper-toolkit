@@ -4,19 +4,23 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from "@testing-library/react";
 import { useState, type ComponentProps } from "react";
 import { afterEach, expect, test, vi } from "vitest";
-import type { Part } from "../api";
+import type { Bundle, Part } from "../api";
 import { EMPTY_TOTALS } from "../test/fixtures";
 import { PartsTable as Table, type PartsOpen } from "./PartsTable";
 
-/** The table with its open form held in state, as the page holds it. */
-function PartsTable(
-  props: Omit<ComponentProps<typeof Table>, "open" | "setOpen">,
-) {
+/** The table with its open form held in state, as the page holds it. No bundles by default. */
+function PartsTable({
+  bundles = [],
+  ...props
+}: Omit<ComponentProps<typeof Table>, "open" | "setOpen" | "bundles"> & {
+  bundles?: Bundle[];
+}) {
   const [open, setOpen] = useState<PartsOpen>(null);
-  return <Table {...props} open={open} setOpen={setOpen} />;
+  return <Table {...props} bundles={bundles} open={open} setOpen={setOpen} />;
 }
 
 afterEach(() => {
@@ -119,6 +123,7 @@ const PARTS: Part[] = [
     shop: "Shopee",
     listed_price: "12500.00",
     bought_for: "10500.00",
+    bundle: null,
   },
   {
     id: 8,
@@ -128,6 +133,7 @@ const PARTS: Part[] = [
     shop: "",
     listed_price: "16500.00",
     bought_for: "14200.00",
+    bundle: null,
   },
 ];
 
@@ -225,4 +231,76 @@ test("a failed delete says so", async () => {
 
   expect(await screen.findByRole("alert")).toBeTruthy();
   expect(onChanged).not.toHaveBeenCalled();
+});
+
+test("bundled parts sit under their bundle, with its price and what's not assigned", () => {
+  const bundle: Bundle = {
+    id: 1,
+    build: 3,
+    name: "B550m + R5 5600 + 16GB",
+    shop: "Marketplace",
+    bought_for: "7500.00",
+    listed_total: "9199.00",
+    unassigned: "4000.00",
+  };
+  const inBundle = (id: number, name: string, bought_for: string | null) => ({
+    ...PARTS[0],
+    id,
+    name,
+    bought_for,
+    bundle: 1,
+  });
+  render(
+    <PartsTable
+      buildId={3}
+      parts={[
+        inBundle(10, "Ryzen 5 5600", "3500.00"),
+        PARTS[1],
+        inBundle(11, "Asrock B550m", null),
+      ]}
+      bundles={[bundle]}
+      totals={EMPTY_TOTALS}
+      onChanged={() => {}}
+    />,
+  );
+
+  const grouped = screen.getByRole("list", {
+    name: "Parts in B550m + R5 5600 + 16GB",
+  });
+  expect(within(grouped).getAllByText("Ryzen 5 5600")).toHaveLength(2);
+  expect(within(grouped).getAllByText("Asrock B550m")).toHaveLength(2);
+  expect(within(grouped).queryByText("RX 7600")).toBeNull();
+  // Each row renders as a phone card and a desktop row; CSS hides one.
+  expect(within(grouped).getAllByText("—")).toHaveLength(2);
+  expect(screen.getAllByText("Marketplace · 2 parts").length).toBeGreaterThan(
+    0,
+  );
+  expect(screen.getAllByText("₱7,500.00")).toHaveLength(2);
+  expect(screen.getAllByText("₱4,000.00 not assigned")).toHaveLength(2);
+});
+
+test("a fully assigned bundle shows no remainder", () => {
+  render(
+    <PartsTable
+      buildId={3}
+      parts={[]}
+      bundles={[
+        {
+          id: 1,
+          build: 3,
+          name: "Deal",
+          shop: "",
+          bought_for: "500.00",
+          listed_total: "0.00",
+          unassigned: "0.00",
+        },
+      ]}
+      totals={EMPTY_TOTALS}
+      onChanged={() => {}}
+    />,
+  );
+
+  expect(screen.queryByText("No parts yet")).toBeNull();
+  expect(screen.getAllByText("0 parts").length).toBeGreaterThan(0);
+  expect(screen.queryByText(/not assigned/)).toBeNull();
 });
