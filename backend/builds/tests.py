@@ -780,5 +780,15 @@ class AdminTests(TestCase):
         ]:
             self.assertEqual(self.client.get(url).status_code, 200, url)
 
+    def test_admin_login_is_rate_limited(self):
+        cache.clear()
+        wrong = {"username": "admin", "password": "nope"}
+        codes = [
+            self.client.post("/admin/login/", wrong).status_code for _ in range(11)
+        ]
+        # A wrong password re-shows the form (200); the 11th try in a minute is refused.
+        self.assertEqual(codes, [200] * 10 + [429])
+        self.assertEqual(self.client.get("/admin/login/").status_code, 200)
+
     def test_admin_requires_login(self):
         self.assertEqual(self.client.get("/admin/builds/build/").status_code, 302)
