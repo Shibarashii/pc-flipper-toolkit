@@ -64,6 +64,8 @@ jobs:
         image: postgres:18
         env:
           POSTGRES_PASSWORD: postgres
+          # The unit tests make their own test_ database; a real server needs this one.
+          POSTGRES_DB: pc_flipper_toolkit
         ports: ["5432:5432"]
         options: --health-cmd pg_isready --health-interval 5s --health-retries 10
     env:
