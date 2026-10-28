@@ -20,16 +20,6 @@ const DIAGRAM: Record<Exclude<PartCategory, "other">, string> = {
   gpu: "top-[194px] left-[28px] h-[52px] w-[248px]",
   psu: "top-[290px] left-[20px] h-[68px] w-[136px]",
 };
-const DIAGRAM_ORDER: (keyof typeof DIAGRAM)[] = [
-  "case",
-  "motherboard",
-  "cooler",
-  "cpu",
-  "ram",
-  "storage",
-  "gpu",
-  "psu",
-];
 
 const SLOT_STYLE: Record<SlotState, string> = {
   filled: "border-solid border-accent bg-slot-fill text-ink",
@@ -84,14 +74,16 @@ export function BuildChecklist({
       <div className="flex flex-col items-center gap-5 pt-5 sm:flex-row sm:items-start sm:gap-8">
         {/* The checklist says the same thing in words, so the picture is hidden from screen readers. */}
         <div aria-hidden className="relative h-[380px] w-[300px] shrink-0">
-          {DIAGRAM_ORDER.map((category) => (
-            <div
-              key={category}
-              className={`absolute flex items-center justify-center rounded border text-[13px] leading-[18px] font-medium ${SLOT_STYLE[stateOf[category]]} ${DIAGRAM[category]}`}
-            >
-              {slots.find((s) => s.category === category)?.label}
-            </div>
-          ))}
+          {(Object.keys(DIAGRAM) as (keyof typeof DIAGRAM)[]).map(
+            (category) => (
+              <div
+                key={category}
+                className={`absolute flex items-center justify-center rounded border text-[13px] leading-[18px] font-medium ${SLOT_STYLE[stateOf[category]]} ${DIAGRAM[category]}`}
+              >
+                {slots.find((s) => s.category === category)?.label}
+              </div>
+            ),
+          )}
           <img
             src={rearFan}
             alt=""
