@@ -2,12 +2,13 @@ from decimal import Decimal as D
 from io import StringIO
 from unittest import mock
 
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.management import call_command
 from django.db import IntegrityError, transaction
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from rest_framework.test import APITestCase
 
 from .models import Build, Bundle, ExtraCost, Part
@@ -630,6 +631,8 @@ class AuthTests(APITestCase):
             self.assertEqual(self.post("/api/auth/login/", wrong).status_code, 400)
         self.assertEqual(self.post("/api/auth/login/", wrong).status_code, 429)
 
+    # Pinned: with a NUM_PROXIES from backend/.env, the faked header would count.
+    @override_settings(REST_FRAMEWORK={**settings.REST_FRAMEWORK, "NUM_PROXIES": 0})
     def test_a_faked_forwarded_for_header_doesnt_reset_the_limit(self):
         wrong = {"username": "carol", "password": "nope"}
         codes = [
