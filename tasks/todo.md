@@ -439,7 +439,7 @@ isolation like parts, and the admin. The migration is additive: existing parts a
 
 **Verification:**
 - [x] Tests: `manage.py test` (totals, validation, isolation, cascade), ruff
-- [ ] `/api/docs/` shows the bundle endpoints and fields; the migration applies to a copy of real data
+- [x] `/api/docs/` shows the bundle endpoints and fields; the migration applies to a copy of real data
 
 **Dependencies:** None
 **Files:** `backend/builds/models.py`, migration, `serializers.py`, `views.py`, `config/urls.py`, `admin.py`, `tests.py`
@@ -478,12 +478,12 @@ optional only when a bundle is picked. Server errors show under their field.
 
 **Verification:**
 - [x] Tests: add bundle, add part in it, move a part out (bought-for required), delete with confirmation
-- [ ] Manual: SPEC success criterion 7 on the live site after merge
+- [x] Manual: SPEC success criterion 7 on the live site after merge
 
 **Dependencies:** T21
 **Files:** `frontend/src/components/PartsTable.tsx`, `PartRow.tsx`, a new `BundleRow.tsx`, `frontend/src/api.ts`, tests
 **Scope:** M
 
 ### Checkpoint 5: Bundles
-- [ ] SPEC success criterion 7 passes on the live site
-- [ ] All tests pass on `main`
+- [x] SPEC success criterion 7 passes on the live site
+- [x] All tests pass on `main`
