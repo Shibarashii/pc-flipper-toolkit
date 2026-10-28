@@ -465,19 +465,19 @@ typed amounts don't cover the price. Desktop rows and phone cards. API types for
 **Files:** `frontend/src/api.ts`, `frontend/src/components/PartsTable.tsx`, `frontend/src/components/PartRow.tsx` (split out), tests
 **Scope:** M
 
-### - [ ] T22: Add, edit and delete bundles and their parts
+### - [x] T22: Add, edit and delete bundles and their parts
 
 **Description:** "Add bundle" next to "Add part"; a bundle row's own "Add part", edit and
 delete (confirmation naming its parts). The part form gets a "Bundle" select; bought-for is
 optional only when a bundle is picked. Server errors show under their field.
 
 **Acceptance criteria:**
-- [ ] You can create a bundle, add parts inside it, edit both, and move a part in or out of it.
-- [ ] Deleting a bundle asks first, naming its parts; the totals update after every change.
-- [ ] An over-assigned amount or a loose part with no bought-for shows the server's message under the field.
+- [x] You can create a bundle, add parts inside it, edit both, and move a part in or out of it.
+- [x] Deleting a bundle asks first, naming its parts; the totals update after every change.
+- [x] An over-assigned amount or a loose part with no bought-for shows the server's message under the field.
 
 **Verification:**
-- [ ] Tests: add bundle, add part in it, move a part out (bought-for required), delete with confirmation
+- [x] Tests: add bundle, add part in it, move a part out (bought-for required), delete with confirmation
 - [ ] Manual: SPEC success criterion 7 on the live site after merge
 
 **Dependencies:** T21

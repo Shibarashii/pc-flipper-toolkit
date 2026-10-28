@@ -94,7 +94,7 @@ so their order is flexible.
 ### Phase 6: Part bundles
 - [x] T20: Bundles in the API (model, totals, validation, endpoints)
 - [x] T21: Show bundles in the parts table (read-only grouping)
-- [ ] T22: Add, edit and delete bundles and their parts
+- [x] T22: Add, edit and delete bundles and their parts
 
 **Checkpoint 5:** SPEC success criterion 7 passes on the live site.
 
