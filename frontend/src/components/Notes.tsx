@@ -38,6 +38,8 @@ export function Notes({
       <textarea
         aria-labelledby="notes-title"
         value={notes}
+        // The API's limit (NOTES_MAX in builds/serializers.py).
+        maxLength={10000}
         onChange={(e) => setNotes(e.target.value)}
         onBlur={save}
         placeholder="Buyer, payment, anything worth remembering about this flip."

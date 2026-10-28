@@ -56,6 +56,15 @@ class BuildApiTests(LoggedInApiTestCase):
         self.assertEqual(res.status_code, 400)
         self.assertIn("selling_price", res.json())
 
+    def test_notes_are_capped_at_10000_characters(self):
+        url = f"/api/builds/{new_build(name='B').id}/"
+
+        res = self.client.patch(url, {"notes": "x" * 10_000}, format="json")
+        self.assertEqual(res.status_code, 200)
+        res = self.client.patch(url, {"notes": "x" * 10_001}, format="json")
+        self.assertEqual(res.status_code, 400)
+        self.assertIn("notes", res.json())
+
 
 class SoldDateTests(LoggedInApiTestCase):
     def test_only_a_sold_build_has_a_sold_date(self):

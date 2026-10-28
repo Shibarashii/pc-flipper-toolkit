@@ -85,6 +85,9 @@ STORAGES = {
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 # Cookies (admin login only) are sent over HTTPS only, except in local development.
 SESSION_COOKIE_SECURE = CSRF_COOKIE_SECURE = not DEBUG
+# Browsers use HTTPS for a year after the first visit. No includeSubDomains or preload:
+# onrender.com is shared, so those aren't ours to set.
+SECURE_HSTS_SECONDS = 0 if DEBUG else 31_536_000
 
 ROOT_URLCONF = "config.urls"
 WSGI_APPLICATION = "config.wsgi.application"
