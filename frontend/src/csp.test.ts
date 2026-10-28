@@ -1,3 +1,5 @@
+/// <reference types="node" />
+// Runs in Node under Vitest; the rest of src/ is browser code.
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { expect, test } from "vitest";
