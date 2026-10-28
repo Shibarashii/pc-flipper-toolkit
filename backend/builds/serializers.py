@@ -227,6 +227,17 @@ class BuildSerializer(ModelSerializer):
             "sold_at": {"help_text": "Date sold (YYYY-MM-DD). `null` unless sold."},
         }
 
+    def validate(self, attrs):
+        # Only when one of them changes, so older data never blocks an unrelated edit.
+        if "status" in attrs or "sold_at" in attrs:
+            status = attrs.get("status", getattr(self.instance, "status", None))
+            sold_at = attrs.get("sold_at", getattr(self.instance, "sold_at", None))
+            if sold_at is not None and status != Build.Status.SOLD:
+                raise serializers.ValidationError(
+                    {"sold_at": "Only a sold build has a sold date."}
+                )
+        return attrs
+
 
 class BuildDetailSerializer(BuildSerializer):
     parts = PartSerializer(many=True, read_only=True)
