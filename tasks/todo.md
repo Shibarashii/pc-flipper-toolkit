@@ -417,3 +417,73 @@ the device setting and remembers the choice in this browser. The tokens move to 
 
 **Files:** `frontend/src/index.css`, `frontend/index.html`, `frontend/src/components/ThemeToggle.tsx`, `frontend/src/App.tsx`, tests
 **Scope:** S
+
+---
+
+## Phase 6: Part bundles
+
+Spec: SPEC.md user story 9 and the Bundles notes; idea: [docs/ideas/part-bundles.md](../docs/ideas/part-bundles.md).
+
+### - [ ] T20: Bundles in the API
+
+**Description:** A `Bundle` model (build, name, shop, bought_for) and a nullable `Part.bundle`.
+`Part.bought_for` becomes nullable, allowed only for bundled parts (DB check constraint).
+Totals count each bundle's price once and skip bundled parts' own bought-for. `/api/bundles/`
+endpoints, `bundles` (with `listed_total` and `unassigned`) in the build detail, per-user
+isolation like parts, and the admin. The migration is additive: existing parts are untouched.
+
+**Acceptance criteria:**
+- [ ] Totals for a build with a bundle match a hand calculation (bundle price counted once, typed part amounts ignored).
+- [ ] 400s, under the right field: a loose part without bought-for, bundled amounts over the bundle price (from either side), a bundle from another build.
+- [ ] Another user's bundle is 404; bundles can't be added to their builds or moved between builds; deleting a bundle deletes its parts.
+
+**Verification:**
+- [ ] Tests: `manage.py test` (totals, validation, isolation, cascade), ruff
+- [ ] `/api/docs/` shows the bundle endpoints and fields; the migration applies to a copy of real data
+
+**Dependencies:** None
+**Files:** `backend/builds/models.py`, migration, `serializers.py`, `views.py`, `config/urls.py`, `admin.py`, `tests.py`
+**Scope:** M
+
+### - [ ] T21: Show bundles in the parts table
+
+**Description:** First move the part row and part form out of `PartsTable.tsx` (470 lines)
+into their own file, with no behaviour change. Then, read-only: the parts table groups bundled parts under their bundle row
+(name, shop, listed total, price), with "—" for blank bought-for and "₱X not assigned" when
+typed amounts don't cover the price. Desktop rows and phone cards. API types for bundles.
+
+**Acceptance criteria:**
+- [ ] A build with a bundle shows the bundle row with its parts under it, desktop and phone.
+- [ ] Blank bought-for shows "—"; an under-assigned bundle shows the remainder.
+- [ ] The checklist fills from bundled parts with no change to its logic.
+
+**Verification:**
+- [ ] Tests: grouping, "—", not-assigned amount
+- [ ] Screenshots: desktop and 375px, light and dark
+
+**Dependencies:** T20
+**Files:** `frontend/src/api.ts`, `frontend/src/components/PartsTable.tsx`, `frontend/src/components/PartRow.tsx` (split out), tests
+**Scope:** M
+
+### - [ ] T22: Add, edit and delete bundles and their parts
+
+**Description:** "Add bundle" next to "Add part"; a bundle row's own "Add part", edit and
+delete (confirmation naming its parts). The part form gets a "Bundle" select; bought-for is
+optional only when a bundle is picked. Server errors show under their field.
+
+**Acceptance criteria:**
+- [ ] You can create a bundle, add parts inside it, edit both, and move a part in or out of it.
+- [ ] Deleting a bundle asks first, naming its parts; the totals update after every change.
+- [ ] An over-assigned amount or a loose part with no bought-for shows the server's message under the field.
+
+**Verification:**
+- [ ] Tests: add bundle, add part in it, move a part out (bought-for required), delete with confirmation
+- [ ] Manual: SPEC success criterion 7 on the live site after merge
+
+**Dependencies:** T21
+**Files:** `frontend/src/components/PartsTable.tsx`, `PartRow.tsx`, a new `BundleRow.tsx`, `frontend/src/api.ts`, tests
+**Scope:** M
+
+### Checkpoint 5: Bundles
+- [ ] SPEC success criterion 7 passes on the live site
+- [ ] All tests pass on `main`

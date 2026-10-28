@@ -91,6 +91,13 @@ so their order is flexible.
 - [x] T18: Skeleton loading
 - [x] T19: Light / dark mode button
 
+### Phase 6: Part bundles
+- [ ] T20: Bundles in the API (model, totals, validation, endpoints)
+- [ ] T21: Show bundles in the parts table (read-only grouping)
+- [ ] T22: Add, edit and delete bundles and their parts
+
+**Checkpoint 5:** SPEC success criterion 7 passes on the live site.
+
 ## Risks and Mitigations
 
 | Risk | Impact | Mitigation |

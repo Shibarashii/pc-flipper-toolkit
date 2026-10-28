@@ -18,7 +18,7 @@ market the PC is priced. It replaces the author's spreadsheet.
 4. I can set a selling price and a status (planning → building → listed → sold).
 5. On a build, I see these totals:
    - **Listed total:** sum of the parts' listed prices
-   - **Parts cost:** sum of the parts' bought-for prices
+   - **Parts cost:** sum of the bought-for prices of parts not in a bundle, plus each bundle's price
    - **Extra costs:** sum of the extra costs
    - **Total cost:** parts cost + extra costs
    - **Profit:** selling price − total cost (blank if there's no selling price yet)
@@ -28,6 +28,10 @@ market the PC is priced. It replaces the author's spreadsheet.
 6. On the builds list, I see each build's status, total cost, selling price and profit.
 7. I can edit and delete builds, parts and extra costs.
 8. Everything works on a phone-sized screen.
+9. I can add a **bundle**: parts bought together for one price (e.g. motherboard + CPU + RAM
+   for ₱7,500). Each part in it has its own name, category and listed price, but its
+   bought-for is optional, typed in only if I know it. The bundle's price counts once in the
+   totals. ([docs/ideas/part-bundles.md](docs/ideas/part-bundles.md))
 
 ### Out of scope (v1)
 Price scraping, voucher detection, buyer-only build mode, part compatibility checks,
@@ -65,7 +69,13 @@ Part             (belongs to Build, deleted with it)
   category        cpu | gpu | motherboard | ram | storage | psu | case | cooler | other
   shop            text, blank     e.g. "Shopee - DynaQuest"
   listed_price    decimal(10,2)   market price
-  bought_for      decimal(10,2)   actual price paid
+  bought_for      decimal(10,2)   actual price paid; nullable only when the part is in a bundle
+  bundle          Bundle, nullable   deleted with it; same build as the part
+
+Bundle           (belongs to Build, deleted with it)
+  name            text            e.g. "B550m + R5 5600 + 16GB"
+  shop            text, blank
+  bought_for      decimal(10,2)   the one price paid for everything in it
 
 ExtraCost        (belongs to Build, deleted with it)
   label           text            e.g. "Shipping"
@@ -77,13 +87,18 @@ Existing builds (made before accounts) are given to the first superuser by the m
 Money is always `Decimal` in Python and serialized as a string in JSON (`"12500.00"`).
 It is never a float. All prices must be ≥ 0.
 
+**Bundles:** a bundled part's bought-for is a breakdown of the bundle's price, typed in by
+hand or left blank. It never counts in the totals on its own (the bundle's price does), and the
+bundled parts' bought-for amounts can't add up to more than the bundle's price. A loose part
+(not in a bundle) always has a bought-for. An empty bundle is allowed; its price still counts.
+
 ## API
 
 All endpoints are under `/api/`. JSON in, JSON out. Only `PATCH` is supported for updates (no `PUT`).
 
 **Reference docs:** an OpenAPI 3 schema is generated from the code with drf-spectacular. Interactive docs (Swagger UI) are at `/api/docs/` and the raw schema at `/api/schema/`. This table is the overview, and `/api/docs/` is the source of truth for fields and examples.
 
-**Admin:** the Django admin at `/admin/` can browse and fix builds, parts and extra costs directly. Logging in needs a superuser (`python manage.py createsuperuser`). The admin shows every user's builds.
+**Admin:** the Django admin at `/admin/` can browse and fix builds, parts, bundles and extra costs directly. Logging in needs a superuser (`python manage.py createsuperuser`). The admin shows every user's builds.
 
 | Method | Path | Purpose |
 |---|---|---|
@@ -92,9 +107,11 @@ All endpoints are under `/api/`. JSON in, JSON out. Only `PATCH` is supported fo
 | POST | `/api/auth/logout/` | Delete the current token |
 | GET | `/api/auth/me/` | The logged-in user (`{username}`) |
 | GET, POST | `/api/builds/` | List builds (with totals) / create a build |
-| GET, PATCH, DELETE | `/api/builds/{id}/` | Build detail, including `parts`, `extra_costs` and `totals` |
+| GET, PATCH, DELETE | `/api/builds/{id}/` | Build detail, including `parts`, `bundles`, `extra_costs` and `totals` |
 | POST | `/api/parts/` | Add a part (`build` id in the body) |
 | PATCH, DELETE | `/api/parts/{id}/` | Edit / remove a part |
+| POST | `/api/bundles/` | Add a bundle (`build` id in the body) |
+| PATCH, DELETE | `/api/bundles/{id}/` | Edit / remove a bundle (removing it removes its parts) |
 | POST | `/api/extra-costs/` | Add an extra cost (`build` id in the body) |
 | PATCH, DELETE | `/api/extra-costs/{id}/` | Edit / remove an extra cost |
 
@@ -109,6 +126,12 @@ All endpoints are under `/api/`. JSON in, JSON out. Only `PATCH` is supported fo
 `profit`, `profit_margin`, `below_market` and `below_market_pct` are `null` when there's no
 selling price yet. The percentage fields are also `null` when they would divide by zero.
 
+Each part has a `bundle` id (or `null`). Each bundle in `bundles` also has read-only
+`listed_total` (its parts' listed prices) and `unassigned` (its price minus its parts' typed
+bought-for amounts). Errors (400, under the field): a loose part without `bought_for`; bundled
+amounts adding up to more than the bundle's price (under the part's `bought_for`, or the
+bundle's `bought_for` when lowering it); a `bundle` from another build.
+
 **Accounts and auth:** every endpoint except sign-up and log-in needs
 `Authorization: Token <token>` (DRF's built-in token auth); without it the API returns 401.
 Token auth rather than session cookies because the frontend (Vercel) and API (Render) are on
@@ -117,9 +140,9 @@ the token; the frontend keeps it in `localStorage`. Logging out deletes it on th
 Passwords go through Django's password validators. Sign-up and log-in are rate-limited per IP.
 
 Every user sees and changes only their own data: builds are filtered by `owner`, and parts
-and extra costs by their build's owner. Another user's build, part or cost returns 404 (not
-403, so ids don't reveal what exists), and a part or cost can't be added to another user's
-build (400). A part or cost can't be moved to another build.
+bundles and extra costs by their build's owner. Another user's build, part, bundle or cost
+returns 404 (not 403, so ids don't reveal what exists), and none of them can be added to
+another user's build (400). A part, bundle or cost can't be moved to another build.
 
 ## Screens
 
@@ -137,13 +160,22 @@ build (400). A part or cost can't be moved to another build.
      - Computed in the frontend from the parts list. No data-model or API change.
    - Summary panel with all the totals from user story 5.
    - Parts table: add, edit and delete rows inline. The pencil turns a row into inputs with Save/Cancel (Enter saves, Esc cancels). The add row looks the same. On mobile it becomes stacked cards.
+   - Bundles, inside the parts table: a bundle row (name, shop, listed total, its one bought-for
+     price) with its parts indented under it. A bundled part's bought-for shows the typed amount
+     or "—". When typed amounts don't cover the price, the bundle shows "₱X not assigned".
+     - "Add bundle" next to "Add part" adds a bundle row (name, shop, price), same inline
+       pattern. A bundle row has "Add part" (adds a part inside it), edit and delete.
+     - The part form has a "Bundle" select (none, or one of the build's bundles); bought-for is
+       optional only when a bundle is picked. On mobile the bundle is a card with its parts
+       under it.
+     - Deleting a bundle asks first, naming the parts that go with it.
    - Extra costs list: add, edit and delete, same inline pattern as parts.
    - Notes: a plain textarea under Extra costs that saves on blur.
-   - Delete build: a confirmation dialog naming how many parts and extra costs will be deleted with it.
+   - Delete build: a confirmation dialog naming how many parts, bundles and extra costs will be deleted with it.
 
 States each screen must handle:
 - **Builds list:** no builds yet (message plus "New build").
-- **Build detail:** no parts or extra costs yet, no selling price (profit and margin show "—"), a loss (red), and a validation error on a field (e.g. negative price).
+- **Build detail:** no parts or extra costs yet, an empty bundle, a bundle with prices not fully assigned, no selling price (profit and margin show "—"), a loss (red), and a validation error on a field (e.g. negative price).
 - **Both:** loading and request failed. A 401 (token deleted or expired) logs out and goes to `/login` with "Your session ended. Log in again."
 - **Log in / sign up:** wrong username or password, username taken, password rejected by the validators (their messages, under the field), and too many attempts (429).
 
@@ -246,6 +278,9 @@ class Build(models.Model):
 4. The builds list and build detail pages are usable at 375px width without horizontal scrolling.
 5. The frontend is live on Vercel and the API on Render, both reachable by public link, and data survives a backend restart or redeploy.
 6. The README has a screenshot, the live link, and setup steps that work on a fresh clone.
+7. A bundle (3 parts, one price, one part's bought-for typed in) on the live site fills those
+   three checklist slots, counts its price once in the totals (matching a hand calculation),
+   shows the unassigned amount, and is usable at 375px.
 
 ## Open Questions
 
