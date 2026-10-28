@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type SubmitEvent } from "react";
+import { useState, type SubmitEvent } from "react";
 import {
   ApiError,
   createBundle,
@@ -9,7 +9,8 @@ import {
   type Part,
 } from "../api";
 import { formatMoney } from "../money";
-import { buttonDanger, buttonPrimary, buttonSecondary, input } from "../ui";
+import { buttonPrimary, buttonSecondary, input } from "../ui";
+import { ConfirmDialog } from "./ConfirmDialog";
 import { cleanMoney, Field, RowActions } from "./form";
 
 const tag =
@@ -264,72 +265,20 @@ export function DeleteBundleDialog({
   onDeleted: () => void;
   onClose: () => void;
 }) {
-  const ref = useRef<HTMLDialogElement>(null);
-  const [deleting, setDeleting] = useState(false);
-  const [error, setError] = useState(false);
-
-  useEffect(() => {
-    const dialog = ref.current;
-    if (dialog && !dialog.open) dialog.showModal();
-  }, []);
-
-  async function confirm() {
-    setDeleting(true);
-    setError(false);
-    try {
-      await deleteBundle(bundle.id);
-      onDeleted();
-    } catch {
-      setError(true);
-      setDeleting(false);
-    }
-  }
-
   const n = parts.length;
   const its =
     n > 0
       ? ` and its ${n} ${n === 1 ? "part" : "parts"} (${parts.map((p) => p.name).join(", ")})`
       : "";
-
   return (
-    // Cancel comes first, so it's what showModal() focuses: Enter never deletes by accident.
-    <dialog
-      ref={ref}
+    <ConfirmDialog
+      what="bundle"
+      message={`“${bundle.name}”${its} will be deleted. This can’t be undone.`}
+      onConfirm={async () => {
+        await deleteBundle(bundle.id);
+        onDeleted();
+      }}
       onClose={onClose}
-      aria-labelledby="delete-bundle-title"
-      aria-describedby="delete-bundle-message"
-      className="m-auto w-[calc(100%-32px)] max-w-[460px] rounded border border-line-strong bg-bg p-6 text-ink backdrop:bg-ink/45"
-    >
-      <h2
-        id="delete-bundle-title"
-        className="font-serif text-[22px] leading-[28px] font-medium"
-      >
-        Delete this bundle?
-      </h2>
-      <p
-        id="delete-bundle-message"
-        className="mt-4 text-[15px] leading-[22px] text-muted"
-      >
-        “{bundle.name}”{its} will be deleted. This can’t be undone.
-      </p>
-      {error && (
-        <p role="alert" className="mt-2 text-[13px] text-loss">
-          Couldn’t delete the bundle. Check your connection and try again.
-        </p>
-      )}
-      <div className="mt-6 flex justify-end gap-2">
-        <button type="button" onClick={onClose} className={buttonSecondary}>
-          Cancel
-        </button>
-        <button
-          type="button"
-          onClick={confirm}
-          disabled={deleting}
-          className={buttonDanger}
-        >
-          {deleting ? "Deleting…" : "Delete bundle"}
-        </button>
-      </div>
-    </dialog>
+    />
   );
 }
