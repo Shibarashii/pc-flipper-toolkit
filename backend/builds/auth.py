@@ -101,7 +101,17 @@ class LoginView(PublicAuthView):
     def post(self, request):
         serializer = CredentialsSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = authenticate(request, **serializer.validated_data)
+        username = serializer.validated_data["username"]
+        # Sign-up treats "Carol" and "carol" as one name, so log-in does too. An exact
+        # match still wins, in case two older accounts differ only by case.
+        if not User.objects.filter(username=username).exists():
+            match = User.objects.filter(username__iexact=username).first()
+            username = match.username if match else username
+        user = authenticate(
+            request,
+            username=username,
+            password=serializer.validated_data["password"],
+        )
         if user is None:
             raise serializers.ValidationError(
                 {"non_field_errors": ["Wrong username or password."]}

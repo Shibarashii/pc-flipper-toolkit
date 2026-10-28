@@ -624,6 +624,17 @@ class AuthTests(APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION="Token not-a-real-token")
         self.assertEqual(self.client.get("/api/builds/").status_code, 401)
 
+    def test_log_in_ignores_username_case_like_sign_up(self):
+        # Sign-up already treats "Carol" and "carol" as the same name.
+        User.objects.create_user("Carol", password="a long passphrase")
+
+        res = self.post(
+            "/api/auth/login/", {"username": "carol", "password": "a long passphrase"}
+        )
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.json()["username"], "Carol")
+
     def test_log_in_is_rate_limited(self):
         wrong = {"username": "carol", "password": "nope"}
         for _ in range(10):
