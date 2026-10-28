@@ -7,7 +7,7 @@ import {
 } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router";
 import { afterEach, beforeAll, expect, test, vi } from "vitest";
-import type { BuildDetail, ExtraCost, Part } from "../api";
+import type { BuildDetail, Bundle, ExtraCost, Part } from "../api";
 import { makeBuild } from "../test/fixtures";
 import { DeleteBuildDialog } from "./DeleteBuildDialog";
 
@@ -54,6 +54,23 @@ test("names the build and how many parts and extra costs go with it", () => {
   expect(
     screen.getByText(
       "“Budget build” and its 7 parts and 1 extra cost will be deleted. This can’t be undone.",
+    ),
+  ).toBeTruthy();
+});
+
+test("counts bundles too", () => {
+  renderDialog(
+    makeBuild({
+      name: "Budget build",
+      parts: parts(7),
+      bundles: [{ id: 1 } as Bundle],
+      extra_costs: costs(3),
+    }),
+  );
+
+  expect(
+    screen.getByText(
+      "“Budget build” and its 7 parts, 1 bundle and 3 extra costs will be deleted. This can’t be undone.",
     ),
   ).toBeTruthy();
 });

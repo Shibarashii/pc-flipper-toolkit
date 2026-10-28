@@ -169,6 +169,24 @@ export const updatePart = (id: number, patch: Partial<NewPart>) =>
 export const deletePart = (id: number) =>
   request<null>(`/parts/${id}/`, { method: "DELETE" });
 
+export type NewBundle = Pick<Bundle, "build" | "name" | "shop" | "bought_for">;
+
+export const createBundle = (bundle: NewBundle) =>
+  request<Bundle>("/bundles/", {
+    method: "POST",
+    body: JSON.stringify(bundle),
+  });
+
+export const updateBundle = (id: number, patch: Partial<NewBundle>) =>
+  request<Bundle>(`/bundles/${id}/`, {
+    method: "PATCH",
+    body: JSON.stringify(patch),
+  });
+
+/** Its parts go with it. */
+export const deleteBundle = (id: number) =>
+  request<null>(`/bundles/${id}/`, { method: "DELETE" });
+
 export type NewExtraCost = Omit<ExtraCost, "id">;
 
 export const createExtraCost = (cost: NewExtraCost) =>

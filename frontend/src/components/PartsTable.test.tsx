@@ -7,7 +7,7 @@ import {
   within,
 } from "@testing-library/react";
 import { useState, type ComponentProps } from "react";
-import { afterEach, expect, test, vi } from "vitest";
+import { afterEach, beforeAll, expect, test, vi } from "vitest";
 import type { Bundle, Part } from "../api";
 import { EMPTY_TOTALS } from "../test/fixtures";
 import { PartsTable as Table, type PartsOpen } from "./PartsTable";
@@ -22,6 +22,13 @@ function PartsTable({
   const [open, setOpen] = useState<PartsOpen>(null);
   return <Table {...props} bundles={bundles} open={open} setOpen={setOpen} />;
 }
+
+beforeAll(() => {
+  // jsdom doesn't implement modal dialogs.
+  HTMLDialogElement.prototype.showModal ??= function (this: HTMLDialogElement) {
+    this.open = true;
+  };
+});
 
 afterEach(() => {
   cleanup();
@@ -79,6 +86,7 @@ test("adding a part posts it (without ₱ or separators) and refreshes", async (
     category: "cpu",
     listed_price: "12500",
     bought_for: "10500.50",
+    bundle: null,
   });
   expect((screen.getByLabelText("Part") as HTMLInputElement).value).toBe("");
 });
@@ -178,6 +186,7 @@ test("editing a part patches it (prefilled, cleaned) and refreshes", async () =>
     category: "cpu",
     listed_price: "12500.00",
     bought_for: "9800",
+    bundle: null,
   });
   expect(screen.queryByRole("form")).toBeNull();
 });
@@ -303,4 +312,129 @@ test("a fully assigned bundle shows no remainder", () => {
   expect(screen.queryByText("No parts yet")).toBeNull();
   expect(screen.getAllByText("0 parts").length).toBeGreaterThan(0);
   expect(screen.queryByText(/not assigned/)).toBeNull();
+});
+
+const BUNDLE: Bundle = {
+  id: 1,
+  build: 3,
+  name: "B550m deal",
+  shop: "",
+  bought_for: "7500.00",
+  listed_total: "12500.00",
+  unassigned: "7500.00",
+};
+
+function renderWithBundle(response: Response) {
+  const fetchMock = vi.fn().mockResolvedValue(response);
+  vi.stubGlobal("fetch", fetchMock);
+  const onChanged = vi.fn();
+  render(
+    <PartsTable
+      buildId={3}
+      parts={[{ ...PARTS[0], bundle: 1, bought_for: null }, PARTS[1]]}
+      bundles={[BUNDLE]}
+      totals={EMPTY_TOTALS}
+      onChanged={onChanged}
+    />,
+  );
+  const body = () => JSON.parse(fetchMock.mock.calls[0][1].body);
+  return { fetchMock, onChanged, body };
+}
+
+const type = (label: string, value: string) =>
+  fireEvent.change(screen.getByLabelText(label), { target: { value } });
+
+test("adding a bundle posts its name, shop and price", async () => {
+  const { fetchMock, onChanged, body } = renderWithBundle(
+    Response.json({ id: 2 }, { status: 201 }),
+  );
+
+  fireEvent.click(screen.getByRole("button", { name: "Add bundle" }));
+  type("Bundle", "Mobo + CPU");
+  type("Shop", "Marketplace");
+  type("Price", "₱1,583");
+  fireEvent.submit(screen.getByRole("form", { name: "New bundle" }));
+
+  await waitFor(() => expect(onChanged).toHaveBeenCalled());
+  expect(fetchMock.mock.calls[0][0]).toBe("/api/bundles/");
+  expect(body()).toEqual({
+    build: 3,
+    name: "Mobo + CPU",
+    shop: "Marketplace",
+    bought_for: "1583",
+  });
+  expect(screen.queryByRole("form")).toBeNull();
+});
+
+test("a bundle's Add part adds inside it, bought-for optional", async () => {
+  const { onChanged, body } = renderWithBundle(
+    Response.json({ id: 9 }, { status: 201 }),
+  );
+
+  clickAction("Add part to B550m deal");
+  expect((screen.getByLabelText("Bundle") as HTMLSelectElement).value).toBe(
+    "1",
+  );
+  expect(screen.getByPlaceholderText("Optional")).toBeTruthy();
+  type("Part", "Kingston 16GB");
+  type("Category", "ram");
+  type("Listed price", "2000");
+  fireEvent.submit(screen.getByRole("form", { name: "New part" }));
+
+  await waitFor(() => expect(onChanged).toHaveBeenCalled());
+  expect(body()).toMatchObject({ bundle: 1, bought_for: null });
+});
+
+test("moving a part out of its bundle shows the server's bought-for error", async () => {
+  const { body } = renderWithBundle(
+    Response.json(
+      { bought_for: ["Required for a part that isn't in a bundle."] },
+      { status: 400 },
+    ),
+  );
+
+  clickAction("Edit Ryzen 5 7600");
+  type("Bundle", "");
+  fireEvent.submit(screen.getByRole("form", { name: "Edit Ryzen 5 7600" }));
+
+  expect(
+    await screen.findByText("Required for a part that isn't in a bundle."),
+  ).toBeTruthy();
+  expect(body()).toMatchObject({ bundle: null, bought_for: null });
+});
+
+test("editing a bundle patches it", async () => {
+  const { fetchMock, onChanged, body } = renderWithBundle(
+    Response.json({}, { status: 200 }),
+  );
+
+  clickAction("Edit B550m deal");
+  expect((screen.getByLabelText("Price") as HTMLInputElement).value).toBe(
+    "₱7,500.00",
+  );
+  type("Price", "8000");
+  fireEvent.submit(screen.getByRole("form", { name: "Edit B550m deal" }));
+
+  await waitFor(() => expect(onChanged).toHaveBeenCalled());
+  expect(fetchMock.mock.calls[0][0]).toBe("/api/bundles/1/");
+  expect(body()).toEqual({ name: "B550m deal", shop: "", bought_for: "8000" });
+});
+
+test("deleting a bundle asks first, naming its parts", async () => {
+  const { fetchMock, onChanged } = renderWithBundle(
+    new Response(null, { status: 204 }),
+  );
+
+  clickAction("Delete B550m deal");
+  expect(
+    screen.getByText(
+      "“B550m deal” and its 1 part (Ryzen 5 7600) will be deleted. This can’t be undone.",
+    ),
+  ).toBeTruthy();
+  expect(fetchMock).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole("button", { name: "Delete bundle" }));
+
+  await waitFor(() => expect(onChanged).toHaveBeenCalled());
+  expect(fetchMock.mock.calls[0][0]).toBe("/api/bundles/1/");
+  expect(fetchMock.mock.calls[0][1].method).toBe("DELETE");
 });

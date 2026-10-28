@@ -19,6 +19,7 @@ const EMPTY = {
   category: "",
   listed_price: "",
   bought_for: "",
+  bundle: "",
 };
 
 /** Prices are shown the way they're displayed elsewhere; cleanMoney undoes it on save. */
@@ -28,10 +29,12 @@ const fromPart = (p: Part) => ({
   category: p.category as string,
   listed_price: formatMoney(p.listed_price),
   bought_for: p.bought_for === null ? "" : formatMoney(p.bought_for),
+  bundle: p.bundle === null ? "" : String(p.bundle),
 });
 
 // Desktop layouts differ: adding is one compact row with hidden labels (Figma "Add part
-// row"), editing is two labelled rows (Figma "Part row (editing)"). Mobile is the same.
+// row"), editing (or adding inside a bundle) is two labelled rows with the Bundle select
+// (Figma "Part row (editing)"). Mobile is the same.
 const ADD_LAYOUT = {
   box: "sm:flex-row sm:items-start sm:gap-2 sm:p-2",
   row: "sm:contents",
@@ -55,6 +58,8 @@ const EDIT_LAYOUT = {
 export function PartForm({
   part,
   category = "",
+  bundle,
+  bundles,
   buildId,
   onSaved,
   onClose,
@@ -63,18 +68,25 @@ export function PartForm({
   part?: Part;
   /** Preselected when adding. */
   category?: PartCategory | "";
+  /** Adding inside this bundle (from its "Add part"). */
+  bundle?: number;
+  /** The build's bundles, for the Bundle select. */
+  bundles: Bundle[];
   buildId: number;
   onSaved: () => void;
   onClose: () => void;
 }) {
   const [form, setForm] = useState(
-    part ? fromPart(part) : { ...EMPTY, category },
+    part
+      ? fromPart(part)
+      : { ...EMPTY, category, bundle: String(bundle ?? "") },
   );
   const [errors, setErrors] = useState<FieldErrors>({});
   const [failed, setFailed] = useState(false);
   const [saving, setSaving] = useState(false);
   const nameRef = useRef<HTMLInputElement>(null);
-  const layout = part ? EDIT_LAYOUT : ADD_LAYOUT;
+  const full = part !== undefined || bundle !== undefined;
+  const layout = full ? EDIT_LAYOUT : ADD_LAYOUT;
   const title = part ? "Edit part" : "New part";
 
   const set = (field: keyof typeof EMPTY) => (value: string) =>
@@ -92,6 +104,7 @@ export function PartForm({
       listed_price: cleanMoney(form.listed_price),
       // Blank is null: allowed inside a bundle, and the server says so otherwise.
       bought_for: cleanMoney(form.bought_for) || null,
+      bundle: form.bundle ? Number(form.bundle) : null,
     };
     try {
       if (part) {
@@ -99,7 +112,7 @@ export function PartForm({
       } else {
         await createPart({ build: buildId, ...fields });
         // Stay open for the next part: people usually enter a whole build at once.
-        setForm(EMPTY);
+        setForm({ ...EMPTY, bundle: form.bundle });
         nameRef.current?.focus();
       }
       onSaved();
@@ -160,6 +173,26 @@ export function PartForm({
               className={input(!!errors.shop)}
             />
           </Field>
+          {full && bundles.length > 0 && (
+            <Field
+              label="Bundle"
+              errors={errors.bundle}
+              className={layout.shop}
+            >
+              <Select
+                value={form.bundle}
+                onChange={(e) => set("bundle")(e.target.value)}
+                error={!!errors.bundle}
+              >
+                <option value="">None</option>
+                {bundles.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.name}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+          )}
         </div>
         <div className={`flex flex-col gap-3 ${layout.row}`}>
           <Field
@@ -210,7 +243,8 @@ export function PartForm({
                 inputMode="decimal"
                 value={form.bought_for}
                 onChange={(e) => set("bought_for")(e.target.value)}
-                placeholder="Bought ₱"
+                // Inside a bundle it's an optional share of the bundle's price.
+                placeholder={form.bundle ? "Optional" : "Bought ₱"}
                 aria-invalid={!!errors.bought_for}
                 className={`${input(!!errors.bought_for)} tabular-nums`}
               />
@@ -317,81 +351,5 @@ export function PartItem({
         {actions}
       </div>
     </li>
-  );
-}
-
-const tag =
-  "inline-block rounded border border-line-strong px-[7px] text-[13px] leading-[18px]";
-
-/** A bundle's own row: one price for the parts listed under it. Read-only for now. */
-export function BundleItem({
-  bundle,
-  count,
-}: {
-  bundle: Bundle;
-  count: number;
-}) {
-  const meta = [bundle.shop, `${count} ${count === 1 ? "part" : "parts"}`]
-    .filter(Boolean)
-    .join(" · ");
-  const unassigned = Number(bundle.unassigned) > 0 && (
-    <p className="text-[13px] leading-[18px] whitespace-nowrap text-muted">
-      {formatMoney(bundle.unassigned)} not assigned
-    </p>
-  );
-  return (
-    <div className="border-b border-line py-3.5 sm:py-3">
-      {/* Mobile card */}
-      <div className="flex flex-col gap-2 sm:hidden">
-        <div>
-          <p className="text-[15px] leading-[22px] font-medium">
-            {bundle.name}
-          </p>
-          <p className="flex items-center gap-1.5 text-[13px] leading-[18px] text-muted">
-            <span className={`${tag} text-ink`}>Bundle</span>
-            {meta}
-          </p>
-        </div>
-        <div className="flex gap-3 tabular-nums">
-          <div className="flex-1 text-muted">
-            <p className="text-[13px] leading-[18px]">Listed total</p>
-            <p className="text-[15px] leading-[22px]">
-              {formatMoney(bundle.listed_total)}
-            </p>
-          </div>
-          <div className="flex-1">
-            <p className="text-[13px] leading-[18px] text-muted">Bought for</p>
-            <p className="text-[15px] leading-[22px] font-medium">
-              {formatMoney(bundle.bought_for)}
-            </p>
-            {unassigned}
-          </div>
-        </div>
-      </div>
-
-      {/* Desktop row */}
-      <div className="hidden items-start gap-4 sm:flex">
-        <div className="min-w-0 flex-1">
-          <p className="text-[15px] leading-[22px] font-medium">
-            {bundle.name}
-          </p>
-          <p className="text-[13px] leading-[18px] text-muted">{meta}</p>
-        </div>
-        <span className="w-[100px]">
-          <span className={tag}>Bundle</span>
-        </span>
-        <span className="w-[110px] text-right text-[15px] leading-[22px] text-muted tabular-nums">
-          {formatMoney(bundle.listed_total)}
-        </span>
-        {/* The remainder may run wider than the column, into the gap on its left. */}
-        <div className="flex w-[110px] flex-col items-end tabular-nums">
-          <span className="text-[15px] leading-[22px] font-medium">
-            {formatMoney(bundle.bought_for)}
-          </span>
-          {unassigned}
-        </div>
-        <span className="w-[58px]" />
-      </div>
-    </div>
   );
 }
