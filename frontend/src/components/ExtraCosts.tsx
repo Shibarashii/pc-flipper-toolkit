@@ -1,15 +1,13 @@
 import { useRef, useState, type SubmitEvent } from "react";
 import {
-  ApiError,
   createExtraCost,
   deleteExtraCost,
   updateExtraCost,
   type ExtraCost,
-  type FieldErrors,
 } from "../api";
 import { formatMoney } from "../money";
 import { buttonPrimary, buttonSecondary, input } from "../ui";
-import { cleanMoney, Field, RowActions } from "./form";
+import { cleanMoney, Field, RowActions, useSave } from "./form";
 
 const EMPTY = { label: "", amount: "" };
 
@@ -141,21 +139,16 @@ function CostForm({
   const [form, setForm] = useState(
     cost ? { label: cost.label, amount: formatMoney(cost.amount) } : EMPTY,
   );
-  const [errors, setErrors] = useState<FieldErrors>({});
-  const [failed, setFailed] = useState(false);
-  const [saving, setSaving] = useState(false);
+  const { errors, failed, saving, save } = useSave(EMPTY);
   const labelRef = useRef<HTMLInputElement>(null);
 
-  async function submit(e: SubmitEvent<HTMLFormElement>) {
+  function submit(e: SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
-    setSaving(true);
-    setErrors({});
-    setFailed(false);
     const fields = {
       label: form.label.trim(),
       amount: cleanMoney(form.amount),
     };
-    try {
+    save(async () => {
       if (cost) {
         await updateExtraCost(cost.id, fields);
       } else {
@@ -165,14 +158,7 @@ function CostForm({
         labelRef.current?.focus();
       }
       onSaved();
-    } catch (err) {
-      const fieldErrors = err instanceof ApiError ? err.fieldErrors : {};
-      setErrors(fieldErrors);
-      // Errors on fields this form doesn't show (e.g. "build") need the general message.
-      setFailed(!Object.keys(fieldErrors).some((key) => key in EMPTY));
-    } finally {
-      setSaving(false);
-    }
+    });
   }
 
   return (
