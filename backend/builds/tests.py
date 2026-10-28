@@ -1,3 +1,4 @@
+from datetime import timedelta
 from decimal import Decimal as D
 from io import StringIO
 from unittest import mock
@@ -9,6 +10,8 @@ from django.core.exceptions import ValidationError
 from django.core.management import call_command
 from django.db import IntegrityError, transaction
 from django.test import TestCase, override_settings
+from django.utils import timezone
+from rest_framework.authtoken.models import Token
 from rest_framework.test import APITestCase
 
 from .models import Build, Bundle, ExtraCost, Part
@@ -635,6 +638,33 @@ class AuthTests(APITestCase):
         )
         self.assertEqual(res.status_code, 200)
         self.client.credentials(HTTP_AUTHORIZATION=f"Token {res.json()['token']}")
+        self.assertEqual(self.client.get("/api/auth/me/").status_code, 200)
+
+    def test_a_token_expires_after_30_days_and_log_in_replaces_it(self):
+        User.objects.create_user("carol", password="a long passphrase")
+        login = {"username": "carol", "password": "a long passphrase"}
+        old = self.post("/api/auth/login/", login).json()["token"]
+        self.client.credentials(HTTP_AUTHORIZATION=f"Token {old}")
+
+        Token.objects.filter(key=old).update(
+            created=timezone.now() - timedelta(days=29)
+        )
+        self.assertEqual(self.client.get("/api/auth/me/").status_code, 200)
+        Token.objects.filter(key=old).update(
+            created=timezone.now() - timedelta(days=31)
+        )
+        self.assertEqual(self.client.get("/api/auth/me/").status_code, 401)
+        self.assertFalse(Token.objects.filter(key=old).exists())
+
+        # Log-in reuses the user's token, unless it has expired (and not been used since).
+        self.client.credentials()
+        token = self.post("/api/auth/login/", login).json()["token"]
+        Token.objects.filter(key=token).update(
+            created=timezone.now() - timedelta(days=31)
+        )
+        new = self.post("/api/auth/login/", login).json()["token"]
+        self.assertNotEqual(new, token)
+        self.client.credentials(HTTP_AUTHORIZATION=f"Token {new}")
         self.assertEqual(self.client.get("/api/auth/me/").status_code, 200)
 
     def test_sign_up_errors_are_under_their_field(self):
