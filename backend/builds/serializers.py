@@ -1,7 +1,7 @@
 from django.db import models
 from rest_framework import serializers
 
-from .models import Build, ExtraCost, Part
+from .models import Build, Bundle, ExtraCost, Part
 
 
 def money(help_text: str, source: str | None = None, nullable: bool = False):
@@ -19,7 +19,10 @@ class TotalsSerializer(serializers.Serializer):
     """Money totals for a build, computed by the server. Read-only."""
 
     listed_total = money("Sum of the parts' listed (market) prices.")
-    parts_cost = money("Sum of what was actually paid for the parts.")
+    parts_cost = money(
+        "What was actually paid for the parts: loose parts' `bought_for` plus each "
+        "bundle's `bought_for` (bundled parts' own amounts don't count)."
+    )
     extra_costs = money("Sum of the extra costs.", source="extra_costs_total")
     total_cost = money("`parts_cost` + `extra_costs`.")
     profit = money(
@@ -68,8 +71,12 @@ class ModelSerializer(serializers.ModelSerializer):
     }
 
 
+def peso(amount) -> str:
+    return f"₱{amount:,.2f}"
+
+
 class ChildSerializer(ModelSerializer):
-    """A part or extra cost: it goes in one of the user's own builds, and stays there."""
+    """A part, bundle or extra cost: it goes in one of the user's own builds, and stays there."""
 
     def get_fields(self):
         fields = super().get_fields()
@@ -92,6 +99,7 @@ class PartSerializer(ChildSerializer):
         fields = [
             "id",
             "build",
+            "bundle",
             "name",
             "category",
             "shop",
@@ -104,9 +112,87 @@ class PartSerializer(ChildSerializer):
             "shop": {"help_text": 'Where it was bought, e.g. "Shopee - DynaQuest".'},
             "listed_price": {"help_text": f"Market price. {MONEY_INPUT}"},
             "bought_for": {
-                "help_text": f"What was actually paid, after vouchers. {MONEY_INPUT}"
+                "help_text": f"What was actually paid, after vouchers. {MONEY_INPUT} "
+                "Required unless the part is in a bundle, where it's an optional "
+                "breakdown of the bundle's price."
+            },
+            "bundle": {
+                "help_text": "ID of the bundle it was bought in (same build), or `null`."
             },
         }
+
+    def get_fields(self):
+        fields = super().get_fields()
+        request = self.context.get("request")
+        if request and request.user.is_authenticated:
+            fields["bundle"].queryset = Bundle.objects.filter(build__owner=request.user)
+        return fields
+
+    def validate(self, attrs):
+        def value(field):
+            return (
+                attrs[field] if field in attrs else getattr(self.instance, field, None)
+            )
+
+        bundle, bought_for = value("bundle"), value("bought_for")
+        if bundle is None:
+            if bought_for is None:
+                raise serializers.ValidationError(
+                    {"bought_for": "Required for a part that isn't in a bundle."}
+                )
+        elif bundle.build != value("build"):
+            raise serializers.ValidationError(
+                {"bundle": "Must be a bundle in the same build."}
+            )
+        # ponytail: no row lock, so two edits at the same moment could both pass.
+        elif (
+            bought_for is not None
+            and bundle.assigned(leaving_out=self.instance) + bought_for
+            > bundle.bought_for
+        ):
+            raise serializers.ValidationError(
+                {
+                    "bought_for": "Bundled parts can't add up to more than the "
+                    f"bundle's {peso(bundle.bought_for)}."
+                }
+            )
+        return attrs
+
+
+class BundleSerializer(ChildSerializer):
+    listed_total = money("Sum of its parts' listed prices.")
+    unassigned = money(
+        "`bought_for` minus its parts' typed `bought_for` amounts: the part of the "
+        "price not yet split between them."
+    )
+
+    class Meta:
+        model = Bundle
+        fields = [
+            "id",
+            "build",
+            "name",
+            "shop",
+            "bought_for",
+            "listed_total",
+            "unassigned",
+        ]
+        extra_kwargs = {
+            "build": {"help_text": "ID of the build this bundle belongs to."},
+            "name": {"help_text": 'What it was sold as, e.g. "B550m + R5 5600".'},
+            "shop": {"help_text": "Where it was bought."},
+            "bought_for": {
+                "help_text": f"The one price paid for everything in it. {MONEY_INPUT}"
+            },
+        }
+
+    def validate_bought_for(self, price):
+        assigned = self.instance.assigned() if self.instance else 0
+        if price < assigned:
+            raise serializers.ValidationError(
+                f"Its parts' bought-for amounts already add up to {peso(assigned)}."
+            )
+        return price
 
 
 class ExtraCostSerializer(ChildSerializer):
@@ -147,7 +233,8 @@ class BuildSerializer(ModelSerializer):
 
 class BuildDetailSerializer(BuildSerializer):
     parts = PartSerializer(many=True, read_only=True)
+    bundles = BundleSerializer(many=True, read_only=True)
     extra_costs = ExtraCostSerializer(many=True, read_only=True)
 
     class Meta(BuildSerializer.Meta):
-        fields = [*BuildSerializer.Meta.fields, "parts", "extra_costs"]
+        fields = [*BuildSerializer.Meta.fields, "parts", "bundles", "extra_costs"]

@@ -55,8 +55,8 @@ class Build(models.Model):
     def __str__(self) -> str:
         return self.name
 
-    # Totals. Callers must prefetch_related("parts", "extra_costs"), even for a
-    # single build: each total re-reads them, which is 14 queries without it.
+    # Totals. Callers must prefetch_related("parts", "bundles", "extra_costs"), even
+    # for a single build: each total re-reads them, which is 14 queries without it.
 
     @property
     def listed_total(self) -> Decimal:
@@ -64,7 +64,10 @@ class Build(models.Model):
 
     @property
     def parts_cost(self) -> Decimal:
-        return sum((p.bought_for for p in self.parts.all()), ZERO)
+        # A bundled part's own bought-for is only a breakdown; its bundle's price counts.
+        loose = (p.bought_for for p in self.parts.all() if p.bundle_id is None)
+        bundles = (b.bought_for for b in self.bundles.all())
+        return sum(loose, ZERO) + sum(bundles, ZERO)
 
     @property
     def extra_costs_total(self) -> Decimal:
@@ -101,6 +104,41 @@ class Build(models.Model):
         return None if below is None else percent(below, self.listed_total)
 
 
+class Bundle(models.Model):
+    """Parts bought together for one price, e.g. a motherboard + CPU + RAM deal."""
+
+    build = models.ForeignKey(Build, on_delete=models.CASCADE, related_name="bundles")
+    name = models.CharField(max_length=200)
+    shop = models.CharField(max_length=200, blank=True)
+    bought_for = money_field()
+
+    class Meta:
+        ordering = ["id"]
+        constraints = non_negative("bought_for")
+
+    def __str__(self) -> str:
+        return self.name
+
+    @property
+    def listed_total(self) -> Decimal:
+        return sum((p.listed_price for p in self.parts.all()), ZERO)
+
+    def assigned(self, leaving_out: "Part | None" = None) -> Decimal:
+        """Its parts' typed bought-for amounts, added up (optionally without one part)."""
+        return sum(
+            (
+                p.bought_for
+                for p in self.parts.all()
+                if p.bought_for is not None and p != leaving_out
+            ),
+            ZERO,
+        )
+
+    @property
+    def unassigned(self) -> Decimal:
+        return self.bought_for - self.assigned()
+
+
 class Part(models.Model):
     class Category(models.TextChoices):
         CPU = "cpu", "CPU"
@@ -118,11 +156,22 @@ class Part(models.Model):
     category = models.CharField(max_length=12, choices=Category)
     shop = models.CharField(max_length=200, blank=True)
     listed_price = money_field()
-    bought_for = money_field()
+    # Blank only inside a bundle, where it's an optional breakdown of the bundle's price.
+    bought_for = money_field(null=True, blank=True)
+    bundle = models.ForeignKey(
+        Bundle, on_delete=models.CASCADE, null=True, blank=True, related_name="parts"
+    )
 
     class Meta:
         ordering = ["id"]
-        constraints = non_negative("listed_price", "bought_for")
+        constraints = [
+            *non_negative("listed_price", "bought_for"),
+            models.CheckConstraint(
+                condition=models.Q(bundle__isnull=False)
+                | models.Q(bought_for__isnull=False),
+                name="part_bought_for_unless_bundled",
+            ),
+        ]
 
     def __str__(self) -> str:
         return self.name

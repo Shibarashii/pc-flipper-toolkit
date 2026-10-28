@@ -92,7 +92,7 @@ so their order is flexible.
 - [x] T19: Light / dark mode button
 
 ### Phase 6: Part bundles
-- [ ] T20: Bundles in the API (model, totals, validation, endpoints)
+- [x] T20: Bundles in the API (model, totals, validation, endpoints)
 - [ ] T21: Show bundles in the parts table (read-only grouping)
 - [ ] T22: Add, edit and delete bundles and their parts
 

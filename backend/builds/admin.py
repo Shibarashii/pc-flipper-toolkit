@@ -1,10 +1,15 @@
 from django.contrib import admin
 
-from .models import Build, ExtraCost, Part
+from .models import Build, Bundle, ExtraCost, Part
 
 
 class PartInline(admin.TabularInline):
     model = Part
+    extra = 0
+
+
+class BundleInline(admin.TabularInline):
+    model = Bundle
     extra = 0
 
 
@@ -19,13 +24,28 @@ class BuildAdmin(admin.ModelAdmin):
     list_filter = ["status", "owner"]
     list_select_related = ["owner"]
     search_fields = ["name", "notes"]
-    inlines = [PartInline, ExtraCostInline]
+    inlines = [PartInline, BundleInline, ExtraCostInline]
 
 
 @admin.register(Part)
 class PartAdmin(admin.ModelAdmin):
-    list_display = ["name", "category", "shop", "listed_price", "bought_for", "build"]
+    list_display = [
+        "name",
+        "category",
+        "shop",
+        "listed_price",
+        "bought_for",
+        "bundle",
+        "build",
+    ]
     list_filter = ["category"]
+    search_fields = ["name", "shop"]
+    list_select_related = ["build", "bundle"]
+
+
+@admin.register(Bundle)
+class BundleAdmin(admin.ModelAdmin):
+    list_display = ["name", "shop", "bought_for", "build"]
     search_fields = ["name", "shop"]
     list_select_related = ["build"]
 

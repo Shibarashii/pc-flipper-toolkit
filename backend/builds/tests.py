@@ -10,7 +10,7 @@ from django.db import IntegrityError, transaction
 from django.test import TestCase
 from rest_framework.test import APITestCase
 
-from .models import Build, ExtraCost, Part
+from .models import Build, Bundle, ExtraCost, Part
 
 
 def alice() -> User:
@@ -242,16 +242,18 @@ class DetailApiTests(LoggedInApiTestCase):
         self.assertNotIn("extra_costs", row)
 
     def test_query_counts_do_not_grow_with_data(self):
-        for i in range(5):
-            b = new_build(name=f"B{i}")
+        for b in [self.build, *(new_build(name=f"B{i}") for i in range(5))]:
             b.parts.create(
                 name="P", category="ram", listed_price="1.00", bought_for="1.00"
             )
             b.extra_costs.create(label="C", amount="1.00")
+            b.bundles.create(name="Deal", bought_for="1.00").parts.create(
+                build=b, name="Q", category="cpu", listed_price="1.00"
+            )
 
-        with self.assertNumQueries(3):  # builds, parts, extra costs
+        with self.assertNumQueries(4):  # builds, parts, bundles, extra costs
             self.client.get("/api/builds/")
-        with self.assertNumQueries(3):
+        with self.assertNumQueries(5):  # ... and the bundles' parts
             self.client.get(f"/api/builds/{self.build.id}/")
 
     def test_deleting_a_build_via_api_deletes_its_children(self):
@@ -378,6 +380,160 @@ class ChildApiTests(LoggedInApiTestCase):
         self.assertEqual(ExtraCost.objects.get(pk=cost.id).build, self.build)
 
 
+class BundleTests(LoggedInApiTestCase):
+    """The SPEC's example: a ₱7,500 board + CPU + RAM bundle, CPU's share typed in."""
+
+    def setUp(self):
+        super().setUp()
+        self.build = new_build(name="Bundle build", selling_price="10000.00")
+        self.build.parts.create(
+            name="RX 580", category="gpu", listed_price="4000.00", bought_for="3000.00"
+        )
+        self.bundle = self.build.bundles.create(
+            name="B550m + R5 5600 + 16GB", bought_for="7500.00"
+        )
+        for name, category, listed, bought in [
+            ("Ryzen 5 5600", "cpu", "7199.00", "3500.00"),
+            ("Asrock B550m", "motherboard", "6000.00", None),
+            ("Kingston 16GB", "ram", "2000.00", None),
+        ]:
+            self.build.parts.create(
+                bundle=self.bundle,
+                name=name,
+                category=category,
+                listed_price=listed,
+                bought_for=bought,
+            )
+        self.cpu = Part.objects.get(name="Ryzen 5 5600")
+
+    def post_part(self, **fields):
+        return self.client.post(
+            "/api/parts/",
+            {
+                "build": self.build.id,
+                "name": "X",
+                "category": "other",
+                "listed_price": "1.00",
+                **fields,
+            },
+            format="json",
+        )
+
+    def test_the_bundle_price_counts_once_and_typed_amounts_dont(self):
+        body = self.client.get(f"/api/builds/{self.build.id}/").json()
+
+        self.assertEqual(body["totals"]["listed_total"], "19199.00")
+        self.assertEqual(body["totals"]["parts_cost"], "10500.00")  # 3000 + 7500
+        self.assertEqual(body["totals"]["profit"], "-500.00")
+        self.assertEqual(
+            body["bundles"],
+            [
+                {
+                    "id": self.bundle.id,
+                    "build": self.build.id,
+                    "name": "B550m + R5 5600 + 16GB",
+                    "shop": "",
+                    "bought_for": "7500.00",
+                    "listed_total": "15199.00",
+                    "unassigned": "4000.00",
+                }
+            ],
+        )
+        board = next(p for p in body["parts"] if p["category"] == "motherboard")
+        self.assertEqual((board["bundle"], board["bought_for"]), (self.bundle.id, None))
+
+    def test_an_empty_bundle_still_counts(self):
+        build = new_build(name="Empty")
+        build.bundles.create(name="Deal", bought_for="500.00")
+
+        body = self.client.get(f"/api/builds/{build.id}/").json()
+
+        self.assertEqual(body["totals"]["parts_cost"], "500.00")
+        self.assertEqual(body["bundles"][0]["unassigned"], "500.00")
+
+    def test_a_loose_part_needs_a_bought_for(self):
+        res = self.post_part()
+        self.assertEqual(res.status_code, 400)
+        self.assertIn("bought_for", res.json())
+
+        # Moving a part out of its bundle with nothing typed in, too.
+        board = Part.objects.get(category="motherboard")
+        res = self.client.patch(
+            f"/api/parts/{board.id}/", {"bundle": None}, format="json"
+        )
+        self.assertEqual(res.status_code, 400)
+        self.assertIn("bought_for", res.json())
+
+        with self.assertRaises(IntegrityError), transaction.atomic():
+            Part.objects.create(
+                build=self.build, name="X", category="other", listed_price=1
+            )
+
+    def test_a_bundled_part_can_leave_bought_for_blank(self):
+        res = self.post_part(bundle=self.bundle.id)
+
+        self.assertEqual(res.status_code, 201)
+        self.assertIsNone(res.json()["bought_for"])
+
+    def test_bundled_amounts_cant_pass_the_bundle_price(self):
+        # 3500 typed already: 4000 more fits exactly, 4000.01 doesn't.
+        self.assertEqual(
+            self.post_part(bundle=self.bundle.id, bought_for="4000.00").status_code, 201
+        )
+        res = self.post_part(bundle=self.bundle.id, bought_for="0.01")
+        self.assertEqual(res.status_code, 400)
+        self.assertEqual(
+            res.json()["bought_for"],
+            ["Bundled parts can't add up to more than the bundle's ₱7,500.00."],
+        )
+
+        # Editing a part doesn't count its old amount against itself.
+        res = self.client.patch(
+            f"/api/parts/{self.cpu.id}/", {"bought_for": "3500.00"}, format="json"
+        )
+        self.assertEqual(res.status_code, 200)
+
+    def test_lowering_the_bundle_price_below_its_parts_is_400(self):
+        url = f"/api/bundles/{self.bundle.id}/"
+
+        res = self.client.patch(url, {"bought_for": "3499.99"}, format="json")
+        self.assertEqual(res.status_code, 400)
+        self.assertIn("bought_for", res.json())
+
+        res = self.client.patch(url, {"bought_for": "3500.00"}, format="json")
+        self.assertEqual(res.json()["unassigned"], "0.00")
+
+    def test_a_bundle_from_another_build_is_400(self):
+        other = new_build(name="Other").bundles.create(name="D", bought_for="1.00")
+
+        res = self.post_part(bundle=other.id, bought_for="1.00")
+        self.assertEqual(res.status_code, 400)
+        self.assertIn("bundle", res.json())
+
+    def test_bundle_create_and_delete_takes_its_parts(self):
+        res = self.client.post(
+            "/api/bundles/",
+            {"build": self.build.id, "name": "Deal", "bought_for": "100.00"},
+            format="json",
+        )
+        self.assertEqual(res.status_code, 201)
+        self.assertEqual(res.json()["listed_total"], "0.00")
+
+        res = self.client.delete(f"/api/bundles/{self.bundle.id}/")
+        self.assertEqual(res.status_code, 204)
+        self.assertEqual(list(Part.objects.values_list("name", flat=True)), ["RX 580"])
+
+    def test_a_bundle_cant_move_to_another_build(self):
+        other = new_build(name="Other")
+
+        res = self.client.patch(
+            f"/api/bundles/{self.bundle.id}/", {"build": other.id}, format="json"
+        )
+
+        self.assertEqual(res.status_code, 400)
+        self.assertIn("build", res.json())
+
+
 class AuthTests(APITestCase):
     def setUp(self):
         cache.clear()  # the sign-up/log-in rate limit counts live in the cache
@@ -487,12 +643,14 @@ class IsolationTests(LoggedInApiTestCase):
             name="P", category="cpu", listed_price="1.00", bought_for="1.00"
         )
         self.cost = self.build.extra_costs.create(label="Shipping", amount="1.00")
+        self.bundle = self.build.bundles.create(name="Deal", bought_for="1.00")
 
     def test_another_users_build_part_and_cost_are_404(self):
         for url, patch in [
             (f"/api/builds/{self.build.id}/", {"name": "Mine now"}),
             (f"/api/parts/{self.part.id}/", {"name": "Mine now"}),
             (f"/api/extra-costs/{self.cost.id}/", {"label": "Mine now"}),
+            (f"/api/bundles/{self.bundle.id}/", {"name": "Mine now"}),
         ]:
             self.assertEqual(self.client.get(url).status_code, 404, url)
             self.assertEqual(
@@ -503,6 +661,7 @@ class IsolationTests(LoggedInApiTestCase):
         self.assertEqual(Build.objects.get().name, "Bob's build")
         self.assertEqual(Part.objects.get().name, "P")
         self.assertEqual(ExtraCost.objects.get().label, "Shipping")
+        self.assertEqual(Bundle.objects.get().name, "Deal")
 
     def test_lists_only_show_your_own(self):
         new_build(name="Mine")
@@ -512,6 +671,7 @@ class IsolationTests(LoggedInApiTestCase):
         )
         self.assertEqual(self.client.get("/api/parts/").json(), [])
         self.assertEqual(self.client.get("/api/extra-costs/").json(), [])
+        self.assertEqual(self.client.get("/api/bundles/").json(), [])
 
     def test_cant_add_to_another_users_build(self):
         for url, data in [
@@ -525,12 +685,32 @@ class IsolationTests(LoggedInApiTestCase):
                 },
             ),
             ("/api/extra-costs/", {"label": "X", "amount": "1.00"}),
+            ("/api/bundles/", {"name": "X", "bought_for": "1.00"}),
         ]:
             res = self.client.post(url, {"build": self.build.id, **data}, format="json")
             self.assertEqual(res.status_code, 400, url)
             self.assertIn("build", res.json())
         self.assertEqual(Part.objects.count(), 1)
         self.assertEqual(ExtraCost.objects.count(), 1)
+        self.assertEqual(Bundle.objects.count(), 1)
+
+    def test_cant_put_a_part_in_another_users_bundle(self):
+        mine = new_build(name="Mine")
+
+        res = self.client.post(
+            "/api/parts/",
+            {
+                "build": mine.id,
+                "bundle": self.bundle.id,
+                "name": "X",
+                "category": "cpu",
+                "listed_price": "1.00",
+            },
+            format="json",
+        )
+
+        self.assertEqual(res.status_code, 400)
+        self.assertIn("bundle", res.json())
 
     def test_a_new_build_belongs_to_whoever_created_it(self):
         res = self.client.post("/api/builds/", {"name": "New"}, format="json")
@@ -563,6 +743,7 @@ class AdminTests(TestCase):
             build=build, name="Ryzen", category="cpu", listed_price=1, bought_for=1
         )
         ExtraCost.objects.create(build=build, label="Gas", amount=1)
+        Bundle.objects.create(build=build, name="Deal", bought_for=1)
         self.client.force_login(User.objects.create_superuser("admin", password="x"))
 
         for url in [
@@ -570,6 +751,7 @@ class AdminTests(TestCase):
             f"/admin/builds/build/{build.id}/change/",
             "/admin/builds/part/",
             "/admin/builds/extracost/",
+            "/admin/builds/bundle/",
         ]:
             self.assertEqual(self.client.get(url).status_code, 200, url)
 
