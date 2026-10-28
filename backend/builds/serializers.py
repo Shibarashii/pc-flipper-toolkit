@@ -81,10 +81,14 @@ class ChildSerializer(ModelSerializer):
     def get_fields(self):
         fields = super().get_fields()
         request = self.context.get("request")
-        # Another user's build id is "object does not exist", as if it weren't there.
-        # (No user while the API docs are generated.)
+        # Another user's build (or bundle) id is "object does not exist", as if it
+        # weren't there. (No user while the API docs are generated.)
         if request and request.user.is_authenticated:
             fields["build"].queryset = Build.objects.filter(owner=request.user)
+            if "bundle" in fields:
+                fields["bundle"].queryset = Bundle.objects.filter(
+                    build__owner=request.user
+                )
         return fields
 
     def validate_build(self, build):
@@ -120,13 +124,6 @@ class PartSerializer(ChildSerializer):
                 "help_text": "ID of the bundle it was bought in (same build), or `null`."
             },
         }
-
-    def get_fields(self):
-        fields = super().get_fields()
-        request = self.context.get("request")
-        if request and request.user.is_authenticated:
-            fields["bundle"].queryset = Bundle.objects.filter(build__owner=request.user)
-        return fields
 
     def validate(self, attrs):
         def value(field):

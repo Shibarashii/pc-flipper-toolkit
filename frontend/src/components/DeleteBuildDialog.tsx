@@ -14,11 +14,9 @@ function deleteMessage(build: BuildDetail): string {
       count(build.bundles.length, "bundle", "bundles"),
     build.extra_costs.length > 0 &&
       count(build.extra_costs.length, "extra cost", "extra costs"),
-  ].filter(Boolean);
-  // "7 parts, 1 bundle and 3 extra costs"
-  const list = [children.slice(0, -1).join(", "), children.at(-1)]
-    .filter(Boolean)
-    .join(" and ");
+  ].filter((c) => c !== false);
+  // en-GB: "7 parts, 1 bundle and 3 extra costs", no Oxford comma.
+  const list = new Intl.ListFormat("en-GB").format(children);
   const its = list ? ` and its ${list}` : "";
   return `“${build.name}”${its} will be deleted. This can’t be undone.`;
 }
