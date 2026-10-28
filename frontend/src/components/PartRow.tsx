@@ -1,17 +1,15 @@
 import { useRef, useState, type SubmitEvent } from "react";
 import {
-  ApiError,
   CATEGORIES,
   createPart,
   type Bundle,
   updatePart,
-  type FieldErrors,
   type Part,
   type PartCategory,
 } from "../api";
 import { formatMoney } from "../money";
 import { buttonPrimary, buttonSecondary, input } from "../ui";
-import { cleanMoney, Field, RowActions, Select } from "./form";
+import { cleanMoney, Field, RowActions, Select, useSave } from "./form";
 
 const EMPTY = {
   name: "",
@@ -81,9 +79,7 @@ export function PartForm({
       ? fromPart(part)
       : { ...EMPTY, category, bundle: String(bundle ?? "") },
   );
-  const [errors, setErrors] = useState<FieldErrors>({});
-  const [failed, setFailed] = useState(false);
-  const [saving, setSaving] = useState(false);
+  const { errors, failed, saving, save } = useSave(EMPTY);
   const nameRef = useRef<HTMLInputElement>(null);
   const full = part !== undefined || bundle !== undefined;
   const layout = full ? EDIT_LAYOUT : ADD_LAYOUT;
@@ -92,11 +88,8 @@ export function PartForm({
   const set = (field: keyof typeof EMPTY) => (value: string) =>
     setForm((f) => ({ ...f, [field]: value }));
 
-  async function submit(e: SubmitEvent<HTMLFormElement>) {
+  function submit(e: SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
-    setSaving(true);
-    setErrors({});
-    setFailed(false);
     const fields = {
       name: form.name.trim(),
       shop: form.shop.trim(),
@@ -106,7 +99,7 @@ export function PartForm({
       bought_for: cleanMoney(form.bought_for) || null,
       bundle: form.bundle ? Number(form.bundle) : null,
     };
-    try {
+    save(async () => {
       if (part) {
         await updatePart(part.id, fields);
       } else {
@@ -116,14 +109,7 @@ export function PartForm({
         nameRef.current?.focus();
       }
       onSaved();
-    } catch (err) {
-      const fieldErrors = err instanceof ApiError ? err.fieldErrors : {};
-      setErrors(fieldErrors);
-      // Errors on fields this form doesn't show (e.g. "build") need the general message.
-      setFailed(!Object.keys(fieldErrors).some((key) => key in EMPTY));
-    } finally {
-      setSaving(false);
-    }
+    });
   }
 
   return (

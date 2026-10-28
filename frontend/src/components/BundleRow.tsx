@@ -1,17 +1,15 @@
 import { useState, type SubmitEvent } from "react";
 import {
-  ApiError,
   createBundle,
   deleteBundle,
   updateBundle,
   type Bundle,
-  type FieldErrors,
   type Part,
 } from "../api";
 import { formatMoney } from "../money";
 import { buttonPrimary, buttonSecondary, input } from "../ui";
 import { ConfirmDialog } from "./ConfirmDialog";
-import { cleanMoney, Field, RowActions } from "./form";
+import { cleanMoney, Field, RowActions, useSave } from "./form";
 
 const tag =
   "inline-block rounded border border-line-strong px-[7px] text-[13px] leading-[18px]";
@@ -148,34 +146,24 @@ export function BundleForm({
         }
       : EMPTY,
   );
-  const [errors, setErrors] = useState<FieldErrors>({});
-  const [failed, setFailed] = useState(false);
-  const [saving, setSaving] = useState(false);
+  const { errors, failed, saving, save } = useSave(EMPTY);
   const title = bundle ? "Edit bundle" : "New bundle";
 
   const set = (field: keyof typeof EMPTY) => (value: string) =>
     setForm((f) => ({ ...f, [field]: value }));
 
-  async function submit(e: SubmitEvent<HTMLFormElement>) {
+  function submit(e: SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
-    setSaving(true);
-    setErrors({});
-    setFailed(false);
     const fields = {
       name: form.name.trim(),
       shop: form.shop.trim(),
       bought_for: cleanMoney(form.bought_for),
     };
-    try {
+    save(async () => {
       if (bundle) await updateBundle(bundle.id, fields);
       else await createBundle({ build: buildId, ...fields });
       onSaved();
-    } catch (err) {
-      const fieldErrors = err instanceof ApiError ? err.fieldErrors : {};
-      setErrors(fieldErrors);
-      setFailed(!Object.keys(fieldErrors).some((key) => key in EMPTY));
-      setSaving(false);
-    }
+    });
   }
 
   return (

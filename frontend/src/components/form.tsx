@@ -1,5 +1,6 @@
-// Pieces shared by the inline add/edit forms for parts and extra costs.
-import type { ComponentProps, ReactNode } from "react";
+// Pieces shared by the inline add/edit forms for parts, bundles and extra costs.
+import { useState, type ComponentProps, type ReactNode } from "react";
+import { ApiError, type FieldErrors } from "../api";
 import chevron from "../assets/chevron.svg";
 import pencil from "../assets/pencil.svg";
 import trash from "../assets/trash.svg";
@@ -8,6 +9,32 @@ import { iconButton, input } from "../ui";
 /** "₱12,500" → "12500": people type (or paste from shops) the peso sign and
  * thousands separators; the API accepts neither. */
 export const cleanMoney = (value: string) => value.replace(/[₱,]/g, "").trim();
+
+/** Saving state for an inline form. `save(work)` runs the request; a 400 puts each
+ * message under its field, and `failed` covers the rest (no connection, or an error on
+ * a field the form doesn't show). `shown` is the form's fields, e.g. its EMPTY. */
+export function useSave(shown: object) {
+  const [errors, setErrors] = useState<FieldErrors>({});
+  const [failed, setFailed] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  async function save(work: () => Promise<void>) {
+    setSaving(true);
+    setErrors({});
+    setFailed(false);
+    try {
+      await work();
+    } catch (err) {
+      const fieldErrors = err instanceof ApiError ? err.fieldErrors : {};
+      setErrors(fieldErrors);
+      setFailed(!Object.keys(fieldErrors).some((key) => key in shown));
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return { errors, failed, saving, save };
+}
 
 /** The pencil and trash buttons at the end of a row. `name` labels them for screen readers. */
 export function RowActions({
