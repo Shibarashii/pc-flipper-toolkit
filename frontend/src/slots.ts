@@ -42,11 +42,7 @@ export function buildSlots(parts: Part[]): { slots: Slot[]; filled: number } {
       note: optional,
     };
   });
-  const required = new Set(
-    SLOTS.filter((s) => !s.optional).map((s) => s.category),
-  );
-  const filled = slots.filter(
-    (s) => required.has(s.category) && s.state === "filled",
-  ).length;
+  // Optional slots carry a note; only the others count.
+  const filled = slots.filter((s) => s.state === "filled" && !s.note).length;
   return { slots, filled };
 }

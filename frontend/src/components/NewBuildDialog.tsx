@@ -1,29 +1,24 @@
-import { useEffect, useRef, useState, type SubmitEvent } from "react";
+import { useState, type SubmitEvent } from "react";
 import { useNavigate } from "react-router";
 import { createBuild } from "../api";
 import { buttonPrimary, buttonSecondary, input } from "../ui";
+import { useModal } from "./DeleteDialog";
 
 /** Render only while open; it opens itself as a modal on mount. */
 export function NewBuildDialog({ onClose }: { onClose: () => void }) {
-  const ref = useRef<HTMLDialogElement>(null);
+  const ref = useModal();
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(false);
 
-  useEffect(() => {
-    const dialog = ref.current;
-    if (dialog && !dialog.open) dialog.showModal();
-  }, []);
-
   async function submit(e: SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
-    const trimmed = name.trim();
-    if (!trimmed) return;
     setSaving(true);
     setError(false);
     try {
-      const build = await createBuild(trimmed);
+      // Can't be blank: the submit button is disabled until there's a name.
+      const build = await createBuild(name.trim());
       navigate(`/builds/${build.id}`);
     } catch {
       setError(true);
@@ -46,7 +41,6 @@ export function NewBuildDialog({ onClose }: { onClose: () => void }) {
           Name
           <input
             autoFocus
-            required
             maxLength={200}
             value={name}
             onChange={(e) => setName(e.target.value)}

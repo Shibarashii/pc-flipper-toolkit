@@ -1,6 +1,16 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { buttonDanger, buttonSecondary } from "../ui";
 
+/** A ref for a <dialog> that opens itself as a modal on mount. */
+export function useModal() {
+  const ref = useRef<HTMLDialogElement>(null);
+  useEffect(() => {
+    const dialog = ref.current;
+    if (dialog && !dialog.open) dialog.showModal();
+  }, []);
+  return ref;
+}
+
 /** "Delete this {what}?" with Cancel and a red "Delete {what}". Render only while open;
  * it opens itself as a modal on mount. */
 export function DeleteDialog({
@@ -15,15 +25,10 @@ export function DeleteDialog({
   onConfirm: () => Promise<void>;
   onClose: () => void;
 }) {
-  const ref = useRef<HTMLDialogElement>(null);
+  const ref = useModal();
   const id = useId();
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState(false);
-
-  useEffect(() => {
-    const dialog = ref.current;
-    if (dialog && !dialog.open) dialog.showModal();
-  }, []);
 
   async function confirm() {
     setDeleting(true);
