@@ -98,6 +98,9 @@ so their order is flexible.
 
 **Checkpoint 5:** SPEC success criterion 7 passes on the live site.
 
+### Phase 7: Maintenance
+- [ ] T23: End-to-end test of the main flow in CI (Playwright)
+
 ## Risks and Mitigations
 
 | Risk | Impact | Mitigation |

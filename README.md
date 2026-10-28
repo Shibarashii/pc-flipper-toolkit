@@ -65,6 +65,14 @@ Open http://localhost:5173 and sign up.
 (cd frontend && npm test && npm run lint && npm run build)
 ```
 
+End-to-end: one Playwright test (`frontend/e2e/`) signs up, builds a PC with loose parts and a bundle, prices it, checks the totals and checklist, and deletes it, at desktop and phone width. It starts Django and Vite itself (or reuses ones already running) on your local database.
+
+```sh
+(cd frontend && npx playwright install chromium && npm run e2e)
+```
+
+Sign-up is limited to 10 a minute, so running it many times in a row locally gets "Too many attempts" for a minute.
+
 ## Deployment
 
 - **Render** (root `backend`): build `pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate`, start `gunicorn config.wsgi`. Environment: `SECRET_KEY`, `ALLOWED_HOSTS`, `DATABASE_URL` (Neon), `CORS_ALLOWED_ORIGINS` (the Vercel URL), `NUM_PROXIES=3`.
