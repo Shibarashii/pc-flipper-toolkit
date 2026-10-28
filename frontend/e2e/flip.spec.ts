@@ -1,10 +1,16 @@
 import { expect, test, type Page } from "@playwright/test";
 
 /**
- * Fill and submit an open part or bundle form, then wait for the saved row. The add-part
- * row stays open for the next part, and its submit reads "Add part" on phones.
+ * Fill and submit an open form, then wait for the saved row in `region`. The first field
+ * is the row's name. Add rows stay open for the next entry, and the add-part submit reads
+ * "Add part" on phones.
  */
-async function fill(page: Page, form: string, fields: Record<string, string>) {
+async function fill(
+  page: Page,
+  form: string,
+  fields: Record<string, string>,
+  region = "Parts",
+) {
   const f = page.getByRole("form", { name: form });
   for (const [label, value] of Object.entries(fields)) {
     // A <select> inside its <label> gets the options' text in the label too.
@@ -18,7 +24,7 @@ async function fill(page: Page, form: string, fields: Record<string, string>) {
   const name = Object.values(fields)[0];
   await expect(
     page
-      .getByRole("region", { name: "Parts" })
+      .getByRole("region", { name: region })
       .getByText(name, { exact: true })
       .filter({ visible: true }),
   ).toBeVisible();
@@ -84,6 +90,14 @@ test("flip a PC: sign up, add parts and a bundle, price it, delete it", async ({
     page.getByText("₱3,500.00 not assigned").filter({ visible: true }),
   ).toBeVisible();
 
+  await page.getByRole("button", { name: "Add cost" }).click();
+  await fill(
+    page,
+    "New cost",
+    { Label: "Shipping", Amount: "500" },
+    "Extra costs",
+  );
+
   const price = page.getByLabel("Selling price");
   await price.fill("38000");
   await price.blur();
@@ -91,11 +105,12 @@ test("flip a PC: sign up, add parts and a bundle, price it, delete it", async ({
   const summary = page.getByRole("region", { name: "Summary" });
   const value = (label: string) =>
     summary.locator(`dt:text-is("${label}") + dd`);
-  await expect(summary.getByText("+₱4,000.00")).toBeVisible();
-  await expect(summary.getByText("10.53% margin")).toBeVisible();
+  await expect(summary.getByText("+₱3,500.00")).toBeVisible();
+  await expect(summary.getByText("9.21% margin")).toBeVisible();
   await expect(value("Listed total")).toHaveText("₱40,500.00");
   await expect(value("Parts cost")).toHaveText("₱34,000.00");
-  await expect(value("Total cost")).toHaveText("₱34,000.00");
+  await expect(value("Extra costs")).toHaveText("₱500.00");
+  await expect(value("Total cost")).toHaveText("₱34,500.00");
 
   const checklist = page.getByRole("region", { name: "Build" });
   await expect(checklist.getByText("3 of 6 required parts")).toBeVisible();
@@ -108,7 +123,7 @@ test("flip a PC: sign up, add parts and a bundle, price it, delete it", async ({
 
   await page.getByRole("button", { name: "Delete build" }).click();
   const dialog = page.getByRole("dialog", { name: "Delete this build?" });
-  await expect(dialog).toContainText("its 4 parts and 1 bundle");
+  await expect(dialog).toContainText("its 4 parts, 1 bundle and 1 extra cost");
   await dialog.getByRole("button", { name: "Delete build" }).click();
   await expect(page).toHaveURL("/");
   await expect(page.getByText("No builds yet")).toBeVisible();
