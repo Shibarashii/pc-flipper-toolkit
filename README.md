@@ -76,7 +76,7 @@ Sign-up is limited to 10 a minute, so running it many times in a row locally get
 ## Deployment
 
 - **Render** (root `backend`): build `pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate`, start `gunicorn config.wsgi`. Environment: `SECRET_KEY`, `ALLOWED_HOSTS`, `DATABASE_URL` (Neon), `CORS_ALLOWED_ORIGINS` (the Vercel URL), `NUM_PROXIES=3`.
-- **Vercel** (root `frontend`): Vite preset, `VITE_API_URL` set to the Render URL. `vercel.json` sends every path to `index.html` so deep links work.
+- **Vercel** (root `frontend`): Vite preset, `VITE_API_URL` set to the Render URL. `vercel.json` sends every path to `index.html` so deep links work, and its CSP's `connect-src` names the Render URL: change it together with `VITE_API_URL`, or the browser blocks every API call.
 
 Both redeploy on every push to `main`. See [`backend/.env.example`](backend/.env.example) for what each setting does.
 
