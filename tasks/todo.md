@@ -424,7 +424,7 @@ the device setting and remembers the choice in this browser. The tokens move to 
 
 Spec: SPEC.md user story 9 and the Bundles notes; idea: [docs/ideas/part-bundles.md](../docs/ideas/part-bundles.md).
 
-### - [ ] T20: Bundles in the API
+### - [x] T20: Bundles in the API
 
 **Description:** A `Bundle` model (build, name, shop, bought_for) and a nullable `Part.bundle`.
 `Part.bought_for` becomes nullable, allowed only for bundled parts (DB check constraint).
@@ -433,12 +433,12 @@ endpoints, `bundles` (with `listed_total` and `unassigned`) in the build detail,
 isolation like parts, and the admin. The migration is additive: existing parts are untouched.
 
 **Acceptance criteria:**
-- [ ] Totals for a build with a bundle match a hand calculation (bundle price counted once, typed part amounts ignored).
-- [ ] 400s, under the right field: a loose part without bought-for, bundled amounts over the bundle price (from either side), a bundle from another build.
-- [ ] Another user's bundle is 404; bundles can't be added to their builds or moved between builds; deleting a bundle deletes its parts.
+- [x] Totals for a build with a bundle match a hand calculation (bundle price counted once, typed part amounts ignored).
+- [x] 400s, under the right field: a loose part without bought-for, bundled amounts over the bundle price (from either side), a bundle from another build.
+- [x] Another user's bundle is 404; bundles can't be added to their builds or moved between builds; deleting a bundle deletes its parts.
 
 **Verification:**
-- [ ] Tests: `manage.py test` (totals, validation, isolation, cascade), ruff
+- [x] Tests: `manage.py test` (totals, validation, isolation, cascade), ruff
 - [ ] `/api/docs/` shows the bundle endpoints and fields; the migration applies to a copy of real data
 
 **Dependencies:** None
