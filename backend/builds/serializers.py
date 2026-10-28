@@ -203,6 +203,9 @@ class ExtraCostSerializer(ChildSerializer):
         }
 
 
+NOTES_MAX = 10_000
+
+
 class BuildSerializer(ModelSerializer):
     totals = TotalsSerializer(source="*", read_only=True)
 
@@ -225,6 +228,8 @@ class BuildSerializer(ModelSerializer):
                 "`null` if not priced yet."
             },
             "sold_at": {"help_text": "Date sold (YYYY-MM-DD). `null` unless sold."},
+            # A cap on what one request can store; the column itself stays unbounded.
+            "notes": {"max_length": NOTES_MAX},
         }
 
     def validate(self, attrs):
