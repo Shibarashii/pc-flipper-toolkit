@@ -60,7 +60,7 @@ Build
   name            text
   status          planning | building | listed | sold   (default planning)
   selling_price   decimal(10,2), nullable
-  sold_at         date, nullable
+  sold_at         date, nullable; set only when status is sold
   notes           text, blank
   created_at      datetime
 

@@ -56,6 +56,39 @@ class BuildApiTests(LoggedInApiTestCase):
         self.assertIn("selling_price", res.json())
 
 
+class SoldDateTests(LoggedInApiTestCase):
+    def test_only_a_sold_build_has_a_sold_date(self):
+        build = new_build(name="B")
+        url = f"/api/builds/{build.id}/"
+
+        res = self.client.patch(url, {"sold_at": "2026-10-28"}, format="json")
+        self.assertEqual(res.status_code, 400)
+        self.assertIn("sold_at", res.json())
+
+        # Together with the status it's fine, and leaving "sold" must clear it.
+        res = self.client.patch(
+            url, {"status": "sold", "sold_at": "2026-10-28"}, format="json"
+        )
+        self.assertEqual(res.status_code, 200)
+        res = self.client.patch(url, {"status": "listed"}, format="json")
+        self.assertEqual(res.status_code, 400)
+        self.assertIn("sold_at", res.json())
+        res = self.client.patch(
+            url, {"status": "listed", "sold_at": None}, format="json"
+        )
+        self.assertEqual(res.status_code, 200)
+
+    def test_an_unrelated_edit_isnt_blocked_by_old_data(self):
+        # Saved before this rule existed: not sold, but dated.
+        build = new_build(name="B", sold_at="2026-10-01")
+
+        res = self.client.patch(
+            f"/api/builds/{build.id}/", {"name": "Renamed"}, format="json"
+        )
+
+        self.assertEqual(res.status_code, 200)
+
+
 class BuildTotalsTests(TestCase):
     def make_build(self, selling_price=None, parts=(), extras=()):
         """parts: (listed_price, bought_for) pairs; extras: amounts. Returns a fresh
