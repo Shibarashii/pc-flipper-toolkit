@@ -98,7 +98,7 @@ All endpoints are under `/api/`. JSON in, JSON out. Only `PATCH` is supported fo
 
 **Reference docs:** an OpenAPI 3 schema is generated from the code with drf-spectacular. Interactive docs (Swagger UI) are at `/api/docs/` and the raw schema at `/api/schema/`. This table is the overview, and `/api/docs/` is the source of truth for fields and examples.
 
-**Admin:** the Django admin at `/admin/` can browse and fix builds, parts, bundles and extra costs directly. Logging in needs a superuser (`python manage.py createsuperuser`). The admin shows every user's builds.
+**Admin:** the Django admin at `/admin/` can browse and fix builds, parts, bundles and extra costs directly. Logging in needs a superuser (`python manage.py createsuperuser`), and is rate-limited per IP like the API's log-in. The admin shows every user's builds.
 
 | Method | Path | Purpose |
 |---|---|---|
