@@ -403,6 +403,26 @@ test("moving a part out of its bundle shows the server's bought-for error", asyn
   expect(body()).toMatchObject({ bundle: null, bought_for: null });
 });
 
+test("a server error on the bundle shows under the Bundle select", async () => {
+  renderWithBundle(
+    Response.json(
+      { bundle: ["Must be a bundle in the same build."] },
+      { status: 400 },
+    ),
+  );
+
+  clickAction("Edit Ryzen 5 7600");
+  fireEvent.submit(screen.getByRole("form", { name: "Edit Ryzen 5 7600" }));
+
+  expect(
+    await screen.findByText("Must be a bundle in the same build."),
+  ).toBeTruthy();
+  expect(screen.getByLabelText("Bundle").getAttribute("aria-invalid")).toBe(
+    "true",
+  );
+  expect(screen.queryByRole("alert")).toBeNull();
+});
+
 test("editing a bundle patches it", async () => {
   const { fetchMock, onChanged, body } = renderWithBundle(
     Response.json({}, { status: 200 }),

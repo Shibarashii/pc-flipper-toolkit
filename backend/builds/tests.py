@@ -493,6 +493,31 @@ class BundleTests(LoggedInApiTestCase):
         )
         self.assertEqual(res.status_code, 200)
 
+    def test_moving_a_part_checks_the_bundle_it_goes_into(self):
+        small = self.build.bundles.create(name="Small", bought_for="1000.00")
+        roomy = self.build.bundles.create(name="Roomy", bought_for="5000.00")
+        gpu = Part.objects.get(name="RX 580")
+
+        def move(part, bundle):
+            return self.client.patch(
+                f"/api/parts/{part.id}/", {"bundle": bundle.id}, format="json"
+            )
+
+        # The CPU's ₱3,500 doesn't fit in ₱1,000, but fits in ₱5,000.
+        res = move(self.cpu, small)
+        self.assertEqual(res.status_code, 400)
+        self.assertIn("bought_for", res.json())
+        self.assertEqual(move(self.cpu, roomy).status_code, 200)
+
+        # The loose GPU's ₱3,000 fits back in the first bundle, now empty of amounts.
+        self.assertEqual(move(gpu, self.bundle).status_code, 200)
+        self.assertEqual(
+            self.client.get(f"/api/builds/{self.build.id}/").json()["totals"][
+                "parts_cost"
+            ],
+            "13500.00",  # 7500 + 1000 + 5000, no loose parts left
+        )
+
     def test_lowering_the_bundle_price_below_its_parts_is_400(self):
         url = f"/api/bundles/{self.bundle.id}/"
 
