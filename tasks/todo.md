@@ -490,7 +490,7 @@ optional only when a bundle is picked. Server errors show under their field.
 
 ## Phase 7: Maintenance
 
-### - [ ] T23: End-to-end test of the main flow in CI
+### - [x] T23: End-to-end test of the main flow in CI
 
 **Description:** One Playwright test replaces the manual click-through after changes: sign
 up, create a build, add loose parts, add a bundle with parts inside, set a selling price,
@@ -498,13 +498,13 @@ check totals, profit and the checklist, delete the build. Runs at desktop and 37
 Django and Vite on a throwaway Postgres, as a third required CI check.
 
 **Acceptance criteria:**
-- [ ] `npm run e2e` passes locally at both widths.
-- [ ] The `e2e` CI job passes and is required on `main`; a failure uploads the trace and report.
-- [ ] Breaking the totals on the server (e.g. counting a bundled part's amount) turns it red.
+- [x] `npm run e2e` passes locally at both widths.
+- [x] The `e2e` CI job passes and is required on `main`; a failure uploads the trace and report.
+- [x] Breaking the totals on the server (e.g. counting a bundled part's amount) turns it red.
 
 **Verification:**
-- [ ] Repeated local runs pass (within the sign-up rate limit)
-- [ ] Unit tests, lint and build still pass; Vitest doesn't pick up `e2e/`
+- [x] Repeated local runs pass (within the sign-up rate limit)
+- [x] Unit tests, lint and build still pass; Vitest doesn't pick up `e2e/`
 
 **Dependencies:** None (new dev dependency `@playwright/test`, approved)
 **Files:** `frontend/playwright.config.ts`, `frontend/e2e/flip.spec.ts`, `.github/workflows/ci.yml`, `frontend/package.json`, configs, README
