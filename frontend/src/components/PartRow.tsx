@@ -9,7 +9,7 @@ import {
   type ShopProduct,
 } from "../api";
 import { formatMoney } from "../money";
-import { buttonPrimary, buttonSecondary, input, link } from "../ui";
+import { buttonPrimary, buttonSecondary, input } from "../ui";
 import { cleanMoney, Field, RowActions, Select, useSave } from "./form";
 import { PriceLookup } from "./PriceLookup";
 
@@ -43,6 +43,7 @@ const ADD_LAYOUT = {
   category: "sm:w-[112px]",
   price: "sm:w-[96px]",
   actions: "sm:contents",
+  footer: "sm:p-2",
 };
 const EDIT_LAYOUT = {
   box: "",
@@ -53,6 +54,7 @@ const EDIT_LAYOUT = {
   price: "sm:w-[140px]",
   // Clears the label so the buttons line up with the inputs.
   actions: "sm:mt-6 sm:ml-auto sm:gap-1.5",
+  footer: "",
 };
 
 export function PartForm({
@@ -144,163 +146,187 @@ export function PartForm({
       onKeyDown={(e) => e.key === "Escape" && onClose()}
       aria-label={part ? `Edit ${part.name}` : title}
     >
-      <div
-        className={`flex flex-col gap-3 rounded bg-sunken p-3 ${layout.box}`}
-      >
-        <p className="text-[13px] leading-[18px] font-medium sm:hidden">
-          {title}
-        </p>
-        <div className={`flex flex-col gap-3 ${layout.row}`}>
-          <Field
-            label="Part"
-            errors={errors.name}
-            labelClass={layout.label}
-            className="sm:flex-1"
-          >
-            <input
-              ref={nameRef}
-              autoFocus
-              value={form.name}
-              onChange={(e) => set("name")(e.target.value)}
-              placeholder="Part name"
-              maxLength={200}
-              aria-invalid={!!errors.name}
-              className={input(!!errors.name)}
-            />
-          </Field>
-          <Field
-            label="Shop"
-            errors={errors.shop}
-            labelClass={layout.label}
-            className={layout.shop}
-          >
-            <input
-              value={form.shop}
-              onChange={(e) => set("shop")(e.target.value)}
-              placeholder="Shop"
-              maxLength={200}
-              aria-invalid={!!errors.shop}
-              className={input(!!errors.shop)}
-            />
-          </Field>
-          {full && bundles.length > 0 && (
+      <div className="rounded bg-sunken">
+        <div className={`flex flex-col gap-3 p-3 ${layout.box}`}>
+          <p className="text-[13px] leading-[18px] font-medium sm:hidden">
+            {title}
+          </p>
+          <div className={`flex flex-col gap-3 ${layout.row}`}>
             <Field
-              label="Bundle"
-              errors={errors.bundle}
+              label="Part"
+              errors={errors.name}
+              labelClass={layout.label}
+              className="sm:flex-1"
+            >
+              <input
+                ref={nameRef}
+                autoFocus
+                value={form.name}
+                onChange={(e) => set("name")(e.target.value)}
+                placeholder="Part name"
+                maxLength={200}
+                aria-invalid={!!errors.name}
+                className={input(!!errors.name)}
+              />
+            </Field>
+            <Field
+              label="Shop"
+              errors={errors.shop}
+              labelClass={layout.label}
               className={layout.shop}
             >
-              <Select
-                value={form.bundle}
-                onChange={(e) => set("bundle")(e.target.value)}
-                error={!!errors.bundle}
+              <input
+                value={form.shop}
+                onChange={(e) => set("shop")(e.target.value)}
+                placeholder="Shop"
+                maxLength={200}
+                aria-invalid={!!errors.shop}
+                className={input(!!errors.shop)}
+              />
+            </Field>
+            {full && bundles.length > 0 && (
+              <Field
+                label="Bundle"
+                errors={errors.bundle}
+                className={layout.shop}
               >
-                <option value="">None</option>
-                {bundles.map((b) => (
-                  <option key={b.id} value={b.id}>
-                    {b.name}
+                <Select
+                  value={form.bundle}
+                  onChange={(e) => set("bundle")(e.target.value)}
+                  error={!!errors.bundle}
+                >
+                  <option value="">None</option>
+                  {bundles.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.name}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+            )}
+          </div>
+          <div className={`flex flex-col gap-3 ${layout.row}`}>
+            <Field
+              label="Category"
+              errors={errors.category}
+              labelClass={layout.label}
+              className={layout.category}
+            >
+              <Select
+                value={form.category}
+                onChange={(e) => set("category")(e.target.value)}
+                error={!!errors.category}
+                className={form.category ? "" : "text-faint"}
+              >
+                <option value="" disabled>
+                  Category
+                </option>
+                {Object.entries(CATEGORIES).map(([value, label]) => (
+                  <option key={value} value={value} className="text-ink">
+                    {label}
                   </option>
                 ))}
               </Select>
             </Field>
+            <div className="flex gap-3 sm:contents">
+              <Field
+                label="Listed price"
+                errors={errors.listed_price}
+                labelClass={layout.label}
+                className={`flex-1 sm:flex-none ${layout.price}`}
+              >
+                <input
+                  ref={priceRef}
+                  inputMode="decimal"
+                  value={form.listed_price}
+                  onChange={(e) => set("listed_price")(e.target.value)}
+                  placeholder="Listed ₱"
+                  aria-invalid={!!errors.listed_price}
+                  className={`${input(!!errors.listed_price)} tabular-nums`}
+                />
+              </Field>
+              <Field
+                label="Bought for"
+                errors={errors.bought_for}
+                labelClass={layout.label}
+                className={`flex-1 sm:flex-none ${layout.price}`}
+              >
+                <input
+                  inputMode="decimal"
+                  value={form.bought_for}
+                  onChange={(e) => set("bought_for")(e.target.value)}
+                  // Inside a bundle it's an optional share of the bundle's price.
+                  placeholder={form.bundle ? "Optional" : "Bought ₱"}
+                  aria-invalid={!!errors.bought_for}
+                  className={`${input(!!errors.bought_for)} tabular-nums`}
+                />
+              </Field>
+            </div>
+            <div className={`flex justify-end gap-2 ${layout.actions}`}>
+              <button
+                type="button"
+                onClick={onClose}
+                className={buttonSecondary}
+              >
+                Cancel
+              </button>
+              <button type="submit" disabled={saving} className={buttonPrimary}>
+                {part ? (
+                  "Save"
+                ) : (
+                  <>
+                    <span className="sm:hidden">Add part</span>
+                    <span className="hidden sm:inline">Save</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+        {/* Inside the box, on its own strip, so it reads as part of the form. */}
+        <div className={`border-t border-line p-3 ${layout.footer}`}>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <button
+              ref={findRef}
+              type="button"
+              aria-expanded={lookup !== null}
+              aria-controls={lookup !== null ? lookupId : undefined}
+              onClick={() =>
+                lookup === null ? setLookup(form.name) : closeLookup()
+              }
+              className={`inline-flex items-center gap-1.5 ${buttonSecondary}`}
+            >
+              <svg
+                aria-hidden
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+                stroke="currentColor"
+                strokeLinecap="round"
+              >
+                <circle cx="7" cy="7" r="4.75" />
+                <path d="m10.5 10.5 3.5 3.5" />
+              </svg>
+              Find prices
+            </button>
+            {lookup === null && (
+              <p className="text-[13px] leading-[18px] text-muted">
+                Fill in the price and shop from EasyPC or PC Express.
+              </p>
+            )}
+          </div>
+          {lookup !== null && (
+            <div className="mt-3">
+              <PriceLookup
+                id={lookupId}
+                initialQuery={lookup}
+                onPick={pick}
+                onClose={closeLookup}
+              />
+            </div>
           )}
         </div>
-        <div className={`flex flex-col gap-3 ${layout.row}`}>
-          <Field
-            label="Category"
-            errors={errors.category}
-            labelClass={layout.label}
-            className={layout.category}
-          >
-            <Select
-              value={form.category}
-              onChange={(e) => set("category")(e.target.value)}
-              error={!!errors.category}
-              className={form.category ? "" : "text-faint"}
-            >
-              <option value="" disabled>
-                Category
-              </option>
-              {Object.entries(CATEGORIES).map(([value, label]) => (
-                <option key={value} value={value} className="text-ink">
-                  {label}
-                </option>
-              ))}
-            </Select>
-          </Field>
-          <div className="flex gap-3 sm:contents">
-            <Field
-              label="Listed price"
-              errors={errors.listed_price}
-              labelClass={layout.label}
-              className={`flex-1 sm:flex-none ${layout.price}`}
-            >
-              <input
-                ref={priceRef}
-                inputMode="decimal"
-                value={form.listed_price}
-                onChange={(e) => set("listed_price")(e.target.value)}
-                placeholder="Listed ₱"
-                aria-invalid={!!errors.listed_price}
-                className={`${input(!!errors.listed_price)} tabular-nums`}
-              />
-            </Field>
-            <Field
-              label="Bought for"
-              errors={errors.bought_for}
-              labelClass={layout.label}
-              className={`flex-1 sm:flex-none ${layout.price}`}
-            >
-              <input
-                inputMode="decimal"
-                value={form.bought_for}
-                onChange={(e) => set("bought_for")(e.target.value)}
-                // Inside a bundle it's an optional share of the bundle's price.
-                placeholder={form.bundle ? "Optional" : "Bought ₱"}
-                aria-invalid={!!errors.bought_for}
-                className={`${input(!!errors.bought_for)} tabular-nums`}
-              />
-            </Field>
-          </div>
-          <div className={`flex justify-end gap-2 ${layout.actions}`}>
-            <button type="button" onClick={onClose} className={buttonSecondary}>
-              Cancel
-            </button>
-            <button type="submit" disabled={saving} className={buttonPrimary}>
-              {part ? (
-                "Save"
-              ) : (
-                <>
-                  <span className="sm:hidden">Add part</span>
-                  <span className="hidden sm:inline">Save</span>
-                </>
-              )}
-            </button>
-          </div>
-        </div>
-      </div>
-      <div className="mt-2">
-        <button
-          ref={findRef}
-          type="button"
-          aria-expanded={lookup !== null}
-          aria-controls={lookup !== null ? lookupId : undefined}
-          onClick={() =>
-            lookup === null ? setLookup(form.name) : closeLookup()
-          }
-          className={link}
-        >
-          Find prices
-        </button>
-        {lookup !== null && (
-          <div className="mt-2">
-            <PriceLookup
-              id={lookupId}
-              initialQuery={lookup}
-              onPick={pick}
-              onClose={closeLookup}
-            />
-          </div>
-        )}
       </div>
       {failed && (
         <p role="alert" className="mt-2 text-[13px] leading-[18px] text-loss">
