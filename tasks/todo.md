@@ -565,7 +565,7 @@ opens `/signup`. A second e2e test clicks "Try the demo" and checks both sample 
 
 Spec: [docs/specs/price-lookup.md](../docs/specs/price-lookup.md). No new dependencies.
 
-### - [ ] T26: Shop catalogue copy
+### - [x] T26: Shop catalogue copy
 
 **Description:** A `ShopProduct` model (shop, title, url, price, in_stock, updated_at; unique
 shop + url) and `builds/prices.py`, which pages through a shop's `/products.json?limit=250`
@@ -575,14 +575,14 @@ fields: the cheapest variant's price as `Decimal`, `in_stock` if any variant is 
 only after every page downloaded. Read-only in the admin, so the copy can be checked.
 
 **Acceptance criteria:**
-- [ ] A failed page, or zero products, keeps the shop's old copy and the command exits non-zero.
-- [ ] One shop failing still refreshes the other.
-- [ ] Only `/products.json` is requested, always with the app's user-agent.
-- [ ] Prices are `Decimal`, parsed from the JSON's strings.
+- [x] A failed page, or zero products, keeps the shop's old copy and the command exits non-zero.
+- [x] One shop failing still refreshes the other.
+- [x] Only `/products.json` is requested, always with the app's user-agent.
+- [x] Prices are `Decimal`, parsed from the JSON's strings.
 
 **Verification:**
-- [ ] Tests (with `urlopen` mocked, no real shop): parsing, paging until an empty page, replace, failure keeps the copy, user-agent and path
-- [ ] Manual: run the command once locally against both shops; note PC Express's size and time; check the copy in the admin
+- [x] Tests (with `urlopen` mocked, no real shop): parsing, paging until an empty page, replace, failure keeps the copy, user-agent and path
+- [x] Manual: run the command once locally against both shops; note PC Express's size and time; check the copy in the admin
 
 **Dependencies:** None
 **Files:** `backend/builds/models.py`, a new migration, `backend/builds/prices.py`, `backend/builds/management/commands/refresh_shop_prices.py`, `backend/builds/admin.py`, tests
