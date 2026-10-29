@@ -155,8 +155,9 @@ function Results({
                 type="button"
                 onClick={() => onPick(product)}
                 // Padded out and pulled back, so the hover fill has room and the text
-                // still lines up with the search box.
-                className="-mx-1.5 min-w-0 flex-1 rounded px-1.5 text-left hover:bg-sunken focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                // still lines up with the search box. Surface, since the panel sits on the
+                // sunken part form.
+                className="-mx-1.5 min-w-0 flex-1 rounded px-1.5 text-left hover:bg-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
               >
                 <span className="block text-[14px] leading-5 text-ink">
                   {product.title}

@@ -29,8 +29,8 @@ also keeps the request count to the shops at about 60 a day in total, whoever us
 
 ### User stories
 
-1. In the part form (add or edit, including a bundled part), a **"Find prices"** button under
-   the fields opens a search prefilled with the part's name. I can edit the search text.
+1. In the part form (add or edit, including a bundled part), a **"Find prices"** button at the
+   bottom of the form opens a search prefilled with the part's name. I can edit the search text.
 2. Results show each product's full name, shop, price, an "Out of stock" tag when it is, and a
    link to the product page (new tab). In-stock items come first, then cheapest first.
 3. Choosing a result fills Listed price and Shop (e.g. `EasyPC`) and closes the search. The name,
@@ -113,10 +113,13 @@ Adding one is a code change plus a robots.txt and terms check.
 
 The part form (`PartForm` in `components/PartRow.tsx`) on desktop and at 375px:
 
-- "Find prices" is a small link-style button under the form's fields (the compact add row
-  hides its labels on desktop, so it can't sit by the Listed price label). It opens a panel
-  under it (full width) with a search box (prefilled, focused), Search and Close, and the
-  results as a hairline-divided list. Enter in the search box searches; it never saves the
+- "Find prices" is a secondary button with a search icon, on its own strip at the bottom of
+  the form's sunken box (a `line` hairline above it), with a muted hint beside it: "Fill in the
+  price and shop from EasyPC or PC Express." It sits inside the box so it reads as part of the
+  form, and on its own strip because the compact add row hides its labels on desktop and has
+  no room by Listed price. The hint hides while the panel is open. The panel opens on that
+  strip (full width) with a search box (prefilled, focused), Search and Close, and the
+  results as a hairline-divided list (hover fill: `surface`, since it sits on `sunken`). Enter in the search box searches; it never saves the
   part. A part name under 2 characters isn't searched until the user types more.
 - Choosing a result moves the focus to Listed price, so it can be adjusted; closing the
   panel moves it back to "Find prices".
