@@ -17,6 +17,8 @@ export type Totals = {
 
 export type Build = {
   id: number;
+  /** 1, 2, 3… among this user's builds, oldest first. Shown in the UI instead of id. */
+  number: number;
   name: string;
   status: BuildStatus;
   selling_price: string | null;

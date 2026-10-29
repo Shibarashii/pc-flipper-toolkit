@@ -1,3 +1,4 @@
+from django.db.models import Count, OuterRef, Subquery
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
 from rest_framework import viewsets
 
@@ -13,11 +14,23 @@ from .serializers import (
 # The SPEC only supports partial updates; PUT is left out so the docs don't offer it.
 METHODS = ["get", "post", "patch", "delete", "head", "options"]
 
+# A build's number is its place among its owner's builds, oldest first: how many of
+# theirs have an id up to its own. Ids only grow, so that's creation order.
+numbers = (
+    Build.objects.filter(owner=OuterRef("owner"), id__lte=OuterRef("id"))
+    .order_by()
+    .values("owner")
+    .annotate(n=Count("id"))
+    .values("n")
+)
+
+
 BUILD_EXAMPLE = OpenApiExample(
     "A priced build",
     response_only=True,
     value={
         "id": 1,
+        "number": 1,
         "name": "Ryzen 5 7600 + RTX 4060",
         "status": "listed",
         "selling_price": "50000.00",
@@ -100,8 +113,10 @@ class BuildViewSet(viewsets.ModelViewSet):
         # bundles and extra costs; prefetching keeps the query count flat. Only the
         # detail shows bundles, which read their own parts.
         bundles = "bundles" if self.action == "list" else "bundles__parts"
-        return Build.objects.filter(owner=self.request.user).prefetch_related(
-            "parts", bundles, "extra_costs"
+        return (
+            Build.objects.filter(owner=self.request.user)
+            .annotate(number=Subquery(numbers))
+            .prefetch_related("parts", bundles, "extra_costs")
         )
 
     def perform_create(self, serializer):

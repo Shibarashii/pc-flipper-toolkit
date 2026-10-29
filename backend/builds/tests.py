@@ -59,6 +59,27 @@ class BuildApiTests(LoggedInApiTestCase):
         self.assertEqual(res.status_code, 400)
         self.assertIn("selling_price", res.json())
 
+    def test_builds_are_numbered_per_user_oldest_first(self):
+        bob = User.objects.create_user("bob")
+        first = new_build(name="A1")
+        new_build(owner=bob, name="B1")  # another user's builds don't count
+        second = new_build(name="A2")
+
+        res = self.client.post("/api/builds/", {"name": "A3"}, format="json")
+        self.assertEqual(res.json()["number"], 3)
+        listed = self.client.get("/api/builds/").json()
+        self.assertEqual(
+            [(b["name"], b["number"]) for b in listed],
+            [("A3", 3), ("A2", 2), ("A1", 1)],
+        )
+        detail = self.client.get(f"/api/builds/{second.id}/").json()
+        self.assertEqual(detail["number"], 2)
+
+        # It's a count, so deleting one moves the later ones down.
+        self.client.delete(f"/api/builds/{first.id}/")
+        detail = self.client.get(f"/api/builds/{second.id}/").json()
+        self.assertEqual(detail["number"], 1)
+
     def test_notes_are_capped_at_10000_characters(self):
         url = f"/api/builds/{new_build(name='B').id}/"
 

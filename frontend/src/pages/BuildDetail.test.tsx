@@ -32,7 +32,7 @@ test("shows the build's number and name", async () => {
   renderAt("/builds/3", Response.json(makeBuild()));
 
   expect(await screen.findByText("Ryzen 5 7600 + RTX 4060")).toBeTruthy();
-  expect(screen.getByText("Build 03")).toBeTruthy();
+  expect(screen.getByText("Build 02")).toBeTruthy();
 });
 
 test("shows a loading skeleton until the build arrives", async () => {

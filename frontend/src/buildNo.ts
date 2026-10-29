@@ -1,2 +1,2 @@
-/** Builds are labeled by id, zero-padded to 2 digits: 1 → "01". */
-export const buildNo = (id: number) => String(id).padStart(2, "0");
+/** Builds are labeled by their number (1, 2, 3… per user), zero-padded: 1 → "01". */
+export const buildNo = (number: number) => String(number).padStart(2, "0");

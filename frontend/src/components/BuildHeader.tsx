@@ -132,7 +132,7 @@ export function BuildHeader({
       <div className="mt-2.5 flex items-center gap-2.5 pt-2">
         <StatusTag status={shown.status} />
         <span className="text-[13px] leading-[18px] text-muted">
-          Build {buildNo(build.id)}
+          Build {buildNo(build.number)}
           {shown.status === "sold" &&
             shown.sold_at &&
             ` · sold ${formatDate(shown.sold_at)}`}
