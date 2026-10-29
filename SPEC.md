@@ -50,6 +50,7 @@ sharing a build with another user, turning a demo account into a real one, and s
 | Frontend | React 19 + TypeScript, Vite, Tailwind CSS v4, React Router v8 |
 | Backend tests | Django test runner (`manage.py test`) |
 | Frontend tests | Vitest + React Testing Library |
+| End-to-end tests | Playwright (Chromium), desktop and 375px, a required CI check |
 | Lint/format | Ruff (Python), ESLint + Prettier (TS) |
 | Deploy | Vercel (frontend), Render (backend) |
 
@@ -153,7 +154,7 @@ Passwords go through Django's password validators. Sign-up, log-in and demo crea
 rate limit per IP.
 
 **Demo accounts** work for 24 hours from when they were made, then their token returns 401 like
-an expired one. Render's free tier has no scheduled jobs, so cleanup is lazy: creating a demo
+an expired one. Render's cron jobs aren't free (at least $1 a month), so cleanup is lazy: creating a demo
 first deletes demo accounts older than 24 hours (and their builds, by cascade).
 
 Every user sees and changes only their own data: builds are filtered by `owner`, and parts
@@ -230,6 +231,8 @@ npm run dev                         # http://localhost:5173, proxies /api → :8
 npm test                            # vitest run
 npm run lint                        # eslint
 npm run build                       # production build into dist/
+npx playwright install chromium     # one-time; the browser for e2e
+npm run e2e                         # starts Django + Vite (or reuses them), runs e2e/
 ```
 
 ## Project Structure
@@ -240,15 +243,17 @@ pc-flipper-toolkit/
 │   ├── manage.py
 │   ├── requirements.txt
 │   ├── config/            Django project: settings.py, urls.py
-│   └── builds/            The one Django app: models, serializers, views, tests.py
+│   └── builds/            The one Django app: models, serializers, views, tests.py;
+│                          auth.py (accounts), authentication.py (token checks), demo.py (sample builds)
 ├── frontend/
 │   ├── vite.config.ts     Includes the /api dev proxy
+│   ├── e2e/               Playwright: the main flow, and trying the demo
 │   └── src/
 │       ├── api.ts         fetch helpers and TS types matching the API
 │       ├── money.ts       ₱ formatting
-│       ├── pages/         BuildsList.tsx, BuildDetail.tsx
+│       ├── pages/         BuildsList.tsx, BuildDetail.tsx, Login.tsx
 │       └── components/    PartsTable.tsx, ExtraCosts.tsx, Summary.tsx, ...
-├── docs/intent/           Confirmed statement of intent
+├── docs/intent/           Confirmed statements of intent (the app, e2e tests, demo account)
 ├── SPEC.md
 └── README.md              Screenshot, live links, how to run
 ```
@@ -282,6 +287,10 @@ class Build(models.Model):
   - Accounts: sign up, log in, log out; and isolation: one user can't list, read, edit or delete another user's builds, parts or extra costs, or add a part to their build.
   - Every value in `totals`, including edge cases: no parts, no selling price, selling price of 0, a negative profit (a loss), and decimal rounding.
   - API: create, read, update and delete for builds, parts and extra costs; rejects negative prices; deleting a build also deletes its parts and extra costs.
+- **Demo accounts:** the sample builds' totals match hand-calculated values (so a later feature
+  can't quietly break them); a demo user older than 24 hours gets 401 and is deleted by the
+  next demo request; a real user named `demo-…` with a password is never deleted; sign-up
+  refuses `demo-`; demo creation counts toward the shared rate limit.
 - **Frontend:** a small set of Vitest tests: `₱` formatting, and the Summary component rendering the totals it's given (including `null` → "—").
 - **Manual check per task:** run both servers and click through the flow on desktop and at phone width.
 - No coverage % target. The profit calculation must be fully tested.
@@ -303,9 +312,9 @@ class Build(models.Model):
 7. A bundle (3 parts, one price, one part's bought-for typed in) on the live site fills those
    three checklist slots, counts its price once in the totals (matching a hand calculation),
    shows the unassigned amount, and is usable at 375px.
-8. On the live site, "Try the demo" shows both sample builds within one click, two demo
-   sessions never see each other's changes, and a demo account older than 24 hours is refused
-   and then deleted.
+8. On the live site, "Try the demo" shows both sample builds within one click (after Render
+   wakes up), and two demo sessions in separate browsers never see each other's changes. The
+   24-hour expiry and cleanup are proven by backend tests, not on the live site.
 
 ## Open Questions
 
