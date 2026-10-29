@@ -20,6 +20,7 @@ const SEARCH: PriceSearch = {
     {
       shop: "PC Express",
       title: "MSI GeForce RTX 3060 VENTUS 2X OC 12GB",
+      short_title: "MSI RTX 3060 VENTUS 2X OC 12GB",
       url: "https://pcx.com.ph/products/msi-rtx-3060",
       price: "26000.00",
       in_stock: true,
@@ -27,6 +28,7 @@ const SEARCH: PriceSearch = {
     {
       shop: "EasyPC",
       title: "MSI RTX 3060 Ti Ventus 2X OC 8GB",
+      short_title: "MSI RTX 3060 Ti Ventus 2X OC 8GB",
       url: "https://easypc.com.ph/products/msi-rtx-3060ti",
       price: "23390.00",
       in_stock: false,

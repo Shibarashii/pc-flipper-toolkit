@@ -276,6 +276,144 @@ class UnmangleTests(TestCase):
         self.assertEqual(ShopProduct.objects.get().title, "RTX™ 3060")
 
 
+class ShortenTests(TestCase):
+    def assertShortens(self, cases):
+        for title, short in cases:
+            with self.subTest(title=title):
+                self.assertEqual(prices.shorten(title), short)
+
+    def test_the_spec_examples(self):
+        self.assertShortens(
+            [
+                (
+                    (
+                        "Palit NVIDIA® GeForce RTX™ 3060 Dual NE63060019K9-190AD-V1 12gb "
+                        "192bit GDdr6 Gaming Videocard LHR"
+                    ),
+                    "Palit RTX 3060 Dual 12gb",
+                ),
+                (
+                    (
+                        "Asus TUF Nvidia Geforce RTX 4080 Super TUF-RTX4080S-O16G-GAMING "
+                        "16GB 256bit GDDR6 Videocard"
+                    ),
+                    "Asus TUF RTX 4080 Super 16GB",
+                ),
+                (
+                    (
+                        "Kingston Fury Beast KF552C40BBK2-32 32GB 2x16 5200MT/s DDR5 "
+                        "Memory Black XMP"
+                    ),
+                    "Kingston Fury Beast 32GB 2x16 5200MT",
+                ),
+                (
+                    "Gigabyte B550M-K Socket Am4 Ddr4 Motherboard",
+                    "Gigabyte B550M-K Am4 Ddr4",
+                ),
+                (
+                    "Coolermaster MWE550 V2 Power Supply 550watts",
+                    "Coolermaster MWE550 V2 550watts",
+                ),
+                (
+                    "MSI GeForce RTX™ 3060 VENTUS 2X OC 12GB GDDR6 192-bit Graphics Card",
+                    "MSI RTX 3060 VENTUS 2X OC 12GB",
+                ),
+                # Known weak spot: marketing words the rules don't list survive.
+                (
+                    (
+                        "Asus Prime H610M-D D4 Socket LGA 1700 Comprehensive cooling, "
+                        "Ultrafast connectivity 5X Protection III Ddr4 Motherboard"
+                    ),
+                    "Asus Prime H610M-D D4 LGA 1700 Comprehensive cooling",
+                ),
+            ]
+        )
+
+    def test_cuts_at_the_first_separator(self):
+        self.assertShortens(
+            [
+                ("AMD Ryzen 5 5600 / B550M / 16GB DDR4", "AMD Ryzen 5 5600"),
+                (
+                    "Lenovo Ideapad Slim 3 Ryzen 5-5500U/8GB/256GB",
+                    "Lenovo Ideapad Slim 3 Ryzen 5-5500U",
+                ),
+                (
+                    "Acer Aspire 7 Ryzen 5 5500U | 8GB | 512GB",
+                    "Acer Aspire 7 Ryzen 5 5500U",
+                ),
+                (
+                    "Asus B250 Mining Expert with 19 PCIe slots",
+                    "Asus B250 Mining Expert",
+                ),
+                (
+                    "Intel Core i3-10100 Processor + MSI H510-A Pro",
+                    "Intel Core i3-10100",
+                ),
+                (
+                    "AGI AI198 256GB NVMe M.2 SSD - Ultra-Fast Storage",
+                    "AGI AI198 256GB NVMe M.2 SSD",
+                ),
+            ]
+        )
+
+    def test_drops_noise(self):
+        self.assertShortens(
+            [
+                (
+                    "LOGITECH G515 Wired Keyboard (Black)",
+                    "LOGITECH G515 Wired Keyboard",
+                ),
+                (
+                    "Galax RTX 4060 1-Click OC 36NSL7MD1VOC Videocard",
+                    "Galax RTX 4060 1-Click OC",
+                ),
+                ("Asus GT730 GT730-SL-2GD5-BRK 2GB", "Asus GT730 2GB"),
+                ("Apacer NOX AH4U16G32C28YNWAA-2 16gb", "Apacer NOX 16gb"),
+                ("Sapphire RX 7600 128 bit GDDR6X 8GB", "Sapphire RX 7600 8GB"),
+                (
+                    "Intel Core i9-12900KS Alder Lake 3.20GHz Processor",
+                    "Intel Core i9-12900KS Alder Lake",
+                ),
+                ("AMD Radeon RX 6600 Gaming Graphics Card", "AMD RX 6600"),
+                ("Ryzen 5 5600 Desktop CPU", "Ryzen 5 5600"),
+                (
+                    "Lexar NM620 512gb M.2 NVME Solid State Drive",
+                    "Lexar NM620 512gb M.2 NVME SSD",
+                ),
+            ]
+        )
+
+    def test_keeps_model_names_with_one_hyphen(self):
+        self.assertShortens(
+            [("ASUS PRIME B760M-PLUS WIFI", "ASUS PRIME B760M-PLUS WIFI")]
+        )
+
+    def test_keeps_at_most_ten_words(self):
+        self.assertShortens(
+            [
+                (
+                    (
+                        "MSI GeForce RTX™ 5060 Ti VENTUS 2X OC PLUS 8GB GDDR7 128-bit "
+                        "Graphics Card"
+                    ),
+                    "MSI RTX 5060 Ti VENTUS 2X OC PLUS 8GB",
+                ),
+                (
+                    (
+                        "Montech Gamma II 750watts 80+ Gold Certified Fully Modular 120MM "
+                        "fan Flat & Flexible Cables"
+                    ),
+                    "Montech Gamma II 750watts 80+ Gold Certified Fully Modular 120MM",
+                ),
+            ]
+        )
+
+    def test_falls_back_to_the_full_title_when_nothing_is_left(self):
+        self.assertShortens(
+            [("Gaming Videocard", "Gaming Videocard"), ("(Bundle)", "(Bundle)")]
+        )
+
+
 class PriceSearchTests(LoggedInApiTestCase):
     def shop_product(self, title, price="1000.00", in_stock=True, **fields):
         return ShopProduct.objects.create(
@@ -333,11 +471,19 @@ class PriceSearchTests(LoggedInApiTestCase):
             {
                 "shop": "EasyPC",
                 "title": "SSD 00",
+                "short_title": "SSD 00",
                 "url": f"{EASYPC}/products/SSD 00",
                 "price": "2600.50",
                 "in_stock": True,
             },
         )
+
+    def test_each_result_has_a_short_title(self):
+        self.shop_product("Palit NVIDIA® GeForce RTX™ 3060 Dual 12gb Gaming Videocard")
+
+        [result] = self.search("3060").json()["results"]
+
+        self.assertEqual(result["short_title"], "Palit RTX 3060 Dual 12gb")
 
     def test_updated_at_is_the_oldest_shops_refresh(self):
         self.assertEqual(self.search("ssd").json(), {"results": [], "updated_at": None})

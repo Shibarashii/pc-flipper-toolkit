@@ -251,7 +251,8 @@ Shop titles are long ("MSI GeForce RTX™ 3060 VENTUS 2X OC 12GB GDDR6 192-bit G
    letters (`KF552C40BBK2-32`); GDDR types; bus widths (`192bit`); "LHR"; GHz speeds;
    "Gaming", "Graphics Card", "Videocard", "Socket", "Processor", "Motherboard", "Memory",
    "Desktop", "CPU", "Power Supply". "Solid State Drive" becomes "SSD".
-4. Collapse spaces and keep at most 7 words.
+4. Collapse spaces and keep at most 10 words. (7 cut 36% of titles and lost details like
+   a card's "8GB"; 10 cuts 8%, and the average short name is 6.7 words.)
 
 Tried on the local copy of all 10,085 titles (2026-10-29). Graphics cards, RAM and power
 supplies come out clean; motherboards are about 5 in 8, since their titles carry marketing
@@ -264,7 +265,7 @@ text. Examples:
 | Kingston Fury Beast KF552C40BBK2-32 32GB 2x16 5200MT/s DDR5 Memory Black XMP | Kingston Fury Beast 32GB 2x16 5200MT |
 | Gigabyte B550M-K Socket Am4 Ddr4 Motherboard | Gigabyte B550M-K Am4 Ddr4 |
 | Coolermaster MWE550 V2 Power Supply 550watts | Coolermaster MWE550 V2 550watts |
-| Asus Prime H610M-D D4 Socket LGA 1700 Comprehensive cooling, Ultrafast … Motherboard | Asus Prime H610M-D D4 LGA 1700 Comprehensive (bad) |
+| Asus Prime H610M-D D4 Socket LGA 1700 Comprehensive cooling, Ultrafast … Motherboard | Asus Prime H610M-D D4 LGA 1700 Comprehensive cooling (bad) |
 
 The short name is what gets saved, since part names show in narrow table columns, phone
 cards and the checklist. A bad short name costs a few keystrokes: the user sees it, with the

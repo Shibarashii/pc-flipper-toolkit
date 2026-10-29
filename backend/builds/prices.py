@@ -57,6 +57,43 @@ def unmangle(title: str) -> str:
     )
 
 
+# shorten()'s rules (docs/specs/price-lookup.md, part 2). A bad short name costs the user a
+# few keystrokes, so fix one by adding a test case and a rule here.
+_SEPARATORS = re.compile(
+    r" / |/| \| |, | - | with | \+ "
+)  # spec lists, marketing, combos
+_NOISE = [
+    re.compile(pattern, re.IGNORECASE)
+    for pattern in [
+        r"\([^)]*\)",  # SKUs and colours in brackets
+        r"\b(?:NVIDIA|GeForce|Radeon)\b",
+        r"\b[A-Z0-9]+(?:-[A-Z0-9]+){2,}\b",  # part codes: GV-N3060EAGLE-12GD
+        # SKUs: 12+ characters with 3+ digits and 3+ letters, e.g. KF552C40BBK2-32
+        r"\b(?=(?:[A-Z-]*\d){3})(?=(?:[0-9-]*[A-Z]){3})[A-Z0-9-]{12,}\b",
+        r"\bGDDR\d+X?\b",
+        r"\b\d{2,4}[- ]?bit\b",
+        r"\b\d+(?:\.\d+)?\s?GHz\b",
+        r"\bLHR\b",
+        r"\b(?:Gaming\s+)?(?:Graphics\s+Card|Video\s*card)\b",
+        r"\b(?:Gaming|Socket|Processor|Motherboard|Memory|Desktop|CPU|Power Supply)\b",
+    ]
+]
+SHORT_WORDS = 10  # 7 cut 36% of titles, losing details like a card's 8GB
+
+
+def shorten(title: str) -> str:
+    """A short part name from a shop's product title, e.g. "Palit RTX 3060 Dual 12gb".
+
+    Falls back to the title if nothing is left.
+    """
+    name = re.sub(r"[™®©]", "", title)
+    name = re.sub(r"\bSolid State Drive\b", "SSD", name, flags=re.IGNORECASE)
+    name = _SEPARATORS.split(name, maxsplit=1)[0]
+    for noise in _NOISE:
+        name = noise.sub(" ", name)
+    return " ".join(name.split()[:SHORT_WORDS]) or title
+
+
 def fetch_page(base: str, page: int) -> list[dict]:
     req = Request(
         f"{base}/products.json?limit={PAGE_SIZE}&page={page}",

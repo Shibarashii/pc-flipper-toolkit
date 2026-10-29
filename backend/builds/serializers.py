@@ -2,6 +2,7 @@ from django.db import models
 from rest_framework import serializers
 
 from .models import Build, Bundle, ExtraCost, Part, ShopProduct
+from .prices import shorten
 
 
 def money(help_text: str, source: str | None = None, nullable: bool = False):
@@ -275,16 +276,23 @@ class PriceQuerySerializer(serializers.Serializer):
 
 class ShopProductSerializer(serializers.ModelSerializer):
     price = money("The shop's price (its cheapest variant).")
+    short_title = serializers.SerializerMethodField(
+        help_text='A short part name from the title, e.g. "Palit RTX 3060 Dual 12gb". '
+        "Fills a part's `name`."
+    )
 
     class Meta:
         model = ShopProduct
-        fields = ["shop", "title", "url", "price", "in_stock"]
+        fields = ["shop", "title", "short_title", "url", "price", "in_stock"]
         extra_kwargs = {
             "shop": {"help_text": 'e.g. "EasyPC". Fills a part\'s `shop`.'},
             "title": {"help_text": "The product's name at the shop."},
             "url": {"help_text": "The product's page at the shop."},
             "in_stock": {"help_text": "Whether the shop lists it as available."},
         }
+
+    def get_short_title(self, product) -> str:
+        return shorten(product.title)
 
 
 class PriceSearchSerializer(serializers.Serializer):
