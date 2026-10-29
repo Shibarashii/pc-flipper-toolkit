@@ -878,3 +878,106 @@ class AdminTests(TestCase):
 
     def test_admin_requires_login(self):
         self.assertEqual(self.client.get("/admin/builds/build/").status_code, 302)
+
+
+class DemoTests(APITestCase):
+    def setUp(self):
+        cache.clear()  # demo creation shares the auth rate limit
+
+    def demo(self):
+        """POST /api/auth/demo/ and use its token from then on."""
+        res = self.client.post("/api/auth/demo/")
+        self.assertEqual(res.status_code, 201)
+        self.client.credentials(HTTP_AUTHORIZATION=f"Token {res.json()['token']}")
+        return res.json()["username"]
+
+    def test_a_demo_has_a_sold_flip_and_one_in_progress(self):
+        self.assertTrue(self.demo().startswith("demo-"))
+
+        sold, building = self.client.get("/api/builds/").json()
+        self.assertEqual(sold["status"], "sold")
+        # Hand-calculated: parts 9,500 bundle + 11,000 + 2,600 + 2,400 + 1,800 = 27,300;
+        # extras 350 + 150; profit 32,000 − 27,800.
+        self.assertEqual(
+            {
+                k: sold["totals"][k]
+                for k in ["listed_total", "parts_cost", "total_cost"]
+            },
+            {
+                "listed_total": "35900.00",
+                "parts_cost": "27300.00",
+                "total_cost": "27800.00",
+            },
+        )
+        self.assertEqual(sold["totals"]["profit"], "4200.00")
+        self.assertEqual(sold["totals"]["profit_margin"], "13.13")
+        detail = self.client.get(f"/api/builds/{sold['id']}/").json()
+        self.assertEqual(len(detail["bundles"]), 1)
+        self.assertEqual(len(detail["extra_costs"]), 2)
+        self.assertEqual(
+            {p["category"] for p in detail["parts"]},
+            {"cpu", "motherboard", "ram", "gpu", "storage", "psu", "case"},
+        )
+
+        self.assertEqual(building["status"], "building")
+        self.assertIsNone(building["totals"]["profit"])
+        self.assertEqual(building["totals"]["listed_total"], "24000.00")
+
+    def test_demos_are_separate_and_editable(self):
+        self.demo()
+        first = self.client.get("/api/builds/").json()
+        self.demo()
+        second = self.client.get("/api/builds/").json()
+
+        self.assertTrue({b["id"] for b in first}.isdisjoint(b["id"] for b in second))
+        self.assertEqual(
+            self.client.get(f"/api/builds/{first[0]['id']}/").status_code, 404
+        )
+        url = f"/api/builds/{second[0]['id']}/"
+        self.assertEqual(
+            self.client.patch(url, {"name": "Mine"}, format="json").status_code, 200
+        )
+        self.assertEqual(self.client.delete(url).status_code, 204)
+
+    def test_a_demo_expires_after_24_hours_and_is_cleaned_up(self):
+        username = self.demo()
+        demo = User.objects.get(username=username)
+        # A real account that happens to look like a demo: it has a password.
+        User.objects.create_user("demo-real", password="a long passphrase")
+        User.objects.filter(username__in=[username, "demo-real"]).update(
+            date_joined=timezone.now() - timedelta(hours=25)
+        )
+
+        self.assertEqual(self.client.get("/api/auth/me/").status_code, 401)
+        self.assertTrue(Build.objects.filter(owner=demo).exists())  # not yet deleted
+
+        self.client.credentials()
+        self.demo()
+        self.assertFalse(User.objects.filter(username=username).exists())
+        self.assertFalse(Build.objects.filter(owner=demo).exists())
+        self.assertTrue(User.objects.filter(username="demo-real").exists())
+
+    def test_a_demo_under_24_hours_old_still_works(self):
+        username = self.demo()
+        User.objects.filter(username=username).update(
+            date_joined=timezone.now() - timedelta(hours=23)
+        )
+        self.assertEqual(self.client.get("/api/auth/me/").status_code, 200)
+
+    def test_sign_up_refuses_the_demo_prefix(self):
+        res = self.client.post(
+            "/api/auth/signup/",
+            {"username": "Demo-carol", "password": "a long passphrase"},
+            format="json",
+        )
+        self.assertEqual(res.status_code, 400)
+        self.assertEqual(
+            res.json(), {"username": ['Usernames can\'t start with "demo-".']}
+        )
+
+    def test_demo_shares_the_auth_rate_limit(self):
+        wrong = {"username": "carol", "password": "nope"}
+        for _ in range(9):
+            self.client.post("/api/auth/login/", wrong, format="json")
+        self.assertEqual(self.client.post("/api/auth/demo/").status_code, 201)
+        self.assertEqual(self.client.post("/api/auth/demo/").status_code, 429)
