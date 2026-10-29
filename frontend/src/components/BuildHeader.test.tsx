@@ -64,7 +64,7 @@ test("switching away from Sold clears the date", async () => {
     makeBuild({ status: "sold", sold_at: "2026-10-18" }),
     Response.json(makeBuild({ status: "listed" })),
   );
-  expect(screen.getByText("Build 03 · sold Oct 18, 2026")).toBeTruthy();
+  expect(screen.getByText("Build 02 · sold Oct 18, 2026")).toBeTruthy();
 
   fireEvent.change(screen.getByLabelText("Status"), {
     target: { value: "listed" },

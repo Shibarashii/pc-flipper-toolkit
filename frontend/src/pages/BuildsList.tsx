@@ -102,7 +102,7 @@ export function BuildsList() {
                   className={`relative border-b border-line hover:bg-sunken ${edgeCells}`}
                 >
                   <td className="py-3.5 text-[13px] text-faint">
-                    {buildNo(b.id)}
+                    {buildNo(b.number)}
                   </td>
                   <td className="py-3.5 font-medium">
                     <Link

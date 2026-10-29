@@ -203,7 +203,9 @@ States each screen must handle:
 - **Log in / sign up:** wrong username or password, username taken, password rejected by the validators (their messages, under the field), and too many attempts (429).
 
 Visual design (colors, type, components, light/dark) follows [docs/brand-guidelines.md](docs/brand-guidelines.md).
-Builds are labeled `Build 01` (id zero-padded to 2 digits) in the UI.
+Builds are labeled `Build 01` in the UI: the build's `number` (1, 2, 3… among the user's own
+builds, oldest first, zero-padded to 2 digits), never the database id, which counts every
+user's builds. It's a count, so deleting a build renumbers the later ones.
 
 Money is shown as `₱12,500.00` using `Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' })`.
 

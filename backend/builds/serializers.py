@@ -208,11 +208,16 @@ NOTES_MAX = 10_000
 
 class BuildSerializer(ModelSerializer):
     totals = TotalsSerializer(source="*", read_only=True)
+    number = serializers.SerializerMethodField(
+        help_text="1 for the user's oldest build, then 2, 3… Deleting one renumbers "
+        "the later ones. Use it in the UI rather than `id`, which counts every user's."
+    )
 
     class Meta:
         model = Build
         fields = [
             "id",
+            "number",
             "name",
             "status",
             "selling_price",
@@ -231,6 +236,12 @@ class BuildSerializer(ModelSerializer):
             # A cap on what one request can store; the column itself stays unbounded.
             "notes": {"max_length": NOTES_MAX},
         }
+
+    def get_number(self, build) -> int:
+        # The view annotates it; a build just created hasn't been through that query.
+        if hasattr(build, "number"):
+            return build.number
+        return Build.objects.filter(owner_id=build.owner_id, id__lte=build.id).count()
 
     def validate(self, attrs):
         # Only when one of them changes, so older data never blocks an unrelated edit.
