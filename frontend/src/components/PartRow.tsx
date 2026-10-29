@@ -1,4 +1,4 @@
-import { useRef, useState, type SubmitEvent } from "react";
+import { useId, useRef, useState, type SubmitEvent } from "react";
 import {
   CATEGORIES,
   createPart,
@@ -6,10 +6,12 @@ import {
   updatePart,
   type Part,
   type PartCategory,
+  type ShopProduct,
 } from "../api";
 import { formatMoney } from "../money";
-import { buttonPrimary, buttonSecondary, input } from "../ui";
+import { buttonPrimary, buttonSecondary, input, link } from "../ui";
 import { cleanMoney, Field, RowActions, Select, useSave } from "./form";
+import { PriceLookup } from "./PriceLookup";
 
 const EMPTY = {
   name: "",
@@ -81,12 +83,33 @@ export function PartForm({
   );
   const { errors, failed, saving, save } = useSave(EMPTY);
   const nameRef = useRef<HTMLInputElement>(null);
+  const priceRef = useRef<HTMLInputElement>(null);
+  const findRef = useRef<HTMLButtonElement>(null);
+  // The part's name when "Find prices" opened the lookup; null while it's closed.
+  const [lookup, setLookup] = useState<string | null>(null);
+  const lookupId = useId();
   const full = part !== undefined || bundle !== undefined;
   const layout = full ? EDIT_LAYOUT : ADD_LAYOUT;
   const title = part ? "Edit part" : "New part";
 
   const set = (field: keyof typeof EMPTY) => (value: string) =>
     setForm((f) => ({ ...f, [field]: value }));
+
+  function closeLookup() {
+    setLookup(null);
+    findRef.current?.focus();
+  }
+
+  /** Fills the price and shop from a shop's product; nothing is saved until Save. */
+  function pick(product: ShopProduct) {
+    setForm((f) => ({
+      ...f,
+      listed_price: formatMoney(product.price),
+      shop: product.shop,
+    }));
+    setLookup(null);
+    priceRef.current?.focus();
+  }
 
   function submit(e: SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -106,6 +129,7 @@ export function PartForm({
         await createPart({ build: buildId, ...fields });
         // Stay open for the next part: people usually enter a whole build at once.
         setForm({ ...EMPTY, bundle: form.bundle });
+        setLookup(null);
         nameRef.current?.focus();
       }
       onSaved();
@@ -211,6 +235,7 @@ export function PartForm({
               className={`flex-1 sm:flex-none ${layout.price}`}
             >
               <input
+                ref={priceRef}
                 inputMode="decimal"
                 value={form.listed_price}
                 onChange={(e) => set("listed_price")(e.target.value)}
@@ -252,6 +277,30 @@ export function PartForm({
             </button>
           </div>
         </div>
+      </div>
+      <div className="mt-2">
+        <button
+          ref={findRef}
+          type="button"
+          aria-expanded={lookup !== null}
+          aria-controls={lookup !== null ? lookupId : undefined}
+          onClick={() =>
+            lookup === null ? setLookup(form.name) : closeLookup()
+          }
+          className={link}
+        >
+          Find prices
+        </button>
+        {lookup !== null && (
+          <div className="mt-2">
+            <PriceLookup
+              id={lookupId}
+              initialQuery={lookup}
+              onPick={pick}
+              onClose={closeLookup}
+            />
+          </div>
+        )}
       </div>
       {failed && (
         <p role="alert" className="mt-2 text-[13px] leading-[18px] text-loss">

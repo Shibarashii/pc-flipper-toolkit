@@ -110,7 +110,7 @@ so their order is flexible.
 ### Phase 9: Price lookup ([docs/specs/price-lookup.md](../docs/specs/price-lookup.md))
 - [x] T26: Shop catalogue copy (`ShopProduct`, `refresh_shop_prices`)
 - [x] T27: Search API (`GET /api/prices/`)
-- [ ] T28: "Find prices" in the part form
+- [x] T28: "Find prices" in the part form
 - [ ] T29: Daily refresh on GitHub Actions
 
 ```
