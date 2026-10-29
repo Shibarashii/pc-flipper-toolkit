@@ -43,7 +43,7 @@ export function PriceLookup({
   // Only the newest search may show its results; an older, slower one is dropped.
   const latest = useRef(0);
 
-  const run = useCallback((q: string) => {
+  const fetchResults = useCallback((q: string) => {
     const mine = ++latest.current;
     findPrices(q).then(
       (search) =>
@@ -54,8 +54,8 @@ export function PriceLookup({
 
   // initialQuery is the name when the panel opened, so this runs once.
   useEffect(() => {
-    if (searchesFirst) run(initialQuery.trim());
-  }, [searchesFirst, initialQuery, run]);
+    if (searchesFirst) fetchResults(initialQuery.trim());
+  }, [searchesFirst, initialQuery, fetchResults]);
 
   function search(q: string) {
     if (q.trim().length < 2) {
@@ -63,7 +63,7 @@ export function PriceLookup({
       return;
     }
     setState({ status: "loading" });
-    run(q.trim());
+    fetchResults(q.trim());
   }
 
   function keys(e: KeyboardEvent) {
@@ -108,7 +108,23 @@ export function PriceLookup({
   );
 }
 
-const note = "mt-3 text-[13px] leading-[18px] text-muted";
+/** The one line that says what's happening. It's always in the page (empty when there's
+ * nothing to say), so screen readers announce each change. */
+function statusText(state: State): string {
+  switch (state.status) {
+    case "idle":
+    case "failed": // said by the alert instead
+      return "";
+    case "short":
+      return "Type at least 2 characters.";
+    case "loading":
+      return "Searching…";
+  }
+  const { results, updated_at } = state.search;
+  if (updated_at === null) return "Prices aren’t loaded yet.";
+  if (results.length === 0) return "No matches at EasyPC or PC Express.";
+  return `Prices from ${formatDay(updated_at)}. Choose one to fill in the price and shop.`;
+}
 
 function Results({
   state,
@@ -117,35 +133,20 @@ function Results({
   state: State;
   onPick: (product: ShopProduct) => void;
 }) {
-  switch (state.status) {
-    case "idle":
-      return null;
-    case "short":
-      return <p className={note}>Type at least 2 characters.</p>;
-    case "loading":
-      return (
-        <p role="status" className={note}>
-          Searching…
-        </p>
-      );
-    case "failed":
-      return (
+  const results =
+    state.status === "done" && state.search.updated_at !== null
+      ? state.search.results
+      : [];
+  return (
+    <>
+      <p role="status" className="mt-3 text-[13px] leading-[18px] text-muted">
+        {statusText(state)}
+      </p>
+      {state.status === "failed" && (
         <p role="alert" className="mt-3 text-[13px] leading-[18px] text-loss">
           Couldn’t load prices. Type the price instead.
         </p>
-      );
-  }
-  const { results, updated_at } = state.search;
-  if (updated_at === null) {
-    return <p className={note}>Prices aren’t loaded yet.</p>;
-  }
-  return (
-    <>
-      <p role="status" className={note}>
-        {results.length === 0
-          ? "No matches at EasyPC or PC Express."
-          : `Prices from ${formatDay(updated_at)}. Choose one to fill in the price and shop.`}
-      </p>
+      )}
       {results.length > 0 && (
         <ul className="mt-2 divide-y divide-line border-y border-line">
           {results.map((product) => (
@@ -153,7 +154,9 @@ function Results({
               <button
                 type="button"
                 onClick={() => onPick(product)}
-                className="min-w-0 flex-1 rounded text-left hover:bg-sunken focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                // Padded out and pulled back, so the hover fill has room and the text
+                // still lines up with the search box.
+                className="-mx-1.5 min-w-0 flex-1 rounded px-1.5 text-left hover:bg-sunken focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
               >
                 <span className="block text-[14px] leading-5 text-ink">
                   {product.title}
