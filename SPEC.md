@@ -168,7 +168,8 @@ another user's build (400). A part, bundle or cost can't be moved to another bui
    - The header shows the username and "Log out" when logged in.
    - Both pages have a **"Try the demo"** button that creates a demo account and goes to the
      builds list. A demo account sees a banner under the header: it's a demo, deleted after 24
-     hours, with a "Sign up" button that ends the demo and opens sign-up.
+     hours, ending in a "Sign up for your own account" link that ends the demo and opens sign-up
+     (a link, so it doesn't stack under the header's "Log out").
    - **Sample builds:** a sold flip (every required slot filled, a bundle, two extra costs, a
      profit) and an in-progress build (some required slots empty, no selling price yet).
 1. **Builds list** (`/`): one card or row per build showing name, status badge, total cost, selling price and profit (green if positive, red if negative). Has a "New build" button.
