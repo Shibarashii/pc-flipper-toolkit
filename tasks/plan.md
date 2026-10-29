@@ -102,7 +102,7 @@ so their order is flexible.
 - [x] T23: End-to-end test of the main flow in CI (Playwright)
 
 ### Phase 8: Demo account
-- [ ] T24: Demo accounts in the API (endpoint, sample builds, 24-hour expiry, lazy cleanup)
+- [x] T24: Demo accounts in the API (endpoint, sample builds, 24-hour expiry, lazy cleanup)
 - [ ] T25: "Try the demo" and the demo banner in the UI
 
 **Checkpoint 6:** SPEC success criterion 8 passes on the live site.

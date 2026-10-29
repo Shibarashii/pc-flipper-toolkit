@@ -512,7 +512,7 @@ Django and Vite on a throwaway Postgres, as a third required CI check.
 
 ## Phase 8: Demo account
 
-### - [ ] T24: Demo accounts in the API
+### - [x] T24: Demo accounts in the API
 
 **Description:** `POST /api/auth/demo/` makes a user named `demo-<random>` with no usable
 password, fills it with the two sample builds, and returns `{token, username}` (201). It shares
@@ -521,16 +521,16 @@ refuses a demo user older than 24 hours (401), whatever the token's age. Sign-up
 usernames starting with `demo-`. Documented in the API docs and SPEC.
 
 **Acceptance criteria:**
-- [ ] A demo request returns a working token; the account has a sold build (all six required
+- [x] A demo request returns a working token; the account has a sold build (all six required
       slots, a bundle, two extra costs, a profit) and an in-progress build (required slots
       missing, no selling price).
-- [ ] Two demo accounts never see each other's builds; a demo account can edit and delete its own.
-- [ ] A demo user older than 24 hours gets 401, and is deleted (with its builds) by the next
+- [x] Two demo accounts never see each other's builds; a demo account can edit and delete its own.
+- [x] A demo user older than 24 hours gets 401, and is deleted (with its builds) by the next
       demo request; a real user named like `demo-…` with a password is never deleted.
 
 **Verification:**
-- [ ] Tests: sample totals match hand-calculated values; expiry; cleanup; sign-up refuses `demo-`; rate limit shared
-- [ ] `spectacular --validate --fail-on-warn` passes
+- [x] Tests: sample totals match hand-calculated values; expiry; cleanup; sign-up refuses `demo-`; rate limit shared
+- [x] `spectacular --validate --fail-on-warn` passes
 
 **Dependencies:** None
 **Files:** `backend/builds/auth.py`, `backend/builds/authentication.py`, a new `backend/builds/demo.py` (sample data), `backend/config/urls.py`, tests
