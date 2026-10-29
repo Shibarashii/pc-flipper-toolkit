@@ -85,6 +85,8 @@ export type NewPart = Omit<Part, "id" | "bundle"> & { bundle?: number | null };
 export type ShopProduct = {
   shop: string;
   title: string;
+  /** A short part name from the title, e.g. "Palit RTX 3060 Dual 12gb". */
+  short_title: string;
   url: string;
   price: string;
   in_stock: boolean;

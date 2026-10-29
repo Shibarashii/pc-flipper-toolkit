@@ -123,7 +123,7 @@ Render's build runs `migrate`, so merging T26 creates the table on Neon before T
 **Checkpoint 7:** price lookup spec success criteria 1–6 pass on the live site. All but criterion 5 ("runs green daily") pass as of 2026-10-29; it waits on the first scheduled run (18:00 UTC).
 
 ### Phase 10: Part search pop-up ([docs/specs/price-lookup.md, part 2](../docs/specs/price-lookup.md#part-2-part-search-pop-up))
-- [ ] T30: Short names in the search API (`shorten()`, `short_title`)
+- [x] T30: Short names in the search API (`shorten()`, `short_title`)
 - [ ] T31: The Part box's search pop-up
 
 ```

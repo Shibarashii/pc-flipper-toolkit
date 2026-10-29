@@ -656,29 +656,29 @@ the job, the secret, and re-enabling it after GitHub's 60-day pause.
 Spec: [docs/specs/price-lookup.md, part 2](../docs/specs/price-lookup.md#part-2-part-search-pop-up).
 No new dependencies, no migration.
 
-### - [ ] T30: Short names in the search API
+### - [x] T30: Short names in the search API
 
 **Description:** `shorten(title)` in `builds/prices.py` applies the spec's rules in order:
 
 1. Drop the symbols.
 2. Cut at the first separator.
 3. Drop the noise words and codes.
-4. Keep at most 7 words.
+4. Keep at most 10 words.
 
 `ShopProductSerializer` gains a read-only `short_title` from it, documented like the other
 fields. `api.ts`'s `ShopProduct` type gets `short_title`. Nothing is stored.
 
 **Acceptance criteria:**
-- [ ] The spec's example table passes, plus one case per rule (separator cut, brackets, 2+
+- [x] The spec's example table passes, plus one case per rule (separator cut, brackets, 2+
   hyphen codes, long SKUs, GDDR, bus width, GHz, filler words, "Solid State Drive" → "SSD",
-  the 7-word cap).
-- [ ] A title that would shorten to nothing falls back to the full title.
-- [ ] `/api/prices/` results include `short_title`; matching, order and the 20 cap are unchanged.
+  the 10-word cap).
+- [x] A title that would shorten to nothing falls back to the full title.
+- [x] `/api/prices/` results include `short_title`; matching, order and the 20 cap are unchanged.
 
 **Verification:**
-- [ ] Backend tests: the table above, the empty fallback, `short_title` in the response
-- [ ] `spectacular --validate --fail-on-warn` passes
-- [ ] Manual: run `shorten()` over the local copy and skim a sample of graphics cards, RAM,
+- [x] Backend tests: the table above, the empty fallback, `short_title` in the response
+- [x] `spectacular --validate --fail-on-warn` passes
+- [x] Manual: run `shorten()` over the local copy and skim a sample of graphics cards, RAM,
   power supplies and motherboards (no shop is fetched)
 
 **Dependencies:** None
