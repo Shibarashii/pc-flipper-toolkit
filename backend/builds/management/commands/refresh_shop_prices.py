@@ -33,7 +33,10 @@ class Command(BaseCommand):
                 count = refresh(name)
             except FAILURES as e:  # keep the old copy, try the next shop
                 failed.append(name)
-                self.stderr.write(f"{name}: failed, kept the previous copy ({e!r})")
+                # A database error can name the server and user, and Actions logs are
+                # public, so it's reported by type only.
+                why = type(e).__name__ if isinstance(e, DatabaseError) else repr(e)
+                self.stderr.write(f"{name}: failed, kept the previous copy ({why})")
             else:
                 self.stdout.write(f"{name}: {count} products")
         if failed:

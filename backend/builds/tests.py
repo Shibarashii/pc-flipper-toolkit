@@ -11,7 +11,7 @@ from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.management import CommandError, call_command
-from django.db import IntegrityError, transaction
+from django.db import DatabaseError, IntegrityError, transaction
 from django.test import TestCase, override_settings
 from django.utils import timezone
 from rest_framework.authtoken.models import Token
@@ -1181,22 +1181,61 @@ class RefreshShopPricesTests(TestCase):
             call_command("refresh_shop_prices", "--shop", "EasyPC", stderr=StringIO())
         self.assertEqual(list(ShopProduct.objects.all()), [old])
 
-    def test_bad_data_keeps_the_old_copy(self, sleep):
+    def test_an_odd_product_is_skipped_not_the_whole_shop(self, sleep):
+        odd = [
+            {"title": "No price", "handle": "a", "variants": [{"price": "?"}]},
+            product("nan", ("NaN", True)),
+            product("negative", ("-5.00", True)),
+            product("infinite", ("Infinity", True)),
+            product("too-big", ("100000000.00", True)),
+            {"title": "No handle", "variants": [{"price": "1.00", "available": True}]},
+            {"handle": "no-title", "variants": [{"price": "1.00", "available": True}]},
+            {"title": "No stock field", "handle": "b", "variants": [{"price": "1.00"}]},
+        ]
+        _, out, _ = self.refresh(
+            {EASYPC: [[*odd, product("fine", ("1999.00", True))]]}, "--shop", "EasyPC"
+        )
+        self.assertIn("EasyPC: 1 products", out)
+        self.assertEqual(ShopProduct.objects.get().title, "fine")
+
+    def test_only_odd_products_counts_as_no_products(self, sleep):
         old = self.old_copy()
-        broken = {"title": "No price", "handle": "x", "variants": [{"price": "?"}]}
+        odd = {"title": "No price", "handle": "x", "variants": [{"price": "?"}]}
         with (
-            mock.patch("builds.prices.urlopen", FakeShops({EASYPC: [[broken]]})),
+            mock.patch("builds.prices.urlopen", FakeShops({EASYPC: [[odd]]})),
             self.assertRaises(CommandError),
         ):
             call_command("refresh_shop_prices", "--shop", "EasyPC", stderr=StringIO())
         self.assertEqual(list(ShopProduct.objects.all()), [old])
 
-    def test_a_database_error_rolls_back_to_the_old_copy(self, sleep):
+    def test_a_database_error_rolls_back_and_is_reported_by_type_only(self, sleep):
         old = self.old_copy()
-        too_big = product("x", ("100000000.00", True))  # over decimal(10,2)
+        err = StringIO()
+        leak = DatabaseError('connection to server at "ep-x.neon.tech" failed')
         with (
-            mock.patch("builds.prices.urlopen", FakeShops({EASYPC: [[too_big]]})),
+            mock.patch(
+                "builds.prices.urlopen",
+                FakeShops({EASYPC: [[product("a", ("1.00", True))]]}),
+            ),
+            mock.patch.object(ShopProduct.objects, "bulk_create", side_effect=leak),
             self.assertRaises(CommandError),
         ):
+            call_command("refresh_shop_prices", "--shop", "EasyPC", stderr=err)
+
+        self.assertEqual(list(ShopProduct.objects.all()), [old])  # the delete undone
+        self.assertIn("kept the previous copy (DatabaseError)", err.getvalue())
+        self.assertNotIn("neon.tech", err.getvalue())
+
+    @mock.patch("builds.prices.MAX_PAGES", 3)
+    def test_a_shop_that_never_ends_fails_after_max_pages(self, sleep):
+        old = self.old_copy()
+        endless = FakeShops(
+            {EASYPC: [[product(f"p{n}", ("1.00", True))] for n in range(9)]}
+        )
+        with (
+            mock.patch("builds.prices.urlopen", endless),
+            self.assertRaisesMessage(CommandError, "Refresh failed for EasyPC"),
+        ):
             call_command("refresh_shop_prices", "--shop", "EasyPC", stderr=StringIO())
+        self.assertEqual(len(endless.requests), 3)
         self.assertEqual(list(ShopProduct.objects.all()), [old])

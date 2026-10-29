@@ -7,6 +7,7 @@ it reads the copy that `refresh` keeps in `ShopProduct`.
 
 import json
 import time
+from datetime import datetime
 from decimal import Decimal
 from itertools import count
 from urllib.request import Request, urlopen
@@ -27,6 +28,7 @@ PAGE_SIZE = 250  # Shopify's maximum
 DELAY = 1  # seconds between requests
 TIMEOUT = 30
 MAX_PAGES = 200  # EasyPC has 30; stops a shop that never returns an empty page
+MAX_PRICE = Decimal("99999999.99")  # what ShopProduct.price (decimal(10,2)) holds
 
 
 class RefreshError(Exception):
@@ -42,22 +44,29 @@ def fetch_page(base: str, page: int) -> list[dict]:
         return json.load(res)["products"]
 
 
-def parse(shop: str, base: str, product: dict, now) -> ShopProduct | None:
-    """The fields we keep, or None when there's no price to suggest.
+def parse(shop: str, base: str, product: dict, now: datetime) -> ShopProduct | None:
+    """The fields we keep, or None when there's no usable price to suggest.
 
-    That's a product with no variants, or one listed at ₱0 (on 2026-10-29, EasyPC had 48,
-    all discontinued and out of stock).
+    Skipped, so one odd product can't fail the whole shop: no variants, a missing field,
+    a price that isn't a number above ₱0 that fits the column (`NaN`, `-5`, `Infinity`),
+    and ₱0 itself (on 2026-10-29, EasyPC had 48 at ₱0, all discontinued).
     """
-    variants = product["variants"]
-    price = min((Decimal(v["price"]) for v in variants), default=Decimal(0))
-    if not price:
+    try:
+        variants = product["variants"]
+        price = min(Decimal(v["price"]) for v in variants)
+        in_stock = any(v["available"] for v in variants)
+        title, handle = product["title"], product["handle"]
+        usable = 0 < price <= MAX_PRICE and title and handle  # comparing NaN raises
+    except (KeyError, TypeError, ValueError, ArithmeticError):
+        return None
+    if not usable:
         return None
     return ShopProduct(
         shop=shop,
-        title=product["title"],
-        url=f"{base}/products/{product['handle']}",
+        title=title,
+        url=f"{base}/products/{handle}",
         price=price,
-        in_stock=any(v["available"] for v in variants),
+        in_stock=in_stock,
         updated_at=now,
     )
 
@@ -89,5 +98,5 @@ def refresh(shop: str) -> int:
         raise RefreshError("the shop returned no products")
     with transaction.atomic():
         ShopProduct.objects.filter(shop=shop).delete()
-        ShopProduct.objects.bulk_create(rows)
+        ShopProduct.objects.bulk_create(rows, batch_size=1000)
     return len(rows)
