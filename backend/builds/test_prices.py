@@ -253,12 +253,13 @@ class RefreshShopPricesTests(TestCase):
 class UnmangleTests(TestCase):
     def test_drops_the_stray_a_before_a_symbol(self):
         self.assertEqual(
-            prices.unmangle("IntelÂ® CoreÂ™ i5Â\xa0laptop 18.5Â”"),
-            "Intel® Core™ i5\xa0laptop 18.5”",
+            prices.unmangle("IntelÂ® CoreÂ™ i5Â\xa0laptop 18.5Â” Â¿"),
+            "Intel® Core™ i5\xa0laptop 18.5” ¿",  # ¿ is cp1252 BF, the top of the range
         )
 
     def test_leaves_everything_else_alone(self):
-        for title in ["Intel® Core™ i5", "ÂBC", "Â", "120Â\x8d wide", "ÂÂ"]:
+        # ÂÀ: À is cp1252 C0, just past the range, so a real "Â" before it stays.
+        for title in ["Intel® Core™ i5", "ÂBC", "Â", "120Â\x8d wide", "ÂÂ", "ÂÀ"]:
             self.assertEqual(prices.unmangle(title), title)
 
     def test_refresh_stores_the_fixed_title(self):
