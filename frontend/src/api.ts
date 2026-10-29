@@ -1,4 +1,4 @@
-import { endSession, getToken, type Session } from "./auth";
+import { getToken, sessionEnded, type Session } from "./auth";
 
 export type BuildStatus = "planning" | "building" | "listed" | "sold";
 
@@ -113,8 +113,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const body = res.status === 204 ? null : await res.json().catch(() => null);
   // The token was deleted (logged out elsewhere) or is no longer valid. Only if it's
   // still the current one: a request from before a log-out must not end a newer session.
-  if (res.status === 401 && token && token === getToken())
-    endSession("Your session ended. Log in again.");
+  if (res.status === 401 && token && token === getToken()) sessionEnded();
   if (!res.ok) throw new ApiError(res.status, body);
   return body as T;
 }

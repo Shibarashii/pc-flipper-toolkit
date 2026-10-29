@@ -137,6 +137,17 @@ test("a 401 mid-session logs out with a message", async () => {
   expect(localStorage.getItem("session")).toBeNull();
 });
 
+test("an ended demo says to try it again, not to log in", async () => {
+  saveSession({ token: "d1", username: "demo-abc" });
+  stubFetch(() => Response.json({ detail: "Invalid token." }, { status: 401 }));
+  renderAt("/");
+
+  expect(
+    await screen.findByText("Your demo ended. Try it again or sign up."),
+  ).toBeTruthy();
+  expect(screen.getByRole("button", { name: "Try the demo" })).toBeTruthy();
+});
+
 test("Log out deletes the token on the server and goes to log in", async () => {
   saveSession({ token: "abc", username: "carol" });
   const fetchMock = stubFetch(
