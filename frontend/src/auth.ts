@@ -46,6 +46,10 @@ function update(next: State) {
 
 export const getToken = () => state.session?.token ?? "";
 
+/** Demo accounts are named "demo-…"; sign-up refuses that prefix, so it's reliable. */
+export const isDemo = (session: Session) =>
+  session.username.startsWith("demo-");
+
 export const saveSession = (session: Session) =>
   update({ session, notice: "" });
 

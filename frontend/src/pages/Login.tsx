@@ -1,9 +1,9 @@
 import { useState, type SubmitEvent } from "react";
 import { Link, useLocation } from "react-router";
-import { ApiError, logIn, signUp, type FieldErrors } from "../api";
-import { saveSession, useAuth } from "../auth";
+import { ApiError, logIn, signUp, tryDemo, type FieldErrors } from "../api";
+import { saveSession, useAuth, type Session } from "../auth";
 import { Field } from "../components/form";
-import { buttonPrimary, input } from "../ui";
+import { buttonPrimary, buttonSecondary, input } from "../ui";
 
 const MODES = {
   login: {
@@ -44,19 +44,24 @@ export function Login({ mode }: { mode: keyof typeof MODES }) {
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
-  async function submitForm(e: SubmitEvent<HTMLFormElement>) {
-    e.preventDefault();
+  // The form and "Try the demo" both end in a session, with the same errors.
+  async function start(session: () => Promise<Session>) {
     setSaving(true);
     setErrors({});
     setError("");
     try {
-      saveSession(await request({ ...form, username: form.username.trim() }));
+      saveSession(await session());
     } catch (err) {
       const fieldErrors = err instanceof ApiError ? err.fieldErrors : {};
       setErrors(fieldErrors);
       setError(generalError(err, fieldErrors));
       setSaving(false);
     }
+  }
+
+  function submitForm(e: SubmitEvent<HTMLFormElement>) {
+    e.preventDefault();
+    start(() => request({ ...form, username: form.username.trim() }));
   }
 
   return (
@@ -117,6 +122,21 @@ export function Login({ mode }: { mode: keyof typeof MODES }) {
           {submit}
         </button>
       </form>
+
+      <div className="mt-6 border-t border-line pt-6">
+        <button
+          type="button"
+          onClick={() => start(tryDemo)}
+          disabled={saving}
+          className={`w-full ${buttonSecondary}`}
+        >
+          Try the demo
+        </button>
+        <p className="mt-2 text-[13px] leading-[18px] text-muted">
+          A sample account with two builds to change freely. It’s deleted after
+          24 hours.
+        </p>
+      </div>
 
       <p className="mt-6 text-[13px] leading-[18px] text-muted">
         {other.text}{" "}

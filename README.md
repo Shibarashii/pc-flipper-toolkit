@@ -7,7 +7,7 @@ actually paid, add the extras (shipping, fees, thermal paste), set a selling pri
 your true profit, margin, and how far below market you're selling. Built to replace a
 spreadsheet, with an account per user.
 
-**Live app:** https://pc-flipper-toolkit.vercel.app
+**Live app:** https://pc-flipper-toolkit.vercel.app (no sign-up needed: press **Try the demo** for a throwaway account with two sample builds)
 **API docs:** https://pc-flipper-toolkit.onrender.com/api/docs/
 
 ![A build's detail page: the parts checklist, parts table and profit summary](img/builds-screenshot.png)
