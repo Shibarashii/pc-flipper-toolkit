@@ -131,6 +131,10 @@ export const logIn = (credentials: Credentials) =>
     body: JSON.stringify(credentials),
   });
 
+/** A throwaway account with two sample builds, deleted after 24 hours. */
+export const tryDemo = () =>
+  request<Session>("/auth/demo/", { method: "POST" });
+
 /** Deletes the token on the server, so it stops working everywhere. */
 export const logOut = () => request<null>("/auth/logout/", { method: "POST" });
 

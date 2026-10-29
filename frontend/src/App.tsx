@@ -1,6 +1,13 @@
-import { Link, Navigate, Route, Routes, useLocation } from "react-router";
+import {
+  Link,
+  Navigate,
+  Route,
+  Routes,
+  useLocation,
+  useNavigate,
+} from "react-router";
 import { logOut } from "./api";
-import { endSession, useAuth } from "./auth";
+import { endSession, isDemo, useAuth } from "./auth";
 import { ThemeToggle } from "./components/ThemeToggle";
 import { BuildDetail } from "./pages/BuildDetail";
 import { BuildsList } from "./pages/BuildsList";
@@ -10,6 +17,7 @@ import { buttonSecondary } from "./ui";
 export default function App() {
   const { session } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   // Set by the redirect to /login, so logging in goes back to the page you wanted.
   const from = (location.state as { from?: string } | null)?.from ?? "/";
 
@@ -17,6 +25,12 @@ export default function App() {
     // Log out here even if the server can't be reached; the token just lingers there.
     await logOut().catch(() => {});
     endSession();
+  }
+
+  // Ends the demo (its account is cleaned up later) and opens sign-up.
+  async function signUpInstead() {
+    await logOutEverywhere();
+    navigate("/signup");
   }
 
   return (
@@ -43,6 +57,20 @@ export default function App() {
           )}
         </div>
       </header>
+      {session && isDemo(session) && (
+        <div className="flex items-center justify-between gap-4 border-b border-line bg-sunken px-4 py-2.5 sm:px-10">
+          <p className="text-[13px] leading-[18px]">
+            You’re trying a demo. It’s deleted after 24 hours.
+          </p>
+          <button
+            type="button"
+            onClick={signUpInstead}
+            className={`shrink-0 ${buttonSecondary}`}
+          >
+            Sign up
+          </button>
+        </div>
+      )}
       {session ? (
         <Routes>
           <Route path="/" element={<BuildsList />} />

@@ -192,3 +192,56 @@ test("a saved session that isn't one is ignored", async () => {
 
   expect(auth.getToken()).toBe("");
 });
+
+const DEMO_BANNER = "You’re trying a demo. It’s deleted after 24 hours.";
+
+test("Try the demo logs into a demo account and shows the banner", async () => {
+  const fetchMock = stubFetch(
+    () => Response.json({ token: "d1", username: "demo-abc" }, { status: 201 }),
+    () => Response.json([]),
+  );
+  renderAt("/signup");
+
+  fireEvent.click(screen.getByRole("button", { name: "Try the demo" }));
+
+  expect(await screen.findByText(DEMO_BANNER)).toBeTruthy();
+  expect(requestTo(fetchMock, 0).url).toBe("/api/auth/demo/");
+  expect(getToken()).toBe("d1");
+});
+
+test("the banner is only for demo accounts", async () => {
+  saveSession({ token: "abc", username: "carol" });
+  stubFetch(() => Response.json([]));
+  renderAt("/");
+
+  await screen.findByText("No builds yet");
+  expect(screen.queryByText(DEMO_BANNER)).toBeNull();
+});
+
+test("the banner's Sign up ends the demo and opens sign-up", async () => {
+  saveSession({ token: "d1", username: "demo-abc" });
+  const fetchMock = stubFetch(
+    () => Response.json([]),
+    () => new Response(null, { status: 204 }),
+  );
+  renderAt("/");
+  await screen.findByText("No builds yet");
+
+  fireEvent.click(screen.getByRole("button", { name: "Sign up" }));
+
+  expect(await screen.findByRole("heading", { name: "Sign up" })).toBeTruthy();
+  expect(requestTo(fetchMock, 1).url).toBe("/api/auth/logout/");
+  expect(getToken()).toBe("");
+  expect(screen.queryByText(DEMO_BANNER)).toBeNull();
+});
+
+test("a failed demo shows the same messages as log-in", async () => {
+  stubFetch(() => Response.json({ detail: "Throttled" }, { status: 429 }));
+  renderAt("/login");
+
+  fireEvent.click(screen.getByRole("button", { name: "Try the demo" }));
+
+  expect((await screen.findByRole("alert")).textContent).toBe(
+    "Too many attempts. Wait a minute and try again.",
+  );
+});
