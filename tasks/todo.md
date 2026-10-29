@@ -536,7 +536,7 @@ usernames starting with `demo-`. Documented in the API docs and SPEC.
 **Files:** `backend/builds/auth.py`, `backend/builds/authentication.py`, a new `backend/builds/demo.py` (sample data), `backend/config/urls.py`, tests
 **Scope:** M
 
-### - [ ] T25: "Try the demo" in the UI
+### - [x] T25: "Try the demo" in the UI
 
 **Description:** A "Try the demo" button on the log-in and sign-up pages calls the endpoint and
 saves the session like a log-in. While the username starts with `demo-`, a banner under the
@@ -544,14 +544,14 @@ header says it's a demo, deleted after 24 hours, with a "Sign up" button that en
 opens `/signup`. A second e2e test clicks "Try the demo" and checks both sample builds appear.
 
 **Acceptance criteria:**
-- [ ] One click from `/login` or `/signup` lands on the builds list with both sample builds.
-- [ ] The banner shows only for demo accounts, at desktop and 375px; its "Sign up" opens sign-up logged out.
-- [ ] Errors (rate limit, server asleep) show the same messages as log-in.
+- [x] One click from `/login` or `/signup` lands on the builds list with both sample builds.
+- [x] The banner shows only for demo accounts, at desktop and 375px; its "Sign up" opens sign-up logged out.
+- [x] Errors (rate limit, server asleep) show the same messages as log-in.
 
 **Verification:**
-- [ ] Tests: button calls the endpoint and saves the session; banner only for `demo-` users
-- [ ] e2e: demo test passes at both widths
-- [ ] Screenshots: log-in page and banner, desktop and 375px, light and dark
+- [x] Tests: button calls the endpoint and saves the session; banner only for `demo-` users
+- [x] e2e: demo test passes at both widths
+- [x] Screenshots: log-in page and banner, desktop and 375px, light and dark
 
 **Dependencies:** T24
 **Files:** `frontend/src/api.ts`, `frontend/src/pages/Login.tsx`, `frontend/src/App.tsx`, tests, `frontend/e2e/`
