@@ -110,7 +110,7 @@ USE_TZ = True
 REST_FRAMEWORK = {
     "DEFAULT_RENDERER_CLASSES": ["rest_framework.renderers.JSONRenderer"],
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        # DRF's TokenAuthentication with a 30-day lifetime.
+        # DRF's TokenAuthentication with a 30-day lifetime (24 hours for a demo).
         "builds.authentication.ExpiringTokenAuthentication"
     ],
     "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],

@@ -8,6 +8,8 @@ from rest_framework import exceptions
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.authtoken.models import Token
 
+from .demo import is_expired_demo
+
 # Counted from when the token was made, not from its last use: a stolen token stops
 # working within this long even if it's being used.
 TOKEN_LIFETIME = timedelta(days=30)
@@ -18,11 +20,12 @@ def expired(token: Token) -> bool:
 
 
 class ExpiringTokenAuthentication(TokenAuthentication):
-    """DRF's token auth, but a token older than TOKEN_LIFETIME is deleted and refused."""
+    """DRF's token auth, but a token older than TOKEN_LIFETIME, or a demo account older
+    than its 24 hours, is refused (and the token deleted)."""
 
     def authenticate_credentials(self, key):
         user, token = super().authenticate_credentials(key)
-        if expired(token):
+        if expired(token) or is_expired_demo(user):
             token.delete()
             raise exceptions.AuthenticationFailed("Token expired. Log in again.")
         return user, token

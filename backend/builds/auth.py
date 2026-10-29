@@ -13,6 +13,8 @@ from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 
 from .authentication import expired
+from .demo import PREFIX as DEMO_PREFIX
+from .demo import create_demo_user
 
 User = get_user_model()
 
@@ -36,6 +38,11 @@ class SignupSerializer(CredentialsSerializer):
     def validate_username(self, username):
         if User.objects.filter(username__iexact=username).exists():
             raise serializers.ValidationError(TAKEN)
+        # Reserved: cleanup deletes demo accounts by this prefix (and no password).
+        if username.lower().startswith(DEMO_PREFIX):
+            raise serializers.ValidationError(
+                f'Usernames can\'t start with "{DEMO_PREFIX}".'
+            )
         return username
 
     def validate(self, data):
@@ -124,6 +131,20 @@ class LoginView(PublicAuthView):
                 {"non_field_errors": ["Wrong username or password."]}
             )
         return token_response(user)
+
+
+class DemoView(PublicAuthView):
+    @extend_schema(
+        summary="Try the demo",
+        description="Creates a throwaway account with two sample builds (one sold, one in "
+        "progress) and logs it in. It works for 24 hours, then its token returns `401` "
+        "and it's deleted. Shares the sign-up/log-in rate limit.",
+        request=None,
+        responses={201: TokenSerializer},
+        tags=["auth"],
+    )
+    def post(self, request):
+        return token_response(create_demo_user(), status.HTTP_201_CREATED)
 
 
 class LogoutView(APIView):
