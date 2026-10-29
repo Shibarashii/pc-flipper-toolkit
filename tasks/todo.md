@@ -558,5 +558,5 @@ opens `/signup`. A second e2e test clicks "Try the demo" and checks both sample 
 **Scope:** M
 
 ### Checkpoint 6: Demo account
-- [ ] SPEC success criterion 8 passes on the live site
-- [ ] All tests pass on `main`
+- [x] SPEC success criterion 8 passes on the live site
+- [x] All tests pass on `main`
