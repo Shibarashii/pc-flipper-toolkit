@@ -650,3 +650,85 @@ the job, the secret, and re-enabling it after GitHub's 60-day pause.
 ### Checkpoint 7: Price lookup
 - [ ] price lookup spec success criteria 1–6 pass on the live site (1–4 and 6 do; criterion 5, "runs green daily", waits on the first scheduled run, 2026-10-29 18:00 UTC)
 - [x] All tests pass on `main`
+
+## Phase 10: Part search pop-up
+
+Spec: [docs/specs/price-lookup.md, part 2](../docs/specs/price-lookup.md#part-2-part-search-pop-up).
+No new dependencies, no migration.
+
+### - [ ] T30: Short names in the search API
+
+**Description:** `shorten(title)` in `builds/prices.py` applies the spec's rules in order:
+
+1. Drop the symbols.
+2. Cut at the first separator.
+3. Drop the noise words and codes.
+4. Keep at most 7 words.
+
+`ShopProductSerializer` gains a read-only `short_title` from it, documented like the other
+fields. `api.ts`'s `ShopProduct` type gets `short_title`. Nothing is stored.
+
+**Acceptance criteria:**
+- [ ] The spec's example table passes, plus one case per rule (separator cut, brackets, 2+
+  hyphen codes, long SKUs, GDDR, bus width, GHz, filler words, "Solid State Drive" → "SSD",
+  the 7-word cap).
+- [ ] A title that would shorten to nothing falls back to the full title.
+- [ ] `/api/prices/` results include `short_title`; matching, order and the 20 cap are unchanged.
+
+**Verification:**
+- [ ] Backend tests: the table above, the empty fallback, `short_title` in the response
+- [ ] `spectacular --validate --fail-on-warn` passes
+- [ ] Manual: run `shorten()` over the local copy and skim a sample of graphics cards, RAM,
+  power supplies and motherboards (no shop is fetched)
+
+**Dependencies:** None
+**Files:** `backend/builds/prices.py`, `backend/builds/serializers.py`, `backend/builds/test_prices.py`, `frontend/src/api.ts`
+**Scope:** S
+
+### - [ ] T31: The Part box's search pop-up
+
+**Description:** A `PartSearch` component replaces the Part input in `PartForm`. It's a
+WAI-ARIA 1.2 combobox with a listbox pop-up.
+
+- **Search:** 300 ms after typing stops, with 2+ characters, it calls `findPrices`. Only the
+  newest answer counts.
+- **Rows:** up to 8, each showing:
+  - the short name, with the shop's full name under it in muted text
+  - the price, the shop and "Out of stock"
+- **Keys:**
+  - Down/Up move through the rows.
+  - Enter picks only an active row; otherwise it saves the part.
+  - Esc closes only the pop-up.
+  - Tab or clicking away closes it.
+- **Picking** fills Part, Listed price and Shop, closes the pop-up and leaves the cursor at
+  the end of Part.
+- **Failures:** a failed or empty search shows nothing.
+- **Style:** `surface` background, `line-strong` border, 4px radius, no shadow.
+
+**Acceptance criteria:**
+- [ ] Works when adding and editing, including a bundled part; the add row's pop-up is closed after a save.
+- [ ] Typing a name and pressing Enter (no active row) saves, exactly as before; Esc twice cancels.
+- [ ] Opens only from typing, never just from focus.
+- [ ] Keyboard-only works; `aria-expanded`, `aria-controls`, `aria-activedescendant` and the option roles are right.
+- [ ] Usable at 375px without horizontal scrolling, light and dark.
+
+**Verification:**
+- [ ] Vitest (fake timers):
+  - no request under 2 characters or before the pause
+  - row contents
+  - Down + Enter fills the three fields and doesn't save
+  - Enter with no active row saves
+  - Esc closes only the pop-up
+  - a stale answer is ignored
+  - a failure shows nothing
+- [ ] E2E (`e2e/prices.spec.ts`, `/api/prices/*` routed to a fixture): Enter with no active
+  row saves the part; Down + Enter fills and doesn't save
+- [ ] Screenshots: desktop add row, desktop edit, 375px, light and dark, against the local copy
+
+**Dependencies:** T30 (for `short_title`; deploy T30 first so the live pop-up has it)
+**Files:** a new `frontend/src/components/PartSearch.tsx`, `frontend/src/components/PartRow.tsx`, a new `frontend/src/components/PartSearch.test.tsx`, `frontend/e2e/prices.spec.ts`
+**Scope:** M
+
+### Checkpoint 8: Part search pop-up
+- [ ] part 2's success criteria 1–5 pass on the live site
+- [ ] All tests pass on `main`
