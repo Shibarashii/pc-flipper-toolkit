@@ -105,7 +105,7 @@ so their order is flexible.
 - [x] T24: Demo accounts in the API (endpoint, sample builds, 24-hour expiry, lazy cleanup)
 - [x] T25: "Try the demo" and the demo banner in the UI
 
-**Checkpoint 6:** SPEC success criterion 8 passes on the live site.
+**Checkpoint 6 (done):** SPEC success criterion 8 passes on the live site.
 
 ## Risks and Mitigations
 
