@@ -607,7 +607,7 @@ table and out-of-scope line point to the price lookup spec.
 **Files:** `backend/builds/views.py`, `backend/builds/serializers.py`, `backend/config/urls.py`, tests, `SPEC.md`
 **Scope:** S
 
-### - [ ] T28: "Find prices" in the part form
+### - [x] T28: "Find prices" in the part form
 
 **Description:** A "Find prices" link-style button next to Listed price in `PartForm` opens
 `PriceLookup`: a search prefilled with the part's name, results (name, shop, price, "Out of
@@ -616,13 +616,13 @@ not-loaded-yet messages. Choosing a result fills Listed price and Shop and close
 without saving. Esc or Close closes it without cancelling the part edit.
 
 **Acceptance criteria:**
-- [ ] Works when adding and editing a part, including a bundled part.
-- [ ] Typing a price by hand works exactly as before.
-- [ ] Usable at 375px without horizontal scrolling; keyboard-only works.
+- [x] Works when adding and editing a part, including a bundled part.
+- [x] Typing a price by hand works exactly as before.
+- [x] Usable at 375px without horizontal scrolling; keyboard-only works.
 
 **Verification:**
-- [ ] Vitest: prefill; choosing fills price and shop without saving; failed and no-matches messages; Esc keeps the edit open; manual price still works
-- [ ] Screenshots: desktop and 375px, light and dark, against a local copy from T26
+- [x] Vitest: prefill; choosing fills price and shop without saving; failed and no-matches messages; Esc keeps the edit open; manual price still works
+- [x] Screenshots: desktop and 375px, light and dark, against a local copy from T26
 
 **Dependencies:** T27
 **Files:** `frontend/src/api.ts`, a new `frontend/src/components/PriceLookup.tsx`, `frontend/src/components/PartRow.tsx`, tests
