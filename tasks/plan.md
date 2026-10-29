@@ -122,6 +122,18 @@ Render's build runs `migrate`, so merging T26 creates the table on Neon before T
 
 **Checkpoint 7:** price lookup spec success criteria 1–6 pass on the live site. All but criterion 5 ("runs green daily") pass as of 2026-10-29; it waits on the first scheduled run (18:00 UTC).
 
+### Phase 10: Part search pop-up ([docs/specs/price-lookup.md, part 2](../docs/specs/price-lookup.md#part-2-part-search-pop-up))
+- [ ] T30: Short names in the search API (`shorten()`, `short_title`)
+- [ ] T31: The Part box's search pop-up
+
+```
+T30 shorten() + short_title ── T31 Part combobox
+```
+T31's tests use fixtures, so it can be built before T30 is deployed, but it's only useful
+live once T30 is on Render. No new dependencies (the combobox is hand-written), no migration.
+
+**Checkpoint 8:** part 2's success criteria 1–5 pass on the live site.
+
 ## Risks and Mitigations
 
 | Risk | Impact | Mitigation |
@@ -138,6 +150,9 @@ Render's build runs `migrate`, so merging T26 creates the table on Neon before T
 | GitHub turns off the schedule after 60 days without activity | Low | The results show "Prices from <date>"; README says how to re-enable it (T29) |
 | The Neon URL leaks from the workflow | High | Only as a repository secret; the workflow never prints it (T29) |
 | "rtx 3060" also matches "3060 Ti" | Low | Results show the full product name and stock; the user picks (T28) |
+| A short name drops something that matters (colour, "OC") | Low | The pop-up shows the full shop name under it, and the name stays editable (T31); each bad case becomes a `shorten()` test (T30) |
+| The pop-up breaks fast entry (Enter picks instead of saving) | High | Enter picks only an active row; a browser e2e test proves Enter with no active row saves (T31) |
+| A request on every typing pause loads Render and Neon | Low | 300 ms pause, 2+ characters, results capped at 20, and the search reads only our ~10k-row table |
 
 ## Open Questions
 
