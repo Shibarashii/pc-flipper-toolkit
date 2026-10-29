@@ -51,7 +51,8 @@ export default function App() {
                 onClick={logOutEverywhere}
                 className={`shrink-0 ${buttonSecondary}`}
               >
-                Log out
+                {/* A demo has no account to come back to. */}
+                {isDemo(session) ? "Exit demo" : "Log out"}
               </button>
             </>
           )}

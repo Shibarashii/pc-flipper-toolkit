@@ -216,6 +216,8 @@ test("Try the demo logs into a demo account and shows the banner", async () => {
   fireEvent.click(screen.getByRole("button", { name: "Try the demo" }));
 
   expect(await screen.findByText(DEMO_BANNER)).toBeTruthy();
+  expect(screen.getByRole("button", { name: "Exit demo" })).toBeTruthy();
+  expect(screen.queryByRole("button", { name: "Log out" })).toBeNull();
   expect(requestTo(fetchMock, 0).url).toBe("/api/auth/demo/");
   expect(getToken()).toBe("d1");
 });
