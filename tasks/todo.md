@@ -509,3 +509,54 @@ Django and Vite on a throwaway Postgres, as a third required CI check.
 **Dependencies:** None (new dev dependency `@playwright/test`, approved)
 **Files:** `frontend/playwright.config.ts`, `frontend/e2e/flip.spec.ts`, `.github/workflows/ci.yml`, `frontend/package.json`, configs, README
 **Scope:** M
+
+## Phase 8: Demo account
+
+### - [ ] T24: Demo accounts in the API
+
+**Description:** `POST /api/auth/demo/` makes a user named `demo-<random>` with no usable
+password, fills it with the two sample builds, and returns `{token, username}` (201). It shares
+the auth rate limit. Before creating one, it deletes demo users older than 24 hours. Token auth
+refuses a demo user older than 24 hours (401), whatever the token's age. Sign-up refuses
+usernames starting with `demo-`. Documented in the API docs and SPEC.
+
+**Acceptance criteria:**
+- [ ] A demo request returns a working token; the account has a sold build (all six required
+      slots, a bundle, two extra costs, a profit) and an in-progress build (required slots
+      missing, no selling price).
+- [ ] Two demo accounts never see each other's builds; a demo account can edit and delete its own.
+- [ ] A demo user older than 24 hours gets 401, and is deleted (with its builds) by the next
+      demo request; a real user named like `demo-…` with a password is never deleted.
+
+**Verification:**
+- [ ] Tests: sample totals match hand-calculated values; expiry; cleanup; sign-up refuses `demo-`; rate limit shared
+- [ ] `spectacular --validate --fail-on-warn` passes
+
+**Dependencies:** None
+**Files:** `backend/builds/auth.py`, `backend/builds/authentication.py`, a new `backend/builds/demo.py` (sample data), `backend/config/urls.py`, tests
+**Scope:** M
+
+### - [ ] T25: "Try the demo" in the UI
+
+**Description:** A "Try the demo" button on the log-in and sign-up pages calls the endpoint and
+saves the session like a log-in. While the username starts with `demo-`, a banner under the
+header says it's a demo, deleted after 24 hours, with a "Sign up" button that ends the demo and
+opens `/signup`. A second e2e test clicks "Try the demo" and checks both sample builds appear.
+
+**Acceptance criteria:**
+- [ ] One click from `/login` or `/signup` lands on the builds list with both sample builds.
+- [ ] The banner shows only for demo accounts, at desktop and 375px; its "Sign up" opens sign-up logged out.
+- [ ] Errors (rate limit, server asleep) show the same messages as log-in.
+
+**Verification:**
+- [ ] Tests: button calls the endpoint and saves the session; banner only for `demo-` users
+- [ ] e2e: demo test passes at both widths
+- [ ] Screenshots: log-in page and banner, desktop and 375px, light and dark
+
+**Dependencies:** T24
+**Files:** `frontend/src/api.ts`, `frontend/src/pages/Login.tsx`, `frontend/src/App.tsx`, tests, `frontend/e2e/`
+**Scope:** M
+
+### Checkpoint 6: Demo account
+- [ ] SPEC success criterion 8 passes on the live site
+- [ ] All tests pass on `main`

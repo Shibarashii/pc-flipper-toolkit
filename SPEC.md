@@ -32,11 +32,14 @@ market the PC is priced. It replaces the author's spreadsheet.
    for ₱7,500). Each part in it has its own name, category and listed price, but its
    bought-for is optional, typed in only if I know it. The bundle's price counts once in the
    totals. ([docs/ideas/part-bundles.md](docs/ideas/part-bundles.md))
+10. Without signing up, I can **try a demo**: one click logs me into my own throwaway account
+    with two sample builds, which I can change freely. Nobody else sees my changes, and the
+    account is deleted after 24 hours. ([docs/intent/demo-account.md](docs/intent/demo-account.md))
 
 ### Out of scope (v1)
 Price scraping, voucher detection, buyer-only build mode, part compatibility checks,
 multiple currencies (amounts are in PHP ₱ only). For accounts: email, password reset,
-sharing a build with another user, a public demo account, and social login.
+sharing a build with another user, turning a demo account into a real one, and social login.
 
 ## Tech Stack
 
@@ -47,6 +50,7 @@ sharing a build with another user, a public demo account, and social login.
 | Frontend | React 19 + TypeScript, Vite, Tailwind CSS v4, React Router v8 |
 | Backend tests | Django test runner (`manage.py test`) |
 | Frontend tests | Vitest + React Testing Library |
+| End-to-end tests | Playwright (Chromium), desktop and 375px, a required CI check |
 | Lint/format | Ruff (Python), ESLint + Prettier (TS) |
 | Deploy | Vercel (frontend), Render (backend) |
 
@@ -92,6 +96,12 @@ hand or left blank. It never counts in the totals on its own (the bundle's price
 bundled parts' bought-for amounts can't add up to more than the bundle's price. A loose part
 (not in a bundle) always has a bought-for. An empty bundle is allowed; its price still counts.
 
+**Demo accounts:** an ordinary Django user, so no new table or migration. Its username is
+`demo-` plus random letters and it has no usable password, so it can only be used through
+the token it was made with. Sign-up refuses usernames starting with `demo-`. Cleanup deletes
+users matching both (the prefix and no usable password), so a real account can never be
+caught.
+
 ## API
 
 All endpoints are under `/api/`. JSON in, JSON out. Only `PATCH` is supported for updates (no `PUT`).
@@ -105,6 +115,7 @@ All endpoints are under `/api/`. JSON in, JSON out. Only `PATCH` is supported fo
 | POST | `/api/auth/signup/` | Create an account (`username`, `password`) → `{token, username}` |
 | POST | `/api/auth/login/` | Log in → `{token, username}` |
 | POST | `/api/auth/logout/` | Delete the current token |
+| POST | `/api/auth/demo/` | Create a demo account with the sample builds → `{token, username}` (201) |
 | GET | `/api/auth/me/` | The logged-in user (`{username}`) |
 | GET, POST | `/api/builds/` | List builds (with totals) / create a build |
 | GET, PATCH, DELETE | `/api/builds/{id}/` | Build detail, including `parts`, `bundles`, `extra_costs` and `totals` |
@@ -139,7 +150,12 @@ different sites, where browsers block or restrict cookies. Signing up or logging
 the token; the frontend keeps it in `localStorage`. Logging out deletes it on the server.
 A token works for 30 days from when it was made, then returns 401; logging in again gives a
 new one.
-Passwords go through Django's password validators. Sign-up and log-in are rate-limited per IP.
+Passwords go through Django's password validators. Sign-up, log-in and demo creation share one
+rate limit per IP.
+
+**Demo accounts** work for 24 hours from when they were made, then their token returns 401 like
+an expired one. Render's cron jobs aren't free (at least $1 a month), so cleanup is lazy: creating a demo
+first deletes demo accounts older than 24 hours (and their builds, by cascade).
 
 Every user sees and changes only their own data: builds are filtered by `owner`, and parts
 bundles and extra costs by their build's owner. Another user's build, part, bundle or cost
@@ -150,6 +166,11 @@ another user's build (400). A part, bundle or cost can't be moved to another bui
 
 0. **Log in** (`/login`) and **Sign up** (`/signup`): username and password, linking to each other. Logged out, every other page redirects here; logging in goes to the builds list.
    - The header shows the username and "Log out" when logged in.
+   - Both pages have a **"Try the demo"** button that creates a demo account and goes to the
+     builds list. A demo account sees a banner under the header: it's a demo, deleted after 24
+     hours, with a "Sign up" button that ends the demo and opens sign-up.
+   - **Sample builds:** a sold flip (every required slot filled, a bundle, two extra costs, a
+     profit) and an in-progress build (some required slots empty, no selling price yet).
 1. **Builds list** (`/`): one card or row per build showing name, status badge, total cost, selling price and profit (green if positive, red if negative). Has a "New build" button.
    - "New build" opens a dialog that asks only for the name. Creating it goes straight to the new build's detail page.
 2. **Build detail** (`/builds/:id`):
@@ -210,6 +231,8 @@ npm run dev                         # http://localhost:5173, proxies /api → :8
 npm test                            # vitest run
 npm run lint                        # eslint
 npm run build                       # production build into dist/
+npx playwright install chromium     # one-time; the browser for e2e
+npm run e2e                         # starts Django + Vite (or reuses them), runs e2e/
 ```
 
 ## Project Structure
@@ -220,15 +243,17 @@ pc-flipper-toolkit/
 │   ├── manage.py
 │   ├── requirements.txt
 │   ├── config/            Django project: settings.py, urls.py
-│   └── builds/            The one Django app: models, serializers, views, tests.py
+│   └── builds/            The one Django app: models, serializers, views, tests.py;
+│                          auth.py (accounts), authentication.py (token checks), demo.py (sample builds)
 ├── frontend/
 │   ├── vite.config.ts     Includes the /api dev proxy
+│   ├── e2e/               Playwright: the main flow, and trying the demo
 │   └── src/
 │       ├── api.ts         fetch helpers and TS types matching the API
 │       ├── money.ts       ₱ formatting
-│       ├── pages/         BuildsList.tsx, BuildDetail.tsx
+│       ├── pages/         BuildsList.tsx, BuildDetail.tsx, Login.tsx
 │       └── components/    PartsTable.tsx, ExtraCosts.tsx, Summary.tsx, ...
-├── docs/intent/           Confirmed statement of intent
+├── docs/intent/           Confirmed statements of intent (the app, e2e tests, demo account)
 ├── SPEC.md
 └── README.md              Screenshot, live links, how to run
 ```
@@ -262,6 +287,10 @@ class Build(models.Model):
   - Accounts: sign up, log in, log out; and isolation: one user can't list, read, edit or delete another user's builds, parts or extra costs, or add a part to their build.
   - Every value in `totals`, including edge cases: no parts, no selling price, selling price of 0, a negative profit (a loss), and decimal rounding.
   - API: create, read, update and delete for builds, parts and extra costs; rejects negative prices; deleting a build also deletes its parts and extra costs.
+- **Demo accounts:** the sample builds' totals match hand-calculated values (so a later feature
+  can't quietly break them); a demo user older than 24 hours gets 401 and is deleted by the
+  next demo request; a real user named `demo-…` with a password is never deleted; sign-up
+  refuses `demo-`; demo creation counts toward the shared rate limit.
 - **Frontend:** a small set of Vitest tests: `₱` formatting, and the Summary component rendering the totals it's given (including `null` → "—").
 - **Manual check per task:** run both servers and click through the flow on desktop and at phone width.
 - No coverage % target. The profit calculation must be fully tested.
@@ -283,6 +312,9 @@ class Build(models.Model):
 7. A bundle (3 parts, one price, one part's bought-for typed in) on the live site fills those
    three checklist slots, counts its price once in the totals (matching a hand calculation),
    shows the unassigned amount, and is usable at 375px.
+8. On the live site, "Try the demo" shows both sample builds within one click (after Render
+   wakes up), and two demo sessions in separate browsers never see each other's changes. The
+   24-hour expiry and cleanup are proven by backend tests, not on the live site.
 
 ## Open Questions
 
