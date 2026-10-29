@@ -38,3 +38,6 @@ jobs:
       - run: python manage.py refresh_shop_prices
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          # Settings refuse to start without one when DEBUG is off. This job signs
+          # nothing (it serves no requests), so a fixed value is fine, as in CI.
+          SECRET_KEY: refresh-job-signs-nothing
