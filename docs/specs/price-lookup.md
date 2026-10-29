@@ -154,7 +154,7 @@ frontend/src/
 
 ## Testing Strategy
 
-- **Backend (`builds/tests.py`)**, with `urlopen` mocked to return small fixture catalogues.
+- **Backend (`builds/test_prices.py`)**, with `urlopen` mocked to return small fixture catalogues.
   No test touches a real shop.
   - Parsing: cheapest variant price as `Decimal`, `in_stock` from any variant, url from the
     handle, paging until an empty page.

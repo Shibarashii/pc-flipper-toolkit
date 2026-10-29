@@ -249,7 +249,8 @@ pc-flipper-toolkit/
 │   ├── requirements.txt
 │   ├── config/            Django project: settings.py, urls.py
 │   └── builds/            The one Django app: models, serializers, views, tests.py;
-│                          auth.py (accounts), authentication.py (token checks), demo.py (sample builds)
+│                          auth.py (accounts), authentication.py (token checks), demo.py (sample builds),
+│                          prices.py + test_prices.py (price lookup)
 ├── frontend/
 │   ├── vite.config.ts     Includes the /api dev proxy
 │   ├── e2e/               Playwright: the main flow, and trying the demo
