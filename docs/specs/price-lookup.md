@@ -18,9 +18,9 @@ type the price by hand, and if the lookup fails the part form works exactly as b
 ### How it works
 
 1. Once a day, a GitHub Actions schedule runs `python manage.py refresh_shop_prices` against
-   the production database. It downloads each shop's catalogue (EasyPC: ~7,300 products,
-   30 pages, ~45 MB, ~40 s, checked on 2026-10-29) and keeps a slim copy in a `ShopProduct`
-   table.
+   the production database. It downloads each shop's catalogue and keeps a slim copy in a
+   `ShopProduct` table. Measured on 2026-10-29: EasyPC 7,303 products (30 pages, ~45 MB;
+   only 118 in stock), PC Express 2,830; both together took 90 s and the table is 4.4 MB.
 2. A search reads only that table. It never calls a shop, so it's fast, it works while a shop
    is down, and users can't make the app hit the shops.
 
@@ -54,7 +54,8 @@ ShopProduct
   shop         text            "EasyPC" | "PC Express"
   title        text            the shop's product name
   url          text            product page, https://<shop>/products/<handle>
-  price        decimal(10,2)   the cheapest variant's price
+  price        decimal(10,2)   the cheapest variant's price; a product with no variants
+                               or listed at ₱0 (discontinued placeholders) isn't kept
   in_stock     bool            any variant available
   updated_at   datetime        when this shop's copy was refreshed
   unique (shop, url)

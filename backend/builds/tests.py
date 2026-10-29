@@ -1,20 +1,24 @@
+import json
 from datetime import timedelta
 from decimal import Decimal as D
-from io import StringIO
+from io import BytesIO, StringIO
 from unittest import mock
+from urllib.error import URLError
+from urllib.parse import parse_qs, urlsplit
 
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
-from django.core.management import call_command
+from django.core.management import CommandError, call_command
 from django.db import IntegrityError, transaction
 from django.test import TestCase, override_settings
 from django.utils import timezone
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APITestCase
 
-from .models import Build, Bundle, ExtraCost, Part
+from . import prices
+from .models import Build, Bundle, ExtraCost, Part, ShopProduct
 
 
 def alice() -> User:
@@ -884,6 +888,7 @@ class AdminTests(TestCase):
             "/admin/builds/part/",
             "/admin/builds/extracost/",
             "/admin/builds/bundle/",
+            "/admin/builds/shopproduct/",
         ]:
             self.assertEqual(self.client.get(url).status_code, 200, url)
 
@@ -1002,3 +1007,196 @@ class DemoTests(APITestCase):
             self.client.post("/api/auth/login/", wrong, format="json")
         self.assertEqual(self.client.post("/api/auth/demo/").status_code, 201)
         self.assertEqual(self.client.post("/api/auth/demo/").status_code, 429)
+
+
+def product(handle: str, *variants: tuple[str, bool], title: str = "") -> dict:
+    """A product as Shopify's /products.json lists it: variants are (price, available)."""
+    return {
+        "title": title or handle,
+        "handle": handle,
+        "body_html": "<p>Dropped: we only keep title, link, price and stock.</p>",
+        "variants": [{"price": p, "available": a} for p, a in variants],
+    }
+
+
+class FakeShops:
+    """Stands in for urlopen: serves each shop's pages and records every request.
+
+    `pages[base]` is the list of pages (lists of products); later pages are empty.
+    A page that is an Exception is raised instead.
+    """
+
+    def __init__(self, pages: dict[str, list]):
+        self.pages = pages
+        self.requests = []
+
+    def __call__(self, req, timeout):
+        self.requests.append(req)
+        url = urlsplit(req.full_url)
+        page = int(parse_qs(url.query)["page"][0])
+        shop_pages = self.pages[f"{url.scheme}://{url.netloc}"]
+        body = shop_pages[page - 1] if page <= len(shop_pages) else []
+        if isinstance(body, Exception):
+            raise body
+        return BytesIO(json.dumps({"products": body}).encode())
+
+
+EASYPC = prices.SHOPS["EasyPC"]
+PCX = prices.SHOPS["PC Express"]
+
+
+@mock.patch("builds.prices.time.sleep")
+class RefreshShopPricesTests(TestCase):
+    def refresh(self, pages, *args):
+        """Run the command against fake shops; returns (fake, stdout, stderr)."""
+        fake = FakeShops(pages)
+        out, err = StringIO(), StringIO()
+        with mock.patch("builds.prices.urlopen", fake):
+            call_command("refresh_shop_prices", *args, stdout=out, stderr=err)
+        return fake, out.getvalue(), err.getvalue()
+
+    def old_copy(self, shop="EasyPC"):
+        return ShopProduct.objects.create(
+            shop=shop,
+            title="Old",
+            url="x",
+            price=1,
+            in_stock=True,
+            updated_at=timezone.now() - timedelta(days=1),
+        )
+
+    def test_keeps_the_cheapest_variant_and_any_stock_but_no_free_items(self, sleep):
+        self.refresh(
+            {
+                EASYPC: [
+                    [
+                        product("rtx-3060", ("15999.00", False), ("14500.50", False)),
+                        product("ryzen-5600", ("6500.00", False), ("6800.00", True)),
+                        product("no-variants"),
+                        product("discontinued", ("0.00", False)),
+                    ]
+                ],
+                PCX: [[product("case", ("2500.00", True))]],
+            }
+        )
+
+        rows = {p.url: p for p in ShopProduct.objects.filter(shop="EasyPC")}
+        self.assertEqual(
+            set(rows), {f"{EASYPC}/products/rtx-3060", f"{EASYPC}/products/ryzen-5600"}
+        )
+        gpu = rows[f"{EASYPC}/products/rtx-3060"]
+        self.assertEqual(gpu.price, D("14500.50"))
+        self.assertIsInstance(gpu.price, D)
+        self.assertFalse(gpu.in_stock)
+        self.assertTrue(rows[f"{EASYPC}/products/ryzen-5600"].in_stock)
+        self.assertEqual(ShopProduct.objects.get(shop="PC Express").title, "case")
+
+    def test_pages_until_an_empty_page_politely(self, sleep):
+        fake, out, _ = self.refresh(
+            {
+                EASYPC: [
+                    [product("a", ("1.00", True))],
+                    [product("b", ("2.00", True))],
+                ],
+                PCX: [[product("c", ("3.00", True))]],
+            }
+        )
+
+        self.assertEqual(ShopProduct.objects.filter(shop="EasyPC").count(), 2)
+        self.assertIn("EasyPC: 2 products", out)
+        self.assertEqual(
+            [r.full_url for r in fake.requests],
+            [
+                f"{EASYPC}/products.json?limit=250&page=1",
+                f"{EASYPC}/products.json?limit=250&page=2",
+                f"{EASYPC}/products.json?limit=250&page=3",
+                f"{PCX}/products.json?limit=250&page=1",
+                f"{PCX}/products.json?limit=250&page=2",
+            ],
+        )
+        self.assertTrue(
+            all(r.get_header("User-agent") == prices.USER_AGENT for r in fake.requests)
+        )
+        # A pause before every request but each shop's first.
+        self.assertEqual(sleep.call_count, 3)
+
+    def test_replaces_the_shops_copy_with_one_refresh_time(self, sleep):
+        self.old_copy()
+        pcx_row = self.old_copy("PC Express")
+
+        self.refresh(
+            {EASYPC: [[product("a", ("1.00", True)), product("b", ("2.00", True))]]},
+            "--shop",
+            "EasyPC",
+        )
+
+        easypc = ShopProduct.objects.filter(shop="EasyPC")
+        self.assertEqual(sorted(p.title for p in easypc), ["a", "b"])
+        self.assertEqual(len({p.updated_at for p in easypc}), 1)
+        self.assertGreater(easypc[0].updated_at, pcx_row.updated_at)
+        # --shop leaves the other shop alone.
+        self.assertTrue(ShopProduct.objects.filter(pk=pcx_row.pk).exists())
+
+    def test_a_product_repeated_across_pages_is_kept_once(self, sleep):
+        self.refresh(
+            {
+                EASYPC: [
+                    [product("a", ("1.00", True))],
+                    [product("a", ("1.00", True)), product("b", ("2.00", True))],
+                ]
+            },
+            "--shop",
+            "EasyPC",
+        )
+        self.assertEqual(ShopProduct.objects.filter(shop="EasyPC").count(), 2)
+
+    def test_a_failed_page_keeps_the_old_copy_and_still_refreshes_the_other(
+        self, sleep
+    ):
+        old = self.old_copy()
+        fake = FakeShops(
+            {
+                EASYPC: [[product("a", ("1.00", True))], URLError("timed out")],
+                PCX: [[product("c", ("3.00", True))]],
+            }
+        )
+        err = StringIO()
+
+        with (
+            mock.patch("builds.prices.urlopen", fake),
+            self.assertRaisesMessage(CommandError, "Refresh failed for EasyPC"),
+        ):
+            call_command("refresh_shop_prices", stdout=StringIO(), stderr=err)
+
+        self.assertEqual(list(ShopProduct.objects.filter(shop="EasyPC")), [old])
+        self.assertIn("EasyPC: failed, kept the previous copy", err.getvalue())
+        self.assertEqual(ShopProduct.objects.get(shop="PC Express").title, "c")
+
+    def test_no_products_counts_as_a_failure(self, sleep):
+        old = self.old_copy()
+        with (
+            mock.patch("builds.prices.urlopen", FakeShops({EASYPC: []})),
+            self.assertRaises(CommandError),
+        ):
+            call_command("refresh_shop_prices", "--shop", "EasyPC", stderr=StringIO())
+        self.assertEqual(list(ShopProduct.objects.all()), [old])
+
+    def test_bad_data_keeps_the_old_copy(self, sleep):
+        old = self.old_copy()
+        broken = {"title": "No price", "handle": "x", "variants": [{"price": "?"}]}
+        with (
+            mock.patch("builds.prices.urlopen", FakeShops({EASYPC: [[broken]]})),
+            self.assertRaises(CommandError),
+        ):
+            call_command("refresh_shop_prices", "--shop", "EasyPC", stderr=StringIO())
+        self.assertEqual(list(ShopProduct.objects.all()), [old])
+
+    def test_a_database_error_rolls_back_to_the_old_copy(self, sleep):
+        old = self.old_copy()
+        too_big = product("x", ("100000000.00", True))  # over decimal(10,2)
+        with (
+            mock.patch("builds.prices.urlopen", FakeShops({EASYPC: [[too_big]]})),
+            self.assertRaises(CommandError),
+        ):
+            call_command("refresh_shop_prices", "--shop", "EasyPC", stderr=StringIO())
+        self.assertEqual(list(ShopProduct.objects.all()), [old])

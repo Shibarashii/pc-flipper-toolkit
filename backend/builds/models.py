@@ -190,3 +190,30 @@ class ExtraCost(models.Model):
 
     def __str__(self) -> str:
         return self.label
+
+
+class ShopProduct(models.Model):
+    """One product from a shop's public catalogue, kept for the price lookup.
+
+    Each shop's rows are replaced together by `manage.py refresh_shop_prices`
+    (docs/specs/price-lookup.md), so they all share one `updated_at`.
+    """
+
+    shop = models.CharField(max_length=50)
+    title = models.TextField()
+    url = models.TextField()
+    price = money_field()  # the cheapest variant's
+    in_stock = models.BooleanField()
+    updated_at = models.DateTimeField()
+
+    class Meta:
+        ordering = ["shop", "title"]
+        constraints = [
+            *non_negative("price"),
+            models.UniqueConstraint(
+                fields=["shop", "url"], name="shopproduct_unique_url"
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.shop}: {self.title}"
