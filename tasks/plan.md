@@ -107,6 +107,21 @@ so their order is flexible.
 
 **Checkpoint 6 (done):** SPEC success criterion 8 passes on the live site.
 
+### Phase 9: Price lookup ([docs/specs/price-lookup.md](../docs/specs/price-lookup.md))
+- [ ] T26: Shop catalogue copy (`ShopProduct`, `refresh_shop_prices`)
+- [ ] T27: Search API (`GET /api/prices/`)
+- [ ] T28: "Find prices" in the part form
+- [ ] T29: Daily refresh on GitHub Actions
+
+```
+T26 copy + command ─┬─ T27 search API ── T28 part form UI
+                    └─ T29 daily workflow (needs T26's migration live on Neon)
+```
+T27 → T28 and T29 are independent, so T29 can go any time after T26 is deployed.
+Render's build runs `migrate`, so merging T26 creates the table on Neon before T29 needs it.
+
+**Checkpoint 7:** price lookup spec success criteria 1–6 pass on the live site.
+
 ## Risks and Mitigations
 
 | Risk | Impact | Mitigation |
@@ -118,6 +133,11 @@ so their order is flexible.
 | Render's free tier sleeps, so the first load takes ~30–60 s | Med (bad first impression) | Accept it for v1. Show a clear loading state, and mention it in the README |
 | Totals cause one query per build on the list (N+1) | Low at this scale | `prefetch_related` in T3. A test asserts the query count is constant |
 | Scope creep from the spec's extra UI (diagram, dialogs) | Med | The diagram is isolated in T10, last in Phase 3, and can slip without blocking deploy |
+| A shop blocks us, changes its JSON, or its robots.txt (price lookup) | Med | A failed refresh keeps the old copy and turns the run red (T26). We stop and talk, never work around a block |
+| A half-downloaded catalogue wipes a shop's prices | Med | Rows are replaced in one transaction only after every page downloaded; zero products counts as a failure (T26 tests) |
+| GitHub turns off the schedule after 60 days without activity | Low | The results show "Prices from <date>"; README says how to re-enable it (T29) |
+| The Neon URL leaks from the workflow | High | Only as a repository secret; the workflow never prints it (T29) |
+| "rtx 3060" also matches "3060 Ti" | Low | Results show the full product name and stock; the user picks (T28) |
 
 ## Open Questions
 

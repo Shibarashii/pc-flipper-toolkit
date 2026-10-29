@@ -560,3 +560,93 @@ opens `/signup`. A second e2e test clicks "Try the demo" and checks both sample 
 ### Checkpoint 6: Demo account
 - [x] SPEC success criterion 8 passes on the live site
 - [x] All tests pass on `main`
+
+## Phase 9: Price lookup
+
+Spec: [docs/specs/price-lookup.md](../docs/specs/price-lookup.md). No new dependencies.
+
+### - [ ] T26: Shop catalogue copy
+
+**Description:** A `ShopProduct` model (shop, title, url, price, in_stock, updated_at; unique
+shop + url) and `builds/prices.py`, which pages through a shop's `/products.json?limit=250`
+with `urllib.request` (honest user-agent, 1 s apart, 30 s timeout) and keeps only those
+fields: the cheapest variant's price as `Decimal`, `in_stock` if any variant is available.
+`manage.py refresh_shop_prices [--shop NAME]` replaces each shop's rows in one transaction
+only after every page downloaded. Read-only in the admin, so the copy can be checked.
+
+**Acceptance criteria:**
+- [ ] A failed page, or zero products, keeps the shop's old copy and the command exits non-zero.
+- [ ] One shop failing still refreshes the other.
+- [ ] Only `/products.json` is requested, always with the app's user-agent.
+- [ ] Prices are `Decimal`, parsed from the JSON's strings.
+
+**Verification:**
+- [ ] Tests (with `urlopen` mocked, no real shop): parsing, paging until an empty page, replace, failure keeps the copy, user-agent and path
+- [ ] Manual: run the command once locally against both shops; note PC Express's size and time; check the copy in the admin
+
+**Dependencies:** None
+**Files:** `backend/builds/models.py`, a new migration, `backend/builds/prices.py`, `backend/builds/management/commands/refresh_shop_prices.py`, `backend/builds/admin.py`, tests
+**Scope:** M
+
+### - [ ] T27: Search API
+
+**Description:** `GET /api/prices/?q=` returns up to 20 products whose title contains every
+word of `q` (case-insensitive), in stock first, then cheapest first, plus `updated_at` (the
+oldest shop refresh, or `null`). Needs a token. Documented with drf-spectacular. SPEC.md's API
+table and out-of-scope line point to the price lookup spec.
+
+**Acceptance criteria:**
+- [ ] `q` under 2 characters (trimmed) → 400 under `q`; no token → 401.
+- [ ] Matching, ordering, the 20 limit and `updated_at` behave as in the spec.
+
+**Verification:**
+- [ ] Tests: each criterion above
+- [ ] `spectacular --validate --fail-on-warn` passes
+
+**Dependencies:** T26
+**Files:** `backend/builds/views.py`, `backend/builds/serializers.py`, `backend/config/urls.py`, tests, `SPEC.md`
+**Scope:** S
+
+### - [ ] T28: "Find prices" in the part form
+
+**Description:** A "Find prices" link-style button next to Listed price in `PartForm` opens
+`PriceLookup`: a search prefilled with the part's name, results (name, shop, price, "Out of
+stock", a "View" link in a new tab), "Prices from <date>", and the no-matches, failed and
+not-loaded-yet messages. Choosing a result fills Listed price and Shop and closes the panel,
+without saving. Esc or Close closes it without cancelling the part edit.
+
+**Acceptance criteria:**
+- [ ] Works when adding and editing a part, including a bundled part.
+- [ ] Typing a price by hand works exactly as before.
+- [ ] Usable at 375px without horizontal scrolling; keyboard-only works.
+
+**Verification:**
+- [ ] Vitest: prefill; choosing fills price and shop without saving; failed and no-matches messages; Esc keeps the edit open; manual price still works
+- [ ] Screenshots: desktop and 375px, light and dark, against a local copy from T26
+
+**Dependencies:** T27
+**Files:** `frontend/src/api.ts`, a new `frontend/src/components/PriceLookup.tsx`, `frontend/src/components/PartRow.tsx`, tests
+**Scope:** M
+
+### - [ ] T29: Daily refresh on GitHub Actions
+
+**Description:** `.github/workflows/refresh-prices.yml` runs `refresh_shop_prices` daily at
+18:00 UTC and on `workflow_dispatch`, with `DATABASE_URL` from a repository secret (already set
+by the user on 2026-10-29 in the repo's Settings → Secrets → Actions). README covers
+the job, the secret, and re-enabling it after GitHub's 60-day pause.
+
+**Acceptance criteria:**
+- [ ] A manual run fills the production copy, and the live search returns both shops.
+- [ ] The run's log never shows the connection string.
+
+**Verification:**
+- [ ] `gh workflow run refresh-prices.yml`, then `gh run watch`: green
+- [ ] Search "rtx 3060" on the live site
+
+**Dependencies:** T26 deployed (its migration live on Neon)
+**Files:** `.github/workflows/refresh-prices.yml`, `README.md`
+**Scope:** S
+
+### Checkpoint 7: Price lookup
+- [ ] price lookup spec success criteria 1–6 pass on the live site
+- [ ] All tests pass on `main`
