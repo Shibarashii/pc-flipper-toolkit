@@ -3,6 +3,9 @@
 A separate feature on top of [SPEC.md](../../SPEC.md), which stays the source of truth for
 everything else (stack, auth, money rules, code style).
 
+[Part 2](#part-2-part-search-pop-up) adds a search pop-up to the Part box that uses the same
+shop copy.
+
 ## Objective
 
 While adding or editing a part, I can search its name and see current prices from PC shops,
@@ -119,8 +122,8 @@ The part form (`PartForm` in `components/PartRow.tsx`) on desktop and at 375px:
   form, and on its own strip because the compact add row hides its labels on desktop and has
   no room by Listed price. The hint hides while the panel is open. The panel opens on that
   strip (full width) with a search box (prefilled, focused), Search and Close, and the
-  results as a hairline-divided list (hover fill: `surface`, since it sits on `sunken`). Enter in the search box searches; it never saves the
-  part. A part name under 2 characters isn't searched until the user types more.
+  results as a hairline-divided list (hover fill: `surface`, since it sits on `sunken`).
+  Enter in the search box searches; it never saves the part. A part name under 2 characters isn't searched until the user types more.
 - Choosing a result moves the focus to Listed price, so it can be adjusted; closing the
   panel moves it back to "Find prices".
 - Each result is a button (choose) plus a separate "View" link to the shop page. Price uses
@@ -205,3 +208,168 @@ frontend/src/
 ## Open Questions
 
 None. Resolved: no warning when the copy is old, just the "Prices from" date (2026-10-29).
+
+---
+
+# Part 2: Part search pop-up
+
+Builds on part 1's `ShopProduct` copy and `/api/prices/`. Agreed with the author on 2026-10-29.
+
+## Objective
+
+Typing a part's name is slow, and "Find prices" was easy to miss. Typing 2+ letters in the
+part form's **Part** box opens a pop-up of matching EasyPC and PC Express products. Picking
+one fills three fields at once: **Part** (a short name), **Listed price** and **Shop**.
+
+- **User:** the flipper entering a whole build part by part (demo accounts too).
+- **It's a suggestion:** all three fields stay editable. Ignoring the pop-up and typing
+  works exactly as before. Second-hand parts (e.g. from Facebook Marketplace) are often not in
+  the shops, so the pop-up must never get in the way of typing.
+
+### User stories
+
+1. In the part form (add or edit, including a bundled part), typing 2+ characters in Part
+   shows up to 8 matching products under the box after a short pause.
+2. Each row shows the short name (what gets filled in), the shop's full name under it so I can
+   tell exactly which product it is, the price and shop, and "Out of stock" when it is.
+3. Picking a row fills Part with the short name, Listed price with its price and Shop with its
+   shop. Category, Bought for and Bundle are untouched. Nothing is saved until Save.
+4. If nothing matches, the copy is empty, or the request fails, no pop-up appears. The user
+   just keeps typing; there's no error message in the way.
+5. "Find prices" (part 1) stays, for an existing part or a different product's price.
+
+### Short names
+
+Shop titles are long ("MSI GeForce RTX™ 3060 VENTUS 2X OC 12GB GDDR6 192-bit Graphics Card").
+`shorten(title)` in `prices.py` makes a short name with plain rules, in order:
+
+1. Drop ™ ® ©.
+2. Cut at the first ` / `, `/`, ` | `, `, `, ` - `, ` with ` or ` + `. These start spec lists
+   (prebuilts, laptops), marketing tails and combos.
+3. Drop: anything in brackets (SKUs, colours); "NVIDIA", "GeForce", "Radeon"; part codes with
+   2+ hyphens (`GV-N3060EAGLE-12GD`); SKU-like tokens of 12+ characters with 3+ digits and 3+
+   letters (`KF552C40BBK2-32`); GDDR types; bus widths (`192bit`); "LHR"; GHz speeds;
+   "Gaming", "Graphics Card", "Videocard", "Socket", "Processor", "Motherboard", "Memory",
+   "Desktop", "CPU", "Power Supply". "Solid State Drive" becomes "SSD".
+4. Collapse spaces and keep at most 7 words.
+
+Tried on the local copy of all 10,085 titles (2026-10-29). Graphics cards, RAM and power
+supplies come out clean; motherboards are about 5 in 8, since their titles carry marketing
+text. Examples:
+
+| Shop title | Short name |
+|---|---|
+| Palit NVIDIA® GeForce RTX™ 3060 Dual NE63060019K9-190AD-V1 12gb 192bit GDdr6 Gaming Videocard LHR | Palit RTX 3060 Dual 12gb |
+| Asus TUF Nvidia Geforce RTX 4080 Super TUF-RTX4080S-O16G-GAMING 16GB 256bit GDDR6 Videocard | Asus TUF RTX 4080 Super 16GB |
+| Kingston Fury Beast KF552C40BBK2-32 32GB 2x16 5200MT/s DDR5 Memory Black XMP | Kingston Fury Beast 32GB 2x16 5200MT |
+| Gigabyte B550M-K Socket Am4 Ddr4 Motherboard | Gigabyte B550M-K Am4 Ddr4 |
+| Coolermaster MWE550 V2 Power Supply 550watts | Coolermaster MWE550 V2 550watts |
+| Asus Prime H610M-D D4 Socket LGA 1700 Comprehensive cooling, Ultrafast … Motherboard | Asus Prime H610M-D D4 LGA 1700 Comprehensive (bad) |
+
+The short name is what gets saved, since part names show in narrow table columns, phone
+cards and the checklist. A bad short name costs a few keystrokes: the user sees it, with the
+full name under it in the pop-up, and edits it before saving. The
+rules get tuned by adding a test case, not by matching on categories.
+
+### Out of scope (part 2)
+
+Filling Category (the copy doesn't store it; that would be a data-model change); suggesting
+the user's own past part names; outside parts data (PCPartPicker has no API and forbids
+scraping, the open datasets are from 2024, Icecat looks up by product code); renaming
+"Listed price" to "Market price".
+
+## API change
+
+`/api/prices/` results gain one field, `short_title`, computed by `shorten()` when the
+response is built. It's additive: the table, the matching, the order and the 20-result cap stay
+the same. The pop-up shows the first 8.
+
+```json
+{"shop": "PC Express", "title": "MSI GeForce RTX™ 3060 VENTUS 2X OC 12GB GDDR6 192-bit Graphics Card",
+ "short_title": "MSI RTX 3060 VENTUS 2X OC 12GB", "url": "…", "price": "26000.00", "in_stock": true}
+```
+
+## Screens
+
+- **The Part box becomes a combobox** (the WAI-ARIA 1.2 "combobox with listbox popup"
+  pattern):
+  - The input gets `role="combobox"`, `aria-expanded`, `aria-controls` and
+    `aria-activedescendant`.
+  - The pop-up is a `role="listbox"` of `role="option"` rows.
+- **Placement:** the pop-up sits right under the Part box, over the fields below it. It is as
+  wide as the box, with a 280px minimum on desktop's compact add row.
+- **Style:** `surface` background, 1px `line-strong` border, 4px radius (it's a control),
+  hairlines between rows and no shadow, per the brand.
+  - Each row's short name is in body text, and the shop's full name is under it in small
+    muted text (wrapping, never cut off).
+  - The price (`formatMoney`, tabular) and shop are in small muted text.
+  - "Out of stock" uses the outlined tag.
+  - The active row has a `sunken` fill.
+- **When it searches:** 300 ms after the last keystroke, only while the box has 2+
+  characters. Only the newest request's answer counts. It opens only from typing, never just
+  from focusing the box.
+- **Keys:**
+  - Down/Up move through the rows.
+  - **Enter picks only when a row is active; otherwise Enter saves the part, as today.**
+  - Esc closes the pop-up only; a second Esc cancels the edit.
+  - Tab and clicking elsewhere close it without picking.
+- **Picking** fills the three fields, closes the pop-up and keeps the focus in Part with the
+  cursor at the end, so the name can be trimmed.
+- **After a save in the add row** (which stays open for the next part), the pop-up is closed.
+- **375px:** full width under the box; rows wrap; no horizontal scroll.
+
+## Project Structure (part 2)
+
+```
+backend/builds/
+  prices.py                         + shorten()
+  serializers.py                    + short_title
+frontend/src/
+  api.ts                            + short_title on ShopProduct
+  components/PartSearch.tsx         the Part combobox
+  components/PartRow.tsx            uses PartSearch for Part
+```
+
+## Testing Strategy (part 2)
+
+- **Backend:**
+  - `shorten()` gets a table of real titles and their expected short names (the examples
+    above, plus one per rule).
+  - `/api/prices/` returns `short_title`.
+- **Frontend (Vitest, fake timers):**
+  - No request under 2 characters, or before the pause.
+  - Rows show the short name, full name, price, shop and stock.
+  - Down + Enter fills name, price and shop and doesn't save.
+  - Enter with no active row saves.
+  - Esc closes only the pop-up.
+  - An older answer can't replace a newer one.
+  - A failed request shows nothing and typing still works.
+  - The ARIA attributes are set.
+- **E2E:** in a real browser, Enter with no active row saves the part, and Down + Enter
+  doesn't. CI's database has no shop copy, so the test gets results by routing
+  `/api/prices/*` to a fixture with Playwright.
+- **Manual:** desktop add row, desktop edit, and 375px, in light and dark.
+
+## Boundaries (part 2)
+
+- **Always:** part 1's rules; typing without the pop-up works exactly as before; Enter without
+  an active row saves.
+- **Ask first:** filling Category; storing short names in the table; any new dependency (no
+  combobox library: the pattern is small enough to write).
+- **Never:** call a shop from the browser; open the pop-up on focus alone; show an error that
+  blocks typing.
+
+## Success Criteria (part 2)
+
+1. On production, typing "3060" in a new part's Part box shows matching products within
+   about a second once Render is awake. Picking one fills Part, Listed price and Shop, all
+   editable, and Save stores what's shown.
+2. Typing a name and pressing Enter (no row active) saves the part, as before.
+3. The pop-up works with the keyboard alone, and a screen reader announces the rows.
+4. Graphics cards, RAM and power supplies in the examples get short names like the table
+   above (backend tests).
+5. Usable at 375px without horizontal scrolling, in light and dark.
+
+## Open Questions
+
+None.
