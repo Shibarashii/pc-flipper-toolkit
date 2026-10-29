@@ -52,7 +52,8 @@ New table only. Existing models don't change.
 ```
 ShopProduct
   shop         text            "EasyPC" | "PC Express"
-  title        text            the shop's product name
+  title        text            the shop's product name, with symbols that the shop's own
+                               data garbled fixed ("IntelÂ®" → "Intel®"; 375 EasyPC titles)
   url          text            product page, https://<shop>/products/<handle>
   price        decimal(10,2)   the cheapest variant's price; a product without a usable
                                price (₱0 placeholders, NaN, negative, too big) or with a
