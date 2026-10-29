@@ -1,14 +1,18 @@
-from django.db.models import Count, OuterRef, Subquery
+from django.db.models import Count, Min, OuterRef, Subquery
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
 from rest_framework import viewsets
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
-from .models import Build, Bundle, ExtraCost, Part
+from .models import Build, Bundle, ExtraCost, Part, ShopProduct
 from .serializers import (
     BuildDetailSerializer,
     BuildSerializer,
     BundleSerializer,
     ExtraCostSerializer,
     PartSerializer,
+    PriceQuerySerializer,
+    PriceSearchSerializer,
 )
 
 # The SPEC only supports partial updates; PUT is left out so the docs don't offer it.
@@ -190,3 +194,57 @@ class ExtraCostViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return ExtraCost.objects.filter(build__owner=self.request.user)
+
+
+PRICE_RESULTS = 20
+
+
+class PriceSearchView(APIView):
+    @extend_schema(
+        summary="Find shop prices",
+        description="Products whose name has every word of `q`, from the copy of the "
+        "PC shops' catalogues that's refreshed daily (never a live call to a shop). "
+        f"In stock first, then cheapest first; at most {PRICE_RESULTS}. "
+        'Matches are loose ("rtx 3060" also finds "RTX 3060 Ti"), so show the names '
+        "and let the user pick.",
+        parameters=[PriceQuerySerializer],
+        responses={200: PriceSearchSerializer},
+        examples=[
+            OpenApiExample(
+                "Two matches",
+                response_only=True,
+                value={
+                    "results": [
+                        {
+                            "shop": "PC Express",
+                            "title": "MSI GeForce RTX 3060 VENTUS 2X OC 12GB GDDR6",
+                            "url": "https://pcx.com.ph/products/msi-rtx-3060-ventus",
+                            "price": "26000.00",
+                            "in_stock": True,
+                        },
+                        {
+                            "shop": "EasyPC",
+                            "title": "MSI RTX 3060 Ti Ventus 2X OC 8GB",
+                            "url": "https://easypc.com.ph/products/msi-rtx-3060ti",
+                            "price": "23390.00",
+                            "in_stock": False,
+                        },
+                    ],
+                    "updated_at": "2026-10-29T18:04:11Z",
+                },
+            )
+        ],
+        tags=["prices"],
+    )
+    def get(self, request):
+        query = PriceQuerySerializer(data=request.query_params)
+        query.is_valid(raise_exception=True)
+        products = ShopProduct.objects.all()
+        for word in query.validated_data["q"].split():
+            products = products.filter(title__icontains=word)
+        # A shop's rows share one refresh time, so the oldest row is the oldest shop.
+        updated = ShopProduct.objects.aggregate(t=Min("updated_at"))["t"]
+        results = products.order_by("-in_stock", "price", "title")[:PRICE_RESULTS]
+        return Response(
+            PriceSearchSerializer({"results": results, "updated_at": updated}).data
+        )

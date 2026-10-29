@@ -1,5 +1,5 @@
 import json
-from datetime import timedelta
+from datetime import datetime, timedelta
 from decimal import Decimal as D
 from io import BytesIO, StringIO
 from unittest import mock
@@ -1239,3 +1239,88 @@ class RefreshShopPricesTests(TestCase):
             call_command("refresh_shop_prices", "--shop", "EasyPC", stderr=StringIO())
         self.assertEqual(len(endless.requests), 3)
         self.assertEqual(list(ShopProduct.objects.all()), [old])
+
+
+class PriceSearchTests(LoggedInApiTestCase):
+    def shop_product(self, title, price="1000.00", in_stock=True, **fields):
+        return ShopProduct.objects.create(
+            **{
+                "shop": "EasyPC",
+                "title": title,
+                "url": f"{EASYPC}/products/{title}",
+                "price": price,
+                "in_stock": in_stock,
+                "updated_at": timezone.now(),
+                **fields,
+            }
+        )
+
+    def search(self, q):
+        return self.client.get("/api/prices/", {"q": q})
+
+    def titles(self, q):
+        return [r["title"] for r in self.search(q).json()["results"]]
+
+    def test_every_word_in_any_order_and_case(self):
+        self.shop_product("MSI GeForce RTX™ 3060 Ventus 12GB")
+        self.shop_product("ASUS Dual RTX 3060 Ti")
+        self.shop_product("ASUS Dual RTX 4060")
+        self.shop_product("Ryzen 5 5600 50% off")
+
+        self.assertEqual(
+            sorted(self.titles("  3060   rtx ")),
+            ["ASUS Dual RTX 3060 Ti", "MSI GeForce RTX™ 3060 Ventus 12GB"],
+        )
+        self.assertEqual(self.titles("RYZEN"), ["Ryzen 5 5600 50% off"])
+        # LIKE wildcards are matched literally.
+        self.assertEqual(self.titles("5_%"), [])
+
+    def test_in_stock_first_then_cheapest(self):
+        self.shop_product("GPU cheap gone", "9000.00", in_stock=False)
+        self.shop_product("GPU dear", "30000.00")
+        self.shop_product("GPU cheap", "26000.00")
+
+        self.assertEqual(
+            self.titles("gpu"), ["GPU cheap", "GPU dear", "GPU cheap gone"]
+        )
+
+    def test_the_fields_and_at_most_20(self):
+        for n in range(25):
+            self.shop_product(f"SSD {n:02}", "2600.50")
+
+        res = self.search("ssd")
+
+        self.assertEqual(res.status_code, 200)
+        results = res.json()["results"]
+        self.assertEqual(len(results), 20)
+        self.assertEqual(
+            results[0],
+            {
+                "shop": "EasyPC",
+                "title": "SSD 00",
+                "url": f"{EASYPC}/products/SSD 00",
+                "price": "2600.50",
+                "in_stock": True,
+            },
+        )
+
+    def test_updated_at_is_the_oldest_shops_refresh(self):
+        self.assertEqual(self.search("ssd").json(), {"results": [], "updated_at": None})
+
+        old = timezone.now() - timedelta(days=2)
+        self.shop_product("SSD", shop="PC Express", updated_at=old)
+        self.shop_product("SSD")
+
+        updated = self.search("nothing like it").json()["updated_at"]
+        self.assertEqual(datetime.fromisoformat(updated), old)
+
+    def test_q_needs_two_characters(self):
+        for params in [{"q": "a"}, {"q": "  a  "}, {"q": ""}, {}]:
+            res = self.client.get("/api/prices/", params)
+            self.assertEqual(res.status_code, 400, params)
+            self.assertEqual(list(res.json()), ["q"], params)
+        self.assertEqual(self.search("x" * 101).status_code, 400)
+
+    def test_needs_a_login(self):
+        self.client.force_authenticate(None)
+        self.assertEqual(self.search("ssd").status_code, 401)
