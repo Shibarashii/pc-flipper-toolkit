@@ -1,0 +1,40 @@
+name: Refresh prices
+
+# The price lookup's daily copy of the PC shops' catalogues (docs/specs/price-lookup.md).
+# Render's free tier has no cron, so GitHub runs it against the production database.
+on:
+  schedule:
+    - cron: "0 18 * * *" # 2am in the Philippines (UTC+8)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Never two at once: each would fetch every shop again.
+concurrency:
+  group: refresh-prices
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    # Not on forks: the command downloads every catalogue before it touches the
+    # database, so a fork without the secret would still hit the shops daily.
+    if: github.repository == 'Shibarashii/pc-flipper-toolkit'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+      - run: pip install -r requirements.txt
+      # Prints one line per shop. A failure keeps that shop's old copy, fails the run,
+      # and names a database error by its type only, since these logs are public.
+      - run: python manage.py refresh_shop_prices
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}

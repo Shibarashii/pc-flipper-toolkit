@@ -65,7 +65,7 @@ Open http://localhost:5173 and sign up.
 (cd frontend && npm test && npm run lint && npm run build)
 ```
 
-End-to-end: one Playwright test (`frontend/e2e/`) signs up, builds a PC with loose parts and a bundle, prices it, checks the totals and checklist, and deletes it, at desktop and phone width. It starts Django and Vite itself (or reuses ones already running) on your local database.
+End-to-end: Playwright tests (`frontend/e2e/`) sign up and flip a PC (loose parts and a bundle, pricing, totals, checklist, delete), try the demo, and check the price lookup's keys, at desktop and phone width. It starts Django and Vite itself (or reuses ones already running) on your local database.
 
 ```sh
 (cd frontend && npx playwright install chromium && npm run e2e)
@@ -79,6 +79,12 @@ Sign-up is limited to 10 a minute, so running it many times in a row locally get
 - **Vercel** (root `frontend`): Vite preset, `VITE_API_URL` set to the Render URL. `vercel.json` sends every path to `index.html` so deep links work, and its CSP's `connect-src` names the Render URL: change it together with `VITE_API_URL`, or the browser blocks every API call.
 
 Both redeploy on every push to `main`. See [`backend/.env.example`](backend/.env.example) for what each setting does.
+
+**Shop prices** for "Find prices" come from a copy of EasyPC's and PC Express's public catalogues, which [`refresh-prices.yml`](.github/workflows/refresh-prices.yml) refreshes daily at 2am Philippine time ([spec](docs/specs/price-lookup.md)).
+- **Setup:** it needs one repository secret, `DATABASE_URL` (Neon's connection string), under Settings → Secrets and variables → Actions.
+- **Run it now:** `gh workflow run refresh-prices.yml`, or the "Run workflow" button in the Actions tab.
+- **If prices go stale:** GitHub turns scheduled workflows off after 60 days without activity in the repo, and the lookup's "Prices from" date stops moving. Re-enable it in the Actions tab.
+- **Locally:** `.venv/bin/python manage.py refresh_shop_prices` fills your own database. It takes about 90 s and downloads about 50 MB, so run it at most once a day.
 
 ## Known limits
 
