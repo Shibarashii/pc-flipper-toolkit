@@ -4,7 +4,13 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from rest_framework.routers import DefaultRouter
 
 from builds.auth import DemoView, LoginView, LogoutView, MeView, SignupView
-from builds.views import BuildViewSet, BundleViewSet, ExtraCostViewSet, PartViewSet
+from builds.views import (
+    BuildViewSet,
+    BundleViewSet,
+    ExtraCostViewSet,
+    PartViewSet,
+    PriceSearchView,
+)
 
 router = DefaultRouter()
 router.register("builds", BuildViewSet)
@@ -21,5 +27,6 @@ urlpatterns = [
     path("api/auth/logout/", LogoutView.as_view()),
     path("api/auth/demo/", DemoView.as_view()),
     path("api/auth/me/", MeView.as_view()),
+    path("api/prices/", PriceSearchView.as_view()),
     path("api/", include(router.urls)),
 ]

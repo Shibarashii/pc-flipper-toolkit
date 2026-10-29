@@ -1,7 +1,7 @@
 from django.db import models
 from rest_framework import serializers
 
-from .models import Build, Bundle, ExtraCost, Part
+from .models import Build, Bundle, ExtraCost, Part, ShopProduct
 
 
 def money(help_text: str, source: str | None = None, nullable: bool = False):
@@ -262,3 +262,36 @@ class BuildDetailSerializer(BuildSerializer):
 
     class Meta(BuildSerializer.Meta):
         fields = [*BuildSerializer.Meta.fields, "parts", "bundles", "extra_costs"]
+
+
+class PriceQuerySerializer(serializers.Serializer):
+    q = serializers.CharField(
+        min_length=2,
+        max_length=100,
+        help_text='What to look for, e.g. "rtx 3060". Every word must be in the '
+        "product's name, in any order and case.",
+    )
+
+
+class ShopProductSerializer(serializers.ModelSerializer):
+    price = money("The shop's price (its cheapest variant).")
+
+    class Meta:
+        model = ShopProduct
+        fields = ["shop", "title", "url", "price", "in_stock"]
+        extra_kwargs = {
+            "shop": {"help_text": 'e.g. "EasyPC". Fills a part\'s `shop`.'},
+            "title": {"help_text": "The product's name at the shop."},
+            "url": {"help_text": "The product's page at the shop."},
+            "in_stock": {"help_text": "Whether the shop lists it as available."},
+        }
+
+
+class PriceSearchSerializer(serializers.Serializer):
+    results = ShopProductSerializer(many=True, read_only=True)
+    updated_at = serializers.DateTimeField(
+        read_only=True,
+        allow_null=True,
+        help_text="When the oldest shop's prices were fetched; `null` before the "
+        "first refresh.",
+    )

@@ -37,7 +37,7 @@ market the PC is priced. It replaces the author's spreadsheet.
     account is deleted after 24 hours. ([docs/intent/demo-account.md](docs/intent/demo-account.md))
 
 ### Out of scope (v1)
-Price scraping, voucher detection, buyer-only build mode, part compatibility checks,
+Price scraping (a price lookup from PC shops came later: [docs/specs/price-lookup.md](docs/specs/price-lookup.md)), voucher detection, buyer-only build mode, part compatibility checks,
 multiple currencies (amounts are in PHP ₱ only). For accounts: email, password reset,
 sharing a build with another user, turning a demo account into a real one, and social login.
 
@@ -125,6 +125,7 @@ All endpoints are under `/api/`. JSON in, JSON out. Only `PATCH` is supported fo
 | PATCH, DELETE | `/api/bundles/{id}/` | Edit / remove a bundle (removing it removes its parts) |
 | POST | `/api/extra-costs/` | Add an extra cost (`build` id in the body) |
 | PATCH, DELETE | `/api/extra-costs/{id}/` | Edit / remove an extra cost |
+| GET | `/api/prices/?q=` | Search the PC shops' prices ([price lookup spec](docs/specs/price-lookup.md)) |
 
 `totals` is computed on the server and read-only:
 ```json
@@ -248,7 +249,8 @@ pc-flipper-toolkit/
 │   ├── requirements.txt
 │   ├── config/            Django project: settings.py, urls.py
 │   └── builds/            The one Django app: models, serializers, views, tests.py;
-│                          auth.py (accounts), authentication.py (token checks), demo.py (sample builds)
+│                          auth.py (accounts), authentication.py (token checks), demo.py (sample builds),
+│                          prices.py + test_prices.py (price lookup)
 ├── frontend/
 │   ├── vite.config.ts     Includes the /api dev proxy
 │   ├── e2e/               Playwright: the main flow, and trying the demo

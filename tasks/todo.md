@@ -588,7 +588,7 @@ only after every page downloaded. Read-only in the admin, so the copy can be che
 **Files:** `backend/builds/models.py`, a new migration, `backend/builds/prices.py`, `backend/builds/management/commands/refresh_shop_prices.py`, `backend/builds/admin.py`, tests
 **Scope:** M
 
-### - [ ] T27: Search API
+### - [x] T27: Search API
 
 **Description:** `GET /api/prices/?q=` returns up to 20 products whose title contains every
 word of `q` (case-insensitive), in stock first, then cheapest first, plus `updated_at` (the
@@ -596,12 +596,12 @@ oldest shop refresh, or `null`). Needs a token. Documented with drf-spectacular.
 table and out-of-scope line point to the price lookup spec.
 
 **Acceptance criteria:**
-- [ ] `q` under 2 characters (trimmed) → 400 under `q`; no token → 401.
-- [ ] Matching, ordering, the 20 limit and `updated_at` behave as in the spec.
+- [x] `q` under 2 characters (trimmed) → 400 under `q`; no token → 401.
+- [x] Matching, ordering, the 20 limit and `updated_at` behave as in the spec.
 
 **Verification:**
-- [ ] Tests: each criterion above
-- [ ] `spectacular --validate --fail-on-warn` passes
+- [x] Tests: each criterion above
+- [x] `spectacular --validate --fail-on-warn` passes
 
 **Dependencies:** T26
 **Files:** `backend/builds/views.py`, `backend/builds/serializers.py`, `backend/config/urls.py`, tests, `SPEC.md`

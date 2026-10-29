@@ -83,15 +83,16 @@ Adding one is a code change plus a robots.txt and terms check.
     {"shop": "PC Express", "title": "MSI GeForce RTX 3060 VENTUS 2X OC 12GB GDDR6",
      "url": "https://pcx.com.ph/products/...", "price": "26000.00", "in_stock": true}
   ],
-  "updated_at": "2026-10-29T18:04:11Z"
+  "updated_at": "2026-10-30T02:04:11+08:00"
 }
 ```
 
 - Matching: every word in `q` must appear in the title, case-insensitive (`rtx 3060` matches
   "RTX 3060 Ti" too; the user picks).
 - Order: in stock first, then price ascending.
-- `updated_at` is the oldest shop refresh time, or `null` before the first refresh.
-- `q` shorter than 2 characters (after trimming) → 400 under `q`.
+- `updated_at` is the oldest shop refresh time, or `null` before the first refresh. Like
+  every time in the API, it's in Manila time (`+08:00`).
+- `q` shorter than 2 or longer than 100 characters (after trimming) → 400 under `q`.
 - Needs a token like every endpoint (401 without). It only reads our table, so it has no
   rate limit.
 - Documented in drf-spectacular like the rest (summary, description, example).
@@ -153,7 +154,7 @@ frontend/src/
 
 ## Testing Strategy
 
-- **Backend (`builds/tests.py`)**, with `urlopen` mocked to return small fixture catalogues.
+- **Backend (`builds/test_prices.py`)**, with `urlopen` mocked to return small fixture catalogues.
   No test touches a real shop.
   - Parsing: cheapest variant price as `Decimal`, `in_stock` from any variant, url from the
     handle, paging until an empty page.
