@@ -244,15 +244,23 @@ Shop titles are long ("MSI GeForce RTX™ 3060 VENTUS 2X OC 12GB GDDR6 192-bit G
 `shorten(title)` in `prices.py` makes a short name with plain rules, in order:
 
 1. Drop ™ ® ©.
-2. Cut at the first ` / `, `/`, ` | `, `, `, ` - `, ` with ` or ` + `. These start spec lists
+2. Drop anything in brackets (SKUs, colours, fan lists). This comes before step 3 because a
+   bracket can hold a separator. A "(" with no ")" (a cut-off title) drops the rest.
+3. Cut at the first ` / `, `/`, ` | `, `, `, ` - `, ` with ` or ` + `. These start spec lists
    (prebuilts, laptops), marketing tails and combos.
-3. Drop: anything in brackets (SKUs, colours); "NVIDIA", "GeForce", "Radeon"; part codes with
-   2+ hyphens (`GV-N3060EAGLE-12GD`); SKU-like tokens of 12+ characters with 3+ digits and 3+
-   letters (`KF552C40BBK2-32`); GDDR types; bus widths (`192bit`); "LHR"; GHz speeds;
-   "Gaming", "Graphics Card", "Videocard", "Socket", "Processor", "Motherboard", "Memory",
-   "Desktop", "CPU", "Power Supply". "Solid State Drive" becomes "SSD".
-4. Collapse spaces and keep at most 10 words. (7 cut 36% of titles and lost details like
-   a card's "8GB"; 10 cuts 8%, and the average short name is 6.7 words.)
+4. Drop:
+   - "NVIDIA", "GeForce", "Radeon"
+   - part codes with 2+ hyphens (`GV-N3060EAGLE-12GD`)
+   - SKU-like tokens of 12+ characters with 3+ digits and 3+ letters (`KF552C40BBK2-32`)
+   - GDDR types, bus widths (`192bit`), "LHR", GHz speeds
+   - "Gaming", "Graphics Card", "Videocard", "Socket", "Processor", "Motherboard", "Memory",
+     "Desktop", "CPU", "Power Supply"
+
+   "Solid State Drive" becomes "SSD".
+5. Collapse spaces and keep at most 10 words. Seven words cut 36% of titles and lost details
+   like a card's "8GB"; 10 cuts 8%, and the average short name is 6.8 words.
+6. Trim a joining symbol the word cap leaves at the end ("MU-MIMO&" becomes "MU-MIMO").
+   "80+" stays.
 
 Tried on the local copy of all 10,085 titles (2026-10-29). Graphics cards, RAM and power
 supplies come out clean; motherboards are about 5 in 8, since their titles carry marketing

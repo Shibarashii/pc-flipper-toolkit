@@ -408,6 +408,33 @@ class ShortenTests(TestCase):
             ]
         )
 
+    def test_drops_brackets_before_cutting_at_separators(self):
+        self.assertShortens(
+            [
+                (
+                    "Antec Torque E-ATX (3*120mm Front, 3*120mm Top Fans) Case",
+                    "Antec Torque E-ATX Case",
+                ),
+                ("UGREEN (HD175/45432) HDMI 2.1 Cable", "UGREEN HDMI 2.1 Cable"),
+                # Some titles are cut off inside a bracket.
+                ("ASUS TUF RTX 3060 12GB (PCIe 4.0 support", "ASUS TUF RTX 3060 12GB"),
+            ]
+        )
+
+    def test_drops_a_stray_symbol_left_by_the_word_cap(self):
+        self.assertShortens(
+            [
+                (
+                    (
+                        "Asus RT-AX55 AX1800 Dual Band WiFi 6 Router supporting MU-MIMO& "
+                        "OFDMA"
+                    ),
+                    "Asus RT-AX55 AX1800 Dual Band WiFi 6 Router supporting MU-MIMO",
+                ),
+                ("Coolermaster MWE500 80+", "Coolermaster MWE500 80+"),
+            ]
+        )
+
     def test_falls_back_to_the_full_title_when_nothing_is_left(self):
         self.assertShortens(
             [("Gaming Videocard", "Gaming Videocard"), ("(Bundle)", "(Bundle)")]
