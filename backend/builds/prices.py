@@ -75,7 +75,13 @@ _NOISE = [
         r"\b\d+(?:\.\d+)?\s?GHz\b",
         r"\bLHR\b",
         r"\b(?:Gaming\s+)?(?:Graphics\s+Card|Video\s*card)\b",
-        r"\b(?:Gaming|Socket|Processor|Motherboard|Memory|Desktop|CPU|Power Supply)\b",
+        # "Gaming" is the kind of product ("Gaming Mouse"), except in model names like
+        # "TUF Gaming", "Phantom Gaming", "GAMING X TRIO", "Gaming OC" or "B550 Gaming Plus".
+        (
+            r"\bGaming\b(?<!TUF Gaming)(?<!Phantom Gaming)"
+            r"(?!\s+(?:OC|X\d?|Trio|Pro|Plus|Slim|D|\d+|Wi-?Fi)\b)"
+        ),
+        r"\b(?:Socket|Processor|Motherboard|Memory|Desktop|CPU|Power Supply)\b",
     ]
 ]
 SHORT_WORDS = 10  # 7 cut 36% of titles, losing details like a card's 8GB

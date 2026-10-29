@@ -253,8 +253,11 @@ Shop titles are long ("MSI GeForce RTX™ 3060 VENTUS 2X OC 12GB GDDR6 192-bit G
    - part codes with 2+ hyphens (`GV-N3060EAGLE-12GD`)
    - SKU-like tokens of 12+ characters with 3+ digits and 3+ letters (`KF552C40BBK2-32`)
    - GDDR types, bus widths (`192bit`), "LHR", GHz speeds
-   - "Gaming", "Graphics Card", "Videocard", "Socket", "Processor", "Motherboard", "Memory",
-     "Desktop", "CPU", "Power Supply"
+   - "Graphics Card", "Videocard", "Socket", "Processor", "Motherboard", "Memory", "Desktop",
+     "CPU", "Power Supply"
+   - "Gaming", unless it's part of a model name: after "TUF" or "Phantom", or before "OC", "X",
+     "Trio", "Pro", "Plus", "Slim", "D", a number or "WiFi" ("GAMING X TRIO", "Phantom Gaming
+     4", "B550 Gaming Plus")
 
    "Solid State Drive" becomes "SSD".
 5. Collapse spaces and keep at most 10 words. Seven words cut 36% of titles and lost details

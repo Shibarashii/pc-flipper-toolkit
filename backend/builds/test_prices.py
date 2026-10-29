@@ -435,6 +435,31 @@ class ShortenTests(TestCase):
             ]
         )
 
+    def test_keeps_gaming_when_its_part_of_the_model_name(self):
+        self.assertShortens(
+            [
+                (
+                    "MSI GeForce RTX 4070 GAMING X TRIO 12G",
+                    "MSI RTX 4070 GAMING X TRIO 12G",
+                ),
+                ("Gigabyte RTX 4060 Gaming OC 8G", "Gigabyte RTX 4060 Gaming OC 8G"),
+                ("Asus TUF Gaming X3 RX 5600 XT", "Asus TUF Gaming X3 RX 5600 XT"),
+                ("ASUS TUF GAMING B760M-PLUS WIFI", "ASUS TUF GAMING B760M-PLUS WIFI"),
+                ("Asrock B550 Phantom Gaming 4", "Asrock B550 Phantom Gaming 4"),
+                ("MSI B550 Gaming Plus", "MSI B550 Gaming Plus"),
+                (
+                    "Asus ROG Strix B550-F Gaming Wi-Fi",
+                    "Asus ROG Strix B550-F Gaming Wi-Fi",
+                ),
+                # Otherwise it's just the kind of product.
+                ("Redragon Cobra M711 Gaming Mouse", "Redragon Cobra M711 Mouse"),
+                (
+                    "Palit RTX 3060 Dual 12gb Gaming Videocard",
+                    "Palit RTX 3060 Dual 12gb",
+                ),
+            ]
+        )
+
     def test_falls_back_to_the_full_title_when_nothing_is_left(self):
         self.assertShortens(
             [("Gaming Videocard", "Gaming Videocard"), ("(Bundle)", "(Bundle)")]
