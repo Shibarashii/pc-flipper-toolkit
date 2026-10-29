@@ -5,6 +5,7 @@ import fanHub from "../assets/fan-hub.svg";
 import rearFan from "../assets/rear-fan.svg";
 import slotMissing from "../assets/slot-missing.png";
 import { buildSlots, REQUIRED_SLOTS, type SlotState } from "../slots";
+import { link } from "../ui";
 
 // Where each slot sits in the 300×380 case diagram, drawn back to front.
 const DIAGRAM: Record<Exclude<PartCategory, "other">, string> = {
@@ -129,7 +130,7 @@ export function BuildChecklist({
                   type="button"
                   aria-label={`Add ${slot.label}`}
                   onClick={() => onAdd(slot.category)}
-                  className="shrink-0 rounded text-[13px] leading-[18px] font-medium text-accent hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                  className={`shrink-0 ${link}`}
                 >
                   Add
                 </button>

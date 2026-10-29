@@ -7,14 +7,12 @@ import {
   type Part,
 } from "../api";
 import { formatMoney } from "../money";
-import { buttonPrimary, buttonSecondary, input } from "../ui";
+import { buttonPrimary, buttonSecondary, input, link } from "../ui";
 import { DeleteDialog } from "./DeleteDialog";
 import { cleanMoney, Field, RowActions, useSave } from "./form";
 
 const tag =
   "inline-block rounded border border-line-strong px-[7px] text-[13px] leading-[18px]";
-const link =
-  "rounded text-[13px] leading-[18px] font-medium text-accent hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent";
 
 /** A bundle's own row: one price for the parts listed under it. */
 export function BundleItem({

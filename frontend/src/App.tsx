@@ -12,7 +12,7 @@ import { ThemeToggle } from "./components/ThemeToggle";
 import { BuildDetail } from "./pages/BuildDetail";
 import { BuildsList } from "./pages/BuildsList";
 import { Login } from "./pages/Login";
-import { buttonSecondary } from "./ui";
+import { buttonSecondary, link } from "./ui";
 
 export default function App() {
   const { session } = useAuth();
@@ -58,18 +58,13 @@ export default function App() {
         </div>
       </header>
       {session && isDemo(session) && (
-        <div className="flex items-center justify-between gap-4 border-b border-line bg-sunken px-4 py-2.5 sm:px-10">
-          <p className="text-[13px] leading-[18px]">
-            You’re trying a demo. It’s deleted after 24 hours.
-          </p>
-          <button
-            type="button"
-            onClick={signUpInstead}
-            className={`shrink-0 ${buttonSecondary}`}
-          >
-            Sign up
+        // One line with an inline link, so its action doesn't stack under "Log out".
+        <p className="border-b border-line bg-sunken px-4 py-2.5 text-[13px] leading-[18px] sm:px-10">
+          You’re trying a demo. It’s deleted after 24 hours.{" "}
+          <button type="button" onClick={signUpInstead} className={link}>
+            Sign up for your own account
           </button>
-        </div>
+        </p>
       )}
       {session ? (
         <Routes>

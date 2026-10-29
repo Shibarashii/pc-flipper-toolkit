@@ -21,7 +21,9 @@ test("try the demo: sample builds, then sign up instead", async ({ page }) => {
       .getByText("6 of 6 required parts"),
   ).toBeVisible();
 
-  await page.getByRole("button", { name: "Sign up" }).click();
+  await page
+    .getByRole("button", { name: "Sign up for your own account" })
+    .click();
   await expect(page.getByRole("heading", { name: "Sign up" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Log out" })).toBeHidden();
 });
