@@ -253,7 +253,7 @@ pc-flipper-toolkit/
 │                          prices.py + test_prices.py (price lookup)
 ├── frontend/
 │   ├── vite.config.ts     Includes the /api dev proxy
-│   ├── e2e/               Playwright: the main flow, and trying the demo
+│   ├── e2e/               Playwright: the main flow, trying the demo, and the price lookup
 │   └── src/
 │       ├── api.ts         fetch helpers and TS types matching the API
 │       ├── money.ts       ₱ formatting

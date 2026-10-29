@@ -81,6 +81,21 @@ export type BuildDetail = Build & {
 
 export type NewPart = Omit<Part, "id" | "bundle"> & { bundle?: number | null };
 
+/** A product from a PC shop's catalogue, from the daily copy (docs/specs/price-lookup.md). */
+export type ShopProduct = {
+  shop: string;
+  title: string;
+  url: string;
+  price: string;
+  in_stock: boolean;
+};
+
+export type PriceSearch = {
+  results: ShopProduct[];
+  /** When the oldest shop's prices were fetched; null before the first refresh. */
+  updated_at: string | null;
+};
+
 /** DRF validation errors: field name → messages. */
 export type FieldErrors = Record<string, string[]>;
 
@@ -208,3 +223,6 @@ export const updateExtraCost = (id: number, patch: Partial<NewExtraCost>) =>
 
 export const deleteExtraCost = (id: number) =>
   request<null>(`/extra-costs/${id}/`, { method: "DELETE" });
+
+export const findPrices = (q: string) =>
+  request<PriceSearch>(`/prices/?${new URLSearchParams({ q })}`);

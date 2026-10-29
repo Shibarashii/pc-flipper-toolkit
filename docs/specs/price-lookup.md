@@ -29,13 +29,13 @@ also keeps the request count to the shops at about 60 a day in total, whoever us
 
 ### User stories
 
-1. In the part form (add or edit, including a bundled part), a **"Find prices"** button next to
-   Listed price opens a search prefilled with the part's name. I can edit the search text.
+1. In the part form (add or edit, including a bundled part), a **"Find prices"** button under
+   the fields opens a search prefilled with the part's name. I can edit the search text.
 2. Results show each product's full name, shop, price, an "Out of stock" tag when it is, and a
    link to the product page (new tab). In-stock items come first, then cheapest first.
 3. Choosing a result fills Listed price and Shop (e.g. `EasyPC`) and closes the search. The name,
    category and bought-for are untouched, and nothing is saved until I press Save, as usual.
-4. The search says when its prices are from ("Prices from 29 Oct").
+4. The search says when its prices are from ("Prices from Oct 29", like the app's other dates).
 5. No matches: "No matches at EasyPC or PC Express." A failed request: "Couldn't load prices.
    Type the price instead." Either way the form still works.
 
@@ -112,9 +112,13 @@ Adding one is a code change plus a robots.txt and terms check.
 
 The part form (`PartForm` in `components/PartRow.tsx`) on desktop and at 375px:
 
-- "Find prices" is a small link-style button next to the Listed price label. It opens a panel
-  under the form row (full width, stacked on mobile) with a search input (prefilled, focused)
-  and the results list.
+- "Find prices" is a small link-style button under the form's fields (the compact add row
+  hides its labels on desktop, so it can't sit by the Listed price label). It opens a panel
+  under it (full width) with a search box (prefilled, focused), Search and Close, and the
+  results as a hairline-divided list. Enter in the search box searches; it never saves the
+  part. A part name under 2 characters isn't searched until the user types more.
+- Choosing a result moves the focus to Listed price, so it can be adjusted; closing the
+  panel moves it back to "Find prices".
 - Each result is a button (choose) plus a separate "View" link to the shop page. Price uses
   `formatMoney`, "Out of stock" uses the muted text style.
 - States: loading, results, no matches, failed (message above), and no copy yet
@@ -166,8 +170,9 @@ frontend/src/
 - **Frontend (Vitest):** opening the panel prefills the part name; choosing a result fills
   listed price and shop without saving; the failed and no-matches messages; Esc closes the
   panel but keeps the edit open; typing a price by hand still works with the lookup unused.
-- **E2E:** none for v1 (CI's database has no shop copy). Covered by the Vitest tests and a
-  manual check on the live site.
+- **E2E (`e2e/prices.spec.ts`):** Enter in the search box searches and doesn't save the part,
+  and Esc closes only the panel. jsdom never submits a form on Enter, so only a browser can
+  test it. It passes with or without a shop copy (CI's database has none).
 - **Manual:** run the command locally once against the real shops, then search on desktop and
   375px.
 
