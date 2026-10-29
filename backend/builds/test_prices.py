@@ -408,6 +408,58 @@ class ShortenTests(TestCase):
             ]
         )
 
+    def test_drops_brackets_before_cutting_at_separators(self):
+        self.assertShortens(
+            [
+                (
+                    "Antec Torque E-ATX (3*120mm Front, 3*120mm Top Fans) Case",
+                    "Antec Torque E-ATX Case",
+                ),
+                ("UGREEN (HD175/45432) HDMI 2.1 Cable", "UGREEN HDMI 2.1 Cable"),
+                # Some titles are cut off inside a bracket.
+                ("ASUS TUF RTX 3060 12GB (PCIe 4.0 support", "ASUS TUF RTX 3060 12GB"),
+            ]
+        )
+
+    def test_drops_a_stray_symbol_left_by_the_word_cap(self):
+        self.assertShortens(
+            [
+                (
+                    (
+                        "Asus RT-AX55 AX1800 Dual Band WiFi 6 Router supporting MU-MIMO& "
+                        "OFDMA"
+                    ),
+                    "Asus RT-AX55 AX1800 Dual Band WiFi 6 Router supporting MU-MIMO",
+                ),
+                ("Coolermaster MWE500 80+", "Coolermaster MWE500 80+"),
+            ]
+        )
+
+    def test_keeps_gaming_when_its_part_of_the_model_name(self):
+        self.assertShortens(
+            [
+                (
+                    "MSI GeForce RTX 4070 GAMING X TRIO 12G",
+                    "MSI RTX 4070 GAMING X TRIO 12G",
+                ),
+                ("Gigabyte RTX 4060 Gaming OC 8G", "Gigabyte RTX 4060 Gaming OC 8G"),
+                ("Asus TUF Gaming X3 RX 5600 XT", "Asus TUF Gaming X3 RX 5600 XT"),
+                ("ASUS TUF GAMING B760M-PLUS WIFI", "ASUS TUF GAMING B760M-PLUS WIFI"),
+                ("Asrock B550 Phantom Gaming 4", "Asrock B550 Phantom Gaming 4"),
+                ("MSI B550 Gaming Plus", "MSI B550 Gaming Plus"),
+                (
+                    "Asus ROG Strix B550-F Gaming Wi-Fi",
+                    "Asus ROG Strix B550-F Gaming Wi-Fi",
+                ),
+                # Otherwise it's just the kind of product.
+                ("Redragon Cobra M711 Gaming Mouse", "Redragon Cobra M711 Mouse"),
+                (
+                    "Palit RTX 3060 Dual 12gb Gaming Videocard",
+                    "Palit RTX 3060 Dual 12gb",
+                ),
+            ]
+        )
+
     def test_falls_back_to_the_full_title_when_nothing_is_left(self):
         self.assertShortens(
             [("Gaming Videocard", "Gaming Videocard"), ("(Bundle)", "(Bundle)")]

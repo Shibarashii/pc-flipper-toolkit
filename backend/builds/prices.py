@@ -59,13 +59,13 @@ def unmangle(title: str) -> str:
 
 # shorten()'s rules (docs/specs/price-lookup.md, part 2). A bad short name costs the user a
 # few keystrokes, so fix one by adding a test case and a rule here.
-_SEPARATORS = re.compile(
-    r" / |/| \| |, | - | with | \+ "
-)  # spec lists, marketing, combos
+# Brackets go first: they can hold a separator. A title cut off inside one drops the rest.
+_BRACKETS = re.compile(r"\([^)]*(?:\)|$)")  # SKUs, colours, fan lists
+# Spec lists (prebuilts, laptops), marketing tails and combos start at the first of these.
+_SEPARATORS = re.compile(r" / |/| \| |, | - | with | \+ ")
 _NOISE = [
     re.compile(pattern, re.IGNORECASE)
     for pattern in [
-        r"\([^)]*\)",  # SKUs and colours in brackets
         r"\b(?:NVIDIA|GeForce|Radeon)\b",
         r"\b[A-Z0-9]+(?:-[A-Z0-9]+){2,}\b",  # part codes: GV-N3060EAGLE-12GD
         # SKUs: 12+ characters with 3+ digits and 3+ letters, e.g. KF552C40BBK2-32
@@ -75,7 +75,13 @@ _NOISE = [
         r"\b\d+(?:\.\d+)?\s?GHz\b",
         r"\bLHR\b",
         r"\b(?:Gaming\s+)?(?:Graphics\s+Card|Video\s*card)\b",
-        r"\b(?:Gaming|Socket|Processor|Motherboard|Memory|Desktop|CPU|Power Supply)\b",
+        # "Gaming" is the kind of product ("Gaming Mouse"), except in model names like
+        # "TUF Gaming", "Phantom Gaming", "GAMING X TRIO", "Gaming OC" or "B550 Gaming Plus".
+        (
+            r"\bGaming\b(?<!TUF Gaming)(?<!Phantom Gaming)"
+            r"(?!\s+(?:OC|X\d?|Trio|Pro|Plus|Slim|D|\d+|Wi-?Fi)\b)"
+        ),
+        r"\b(?:Socket|Processor|Motherboard|Memory|Desktop|CPU|Power Supply)\b",
     ]
 ]
 SHORT_WORDS = 10  # 7 cut 36% of titles, losing details like a card's 8GB
@@ -88,10 +94,12 @@ def shorten(title: str) -> str:
     """
     name = re.sub(r"[™®©]", "", title)
     name = re.sub(r"\bSolid State Drive\b", "SSD", name, flags=re.IGNORECASE)
+    name = _BRACKETS.sub(" ", name)
     name = _SEPARATORS.split(name, maxsplit=1)[0]
     for noise in _NOISE:
         name = noise.sub(" ", name)
-    return " ".join(name.split()[:SHORT_WORDS]) or title
+    # The word cap can end on a joining symbol ("MU-MIMO&"); "80+" stays.
+    return " ".join(name.split()[:SHORT_WORDS]).rstrip(" &,-:") or title
 
 
 def fetch_page(base: str, page: int) -> list[dict]:
