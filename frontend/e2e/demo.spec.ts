@@ -7,6 +7,7 @@ test("try the demo: sample builds, then sign up instead", async ({ page }) => {
   await expect(
     page.getByText("You’re trying a demo. It’s deleted after 24 hours."),
   ).toBeVisible();
+  await expect(page.getByRole("button", { name: "Exit demo" })).toBeVisible();
   // The builds list has a table on desktop and cards on phones.
   const build = (name: string) =>
     page.getByRole("link", { name }).filter({ visible: true });
@@ -21,7 +22,9 @@ test("try the demo: sample builds, then sign up instead", async ({ page }) => {
       .getByText("6 of 6 required parts"),
   ).toBeVisible();
 
-  await page.getByRole("button", { name: "Sign up" }).click();
+  await page
+    .getByRole("button", { name: "Sign up for your own account" })
+    .click();
   await expect(page.getByRole("heading", { name: "Sign up" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Log out" })).toBeHidden();
+  await expect(page.getByRole("button", { name: "Exit demo" })).toBeHidden();
 });

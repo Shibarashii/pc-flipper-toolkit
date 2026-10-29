@@ -12,6 +12,9 @@ export const buttonSecondary = `${button} border border-line-strong bg-surface t
 /** Secondary button with loss-coloured text, for destructive actions. */
 export const buttonDanger = `${button} border border-line-strong bg-surface text-loss hover:bg-sunken`;
 
+/** Inline text action in the accent color, e.g. "Add" in the checklist. */
+export const link = `rounded text-[13px] leading-[18px] font-medium text-accent hover:underline ${focusRing}`;
+
 /** 28×28 ghost button around a 16px icon. Needs an aria-label. */
 export const iconButton = `flex size-7 items-center justify-center rounded hover:bg-sunken disabled:opacity-45 ${focusRing}`;
 

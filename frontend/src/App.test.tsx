@@ -204,7 +204,7 @@ test("a saved session that isn't one is ignored", async () => {
   expect(auth.getToken()).toBe("");
 });
 
-const DEMO_BANNER = "You’re trying a demo. It’s deleted after 24 hours.";
+const DEMO_BANNER = /You’re trying a demo\. It’s deleted after 24 hours\./;
 
 test("Try the demo logs into a demo account and shows the banner", async () => {
   const fetchMock = stubFetch(
@@ -216,6 +216,8 @@ test("Try the demo logs into a demo account and shows the banner", async () => {
   fireEvent.click(screen.getByRole("button", { name: "Try the demo" }));
 
   expect(await screen.findByText(DEMO_BANNER)).toBeTruthy();
+  expect(screen.getByRole("button", { name: "Exit demo" })).toBeTruthy();
+  expect(screen.queryByRole("button", { name: "Log out" })).toBeNull();
   expect(requestTo(fetchMock, 0).url).toBe("/api/auth/demo/");
   expect(getToken()).toBe("d1");
 });
@@ -238,7 +240,9 @@ test("the banner's Sign up ends the demo and opens sign-up", async () => {
   renderAt("/");
   await screen.findByText("No builds yet");
 
-  fireEvent.click(screen.getByRole("button", { name: "Sign up" }));
+  fireEvent.click(
+    screen.getByRole("button", { name: "Sign up for your own account" }),
+  );
 
   expect(await screen.findByRole("heading", { name: "Sign up" })).toBeTruthy();
   expect(requestTo(fetchMock, 1).url).toBe("/api/auth/logout/");
