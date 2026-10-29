@@ -111,7 +111,7 @@ so their order is flexible.
 - [x] T26: Shop catalogue copy (`ShopProduct`, `refresh_shop_prices`)
 - [x] T27: Search API (`GET /api/prices/`)
 - [x] T28: "Find prices" in the part form
-- [ ] T29: Daily refresh on GitHub Actions
+- [x] T29: Daily refresh on GitHub Actions
 
 ```
 T26 copy + command ─┬─ T27 search API ── T28 part form UI
@@ -120,7 +120,7 @@ T26 copy + command ─┬─ T27 search API ── T28 part form UI
 T27 → T28 and T29 are independent, so T29 can go any time after T26 is deployed.
 Render's build runs `migrate`, so merging T26 creates the table on Neon before T29 needs it.
 
-**Checkpoint 7:** price lookup spec success criteria 1–6 pass on the live site.
+**Checkpoint 7:** price lookup spec success criteria 1–6 pass on the live site. All but criterion 5 ("runs green daily") pass as of 2026-10-29; it waits on the first scheduled run (18:00 UTC).
 
 ## Risks and Mitigations
 
