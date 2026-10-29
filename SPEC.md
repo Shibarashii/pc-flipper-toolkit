@@ -199,7 +199,7 @@ another user's build (400). A part, bundle or cost can't be moved to another bui
 States each screen must handle:
 - **Builds list:** no builds yet (message plus "New build").
 - **Build detail:** no parts or extra costs yet, an empty bundle, a bundle with prices not fully assigned, no selling price (profit and margin show "—"), a loss (red), and a validation error on a field (e.g. negative price).
-- **Both:** loading and request failed. A 401 (token deleted or expired) logs out and goes to `/login` with "Your session ended. Log in again."
+- **Both:** loading and request failed. A 401 (token deleted or expired) logs out and goes to `/login` with "Your session ended. Log in again." (for a demo: "Your demo ended. Try it again or sign up.", since it has no password)
 - **Log in / sign up:** wrong username or password, username taken, password rejected by the validators (their messages, under the field), and too many attempts (429).
 
 Visual design (colors, type, components, light/dark) follows [docs/brand-guidelines.md](docs/brand-guidelines.md).

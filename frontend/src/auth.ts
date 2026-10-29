@@ -55,6 +55,14 @@ export const saveSession = (session: Session) =>
 
 export const endSession = (notice = "") => update({ session: null, notice });
 
+/** For when the server stops accepting the session. A demo has no password to log back in with. */
+export const sessionEnded = () =>
+  endSession(
+    state.session && isDemo(state.session)
+      ? "Your demo ended. Try it again or sign up."
+      : "Your session ended. Log in again.",
+  );
+
 function subscribe(listener: () => void) {
   listeners.add(listener);
   return () => listeners.delete(listener);
