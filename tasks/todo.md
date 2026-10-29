@@ -628,7 +628,7 @@ without saving. Esc or Close closes it without cancelling the part edit.
 **Files:** `frontend/src/api.ts`, a new `frontend/src/components/PriceLookup.tsx`, `frontend/src/components/PartRow.tsx`, tests
 **Scope:** M
 
-### - [ ] T29: Daily refresh on GitHub Actions
+### - [x] T29: Daily refresh on GitHub Actions
 
 **Description:** `.github/workflows/refresh-prices.yml` runs `refresh_shop_prices` daily at
 18:00 UTC and on `workflow_dispatch`, with `DATABASE_URL` from a repository secret (already set
@@ -636,17 +636,17 @@ by the user on 2026-10-29 in the repo's Settings → Secrets → Actions). READM
 the job, the secret, and re-enabling it after GitHub's 60-day pause.
 
 **Acceptance criteria:**
-- [ ] A manual run fills the production copy, and the live search returns both shops.
-- [ ] The run's log never shows the connection string.
+- [x] A manual run fills the production copy, and the live search returns both shops.
+- [x] The run's log never shows the connection string.
 
 **Verification:**
-- [ ] `gh workflow run refresh-prices.yml`, then `gh run watch`: green
-- [ ] Search "rtx 3060" on the live site
+- [x] `gh workflow run refresh-prices.yml`, then `gh run watch`: green
+- [x] Search "rtx 3060" on the live site
 
 **Dependencies:** T26 deployed (its migration live on Neon)
 **Files:** `.github/workflows/refresh-prices.yml`, `README.md`
 **Scope:** S
 
 ### Checkpoint 7: Price lookup
-- [ ] price lookup spec success criteria 1–6 pass on the live site
-- [ ] All tests pass on `main`
+- [x] price lookup spec success criteria 1–6 pass on the live site
+- [x] All tests pass on `main`
