@@ -83,7 +83,7 @@ Adding one is a code change plus a robots.txt and terms check.
     {"shop": "PC Express", "title": "MSI GeForce RTX 3060 VENTUS 2X OC 12GB GDDR6",
      "url": "https://pcx.com.ph/products/...", "price": "26000.00", "in_stock": true}
   ],
-  "updated_at": "2026-10-29T18:04:11Z"
+  "updated_at": "2026-10-30T02:04:11+08:00"
 }
 ```
 

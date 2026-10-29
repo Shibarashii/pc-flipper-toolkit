@@ -230,7 +230,7 @@ class PriceSearchView(APIView):
                             "in_stock": False,
                         },
                     ],
-                    "updated_at": "2026-10-29T18:04:11Z",
+                    "updated_at": "2026-10-30T02:04:11+08:00",
                 },
             )
         ],
