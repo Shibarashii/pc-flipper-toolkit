@@ -108,7 +108,7 @@ so their order is flexible.
 **Checkpoint 6 (done):** SPEC success criterion 8 passes on the live site.
 
 ### Phase 9: Price lookup ([docs/specs/price-lookup.md](../docs/specs/price-lookup.md))
-- [ ] T26: Shop catalogue copy (`ShopProduct`, `refresh_shop_prices`)
+- [x] T26: Shop catalogue copy (`ShopProduct`, `refresh_shop_prices`)
 - [ ] T27: Search API (`GET /api/prices/`)
 - [ ] T28: "Find prices" in the part form
 - [ ] T29: Daily refresh on GitHub Actions

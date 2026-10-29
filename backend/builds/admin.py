@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.http import HttpResponse
 from rest_framework.throttling import SimpleRateThrottle
 
-from .models import Build, Bundle, ExtraCost, Part
+from .models import Build, Bundle, ExtraCost, Part, ShopProduct
 
 
 class PartInline(admin.TabularInline):
@@ -50,6 +50,24 @@ class BundleAdmin(admin.ModelAdmin):
     list_display = ["name", "shop", "bought_for", "build"]
     search_fields = ["name", "shop"]
     list_select_related = ["build"]
+
+
+@admin.register(ShopProduct)
+class ShopProductAdmin(admin.ModelAdmin):
+    """Read-only: the copy is only ever replaced by `refresh_shop_prices`."""
+
+    list_display = ["title", "shop", "price", "in_stock", "updated_at"]
+    list_filter = ["shop", "in_stock"]
+    search_fields = ["title"]
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(ExtraCost)
