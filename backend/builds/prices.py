@@ -6,6 +6,7 @@ it reads the copy that `refresh` keeps in `ShopProduct`.
 """
 
 import json
+import re
 import time
 from datetime import datetime
 from decimal import Decimal
@@ -35,6 +36,27 @@ class RefreshError(Exception):
     pass
 
 
+def _cp1252_byte(char: str) -> int | None:
+    try:
+        return char.encode("cp1252")[0]
+    except UnicodeEncodeError:
+        return None
+
+
+def unmangle(title: str) -> str:
+    """Undo symbols that were UTF-8 read as Windows-1252, in the shop's own data.
+
+    That turns each symbol's UTF-8 lead byte (C2) into an "Â" before it: "IntelÂ®" for
+    "Intel®", "RadeonÂ™" for "Radeon™". On 2026-10-29, 375 EasyPC titles had it. The
+    "Â" is dropped only before a symbol that byte could have led (cp1252 80–BF).
+    """
+    return re.sub(
+        "Â(?=(.))",
+        lambda m: "" if 0x80 <= (_cp1252_byte(m[1]) or 0) <= 0xBF else "Â",
+        title,
+    )
+
+
 def fetch_page(base: str, page: int) -> list[dict]:
     req = Request(
         f"{base}/products.json?limit={PAGE_SIZE}&page={page}",
@@ -55,7 +77,7 @@ def parse(shop: str, base: str, product: dict, now: datetime) -> ShopProduct | N
         variants = product["variants"]
         price = min(Decimal(v["price"]) for v in variants)
         in_stock = any(v["available"] for v in variants)
-        title, handle = product["title"], product["handle"]
+        title, handle = unmangle(product["title"]), product["handle"]
         usable = 0 < price <= MAX_PRICE and title and handle  # comparing NaN raises
     except (KeyError, TypeError, ValueError, ArithmeticError):
         return None

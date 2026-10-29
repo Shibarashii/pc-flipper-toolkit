@@ -250,6 +250,32 @@ class RefreshShopPricesTests(TestCase):
         self.assertEqual(list(ShopProduct.objects.all()), [old])
 
 
+class UnmangleTests(TestCase):
+    def test_drops_the_stray_a_before_a_symbol(self):
+        self.assertEqual(
+            prices.unmangle("IntelÂ® CoreÂ™ i5Â\xa0laptop 18.5Â” Â¿"),
+            "Intel® Core™ i5\xa0laptop 18.5” ¿",  # ¿ is cp1252 BF, the top of the range
+        )
+
+    def test_leaves_everything_else_alone(self):
+        # ÂÀ: À is cp1252 C0, just past the range, so a real "Â" before it stays.
+        for title in ["Intel® Core™ i5", "ÂBC", "Â", "120Â\x8d wide", "ÂÂ", "ÂÀ"]:
+            self.assertEqual(prices.unmangle(title), title)
+
+    def test_refresh_stores_the_fixed_title(self):
+        with (
+            mock.patch("builds.prices.time.sleep"),
+            mock.patch(
+                "builds.prices.urlopen",
+                FakeShops(
+                    {EASYPC: [[product("gpu", ("1.00", True), title="RTXÂ™ 3060")]]}
+                ),
+            ),
+        ):
+            call_command("refresh_shop_prices", "--shop", "EasyPC", stdout=StringIO())
+        self.assertEqual(ShopProduct.objects.get().title, "RTX™ 3060")
+
+
 class PriceSearchTests(LoggedInApiTestCase):
     def shop_product(self, title, price="1000.00", in_stock=True, **fields):
         return ShopProduct.objects.create(
