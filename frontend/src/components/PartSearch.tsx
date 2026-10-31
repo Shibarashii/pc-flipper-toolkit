@@ -28,7 +28,6 @@ export function PartSearch({
   onPick,
   inputRef,
   errors,
-  labelClass,
   className = "",
 }: {
   value: string;
@@ -36,7 +35,6 @@ export function PartSearch({
   onPick: (product: ShopProduct) => void;
   inputRef: Ref<HTMLInputElement>;
   errors?: string[];
-  labelClass?: string;
   className?: string;
 }) {
   const [rows, setRows] = useState<ShopProduct[]>([]);
@@ -121,7 +119,7 @@ export function PartSearch({
 
   return (
     <div className={`relative ${className}`}>
-      <Field label="Part" errors={errors} labelClass={labelClass}>
+      <Field label="Part" errors={errors}>
         <input
           ref={inputRef}
           autoFocus
@@ -155,7 +153,7 @@ export function PartSearch({
           aria-label="Shop products"
           // Keeps the focus in the box, so the pop-up isn't closed before a click lands.
           onMouseDown={(e) => e.preventDefault()}
-          className="absolute top-full left-0 z-10 mt-1 max-h-80 w-full divide-y divide-line overflow-y-auto rounded border border-line-strong bg-surface sm:min-w-80"
+          className="absolute top-full left-0 z-10 mt-1 max-h-80 w-full divide-y divide-line overflow-y-auto rounded border border-line-strong bg-surface"
         >
           {rows.map((product, row) => (
             <li
