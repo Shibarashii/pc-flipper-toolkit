@@ -11,6 +11,7 @@ import {
 import { formatMoney } from "../money";
 import { buttonPrimary, buttonSecondary, input } from "../ui";
 import { cleanMoney, Field, RowActions, Select, useSave } from "./form";
+import { PartSearch } from "./PartSearch";
 import { PriceLookup } from "./PriceLookup";
 
 const EMPTY = {
@@ -113,6 +114,17 @@ export function PartForm({
     priceRef.current?.focus();
   }
 
+  /** Like pick, plus the name; the focus stays in Part, so the name can be trimmed. */
+  function fillFromPartSearch(product: ShopProduct) {
+    setForm((f) => ({
+      ...f,
+      name: product.short_title,
+      listed_price: formatMoney(product.price),
+      shop: product.shop,
+    }));
+    setLookup(null);
+  }
+
   function submit(e: SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     const fields = {
@@ -152,23 +164,15 @@ export function PartForm({
             {title}
           </p>
           <div className={`flex flex-col gap-3 ${layout.row}`}>
-            <Field
-              label="Part"
+            <PartSearch
+              value={form.name}
+              onChange={set("name")}
+              onPick={fillFromPartSearch}
+              inputRef={nameRef}
               errors={errors.name}
               labelClass={layout.label}
               className="sm:flex-1"
-            >
-              <input
-                ref={nameRef}
-                autoFocus
-                value={form.name}
-                onChange={(e) => set("name")(e.target.value)}
-                placeholder="Part name"
-                maxLength={200}
-                aria-invalid={!!errors.name}
-                className={input(!!errors.name)}
-              />
-            </Field>
+            />
             <Field
               label="Shop"
               errors={errors.shop}

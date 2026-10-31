@@ -685,7 +685,7 @@ fields. `api.ts`'s `ShopProduct` type gets `short_title`. Nothing is stored.
 **Files:** `backend/builds/prices.py`, `backend/builds/serializers.py`, `backend/builds/test_prices.py`, `frontend/src/api.ts`
 **Scope:** S
 
-### - [ ] T31: The Part box's search pop-up
+### - [x] T31: The Part box's search pop-up
 
 **Description:** A `PartSearch` component replaces the Part input in `PartForm`. It's a
 WAI-ARIA 1.2 combobox with a listbox pop-up.
@@ -706,14 +706,14 @@ WAI-ARIA 1.2 combobox with a listbox pop-up.
 - **Style:** `surface` background, `line-strong` border, 4px radius, no shadow.
 
 **Acceptance criteria:**
-- [ ] Works when adding and editing, including a bundled part; the add row's pop-up is closed after a save.
-- [ ] Typing a name and pressing Enter (no active row) saves, exactly as before; Esc twice cancels.
-- [ ] Opens only from typing, never just from focus.
-- [ ] Keyboard-only works; `aria-expanded`, `aria-controls`, `aria-activedescendant` and the option roles are right.
-- [ ] Usable at 375px without horizontal scrolling, light and dark.
+- [x] Works when adding and editing, including a bundled part; the add row's pop-up is closed after a save.
+- [x] Typing a name and pressing Enter (no active row) saves, exactly as before; Esc twice cancels.
+- [x] Opens only from typing, never just from focus.
+- [x] Keyboard-only works; `aria-expanded`, `aria-controls`, `aria-activedescendant` and the option roles are right.
+- [x] Usable at 375px without horizontal scrolling, light and dark.
 
 **Verification:**
-- [ ] Vitest (fake timers):
+- [x] Vitest (fake timers):
   - no request under 2 characters or before the pause
   - row contents
   - Down + Enter fills the three fields and doesn't save
@@ -721,9 +721,9 @@ WAI-ARIA 1.2 combobox with a listbox pop-up.
   - Esc closes only the pop-up
   - a stale answer is ignored
   - a failure shows nothing
-- [ ] E2E (`e2e/prices.spec.ts`, `/api/prices/*` routed to a fixture): Enter with no active
+- [x] E2E (`e2e/prices.spec.ts`, `/api/prices/*` routed to a fixture): Enter with no active
   row saves the part; Down + Enter fills and doesn't save
-- [ ] Screenshots: desktop add row, desktop edit, 375px, light and dark, against the local copy
+- [x] Screenshots: desktop add row, desktop edit, 375px, light and dark, against the local copy
 
 **Dependencies:** T30 (for `short_title`; deploy T30 first so the live pop-up has it)
 **Files:** a new `frontend/src/components/PartSearch.tsx`, `frontend/src/components/PartRow.tsx`, a new `frontend/src/components/PartSearch.test.tsx`, `frontend/e2e/prices.spec.ts`
