@@ -236,6 +236,65 @@ test("typing again clears the active row, so Enter can't pick an old result", as
   expect(value("Part")).toBe("rtx 3060 t");
 });
 
+test("a row highlighted before the answer arrives can't outlive it", async () => {
+  setup([
+    Response.json(found(MSI, GALAX)),
+    Response.json(found(GALAX)),
+    Response.json(found()),
+  ]);
+  await search("rtx");
+
+  // The answer has fewer rows than the highlighted position.
+  type("rtx 3060");
+  press("ArrowDown");
+  press("ArrowDown");
+  await wait(300);
+  expect(rows()).toHaveLength(1);
+  expect(box().getAttribute("aria-activedescendant")).toBeNull();
+
+  // The answer has no rows at all: Enter saves instead of picking nothing.
+  type("rtx 3060 zzz");
+  press("ArrowDown");
+  await wait(300);
+  expect(popup()).toBeNull();
+  expect(box().getAttribute("aria-activedescendant")).toBeNull();
+  expect(press("Enter")).toBe(true);
+  expect(value("Part")).toBe("rtx 3060 zzz");
+});
+
+test("a failed answer clears the highlighted row too", async () => {
+  setup([Response.json(found(MSI)), new Response(null, { status: 500 })]);
+  await search("rtx");
+
+  type("rtx 3060");
+  press("ArrowDown");
+  await wait(300);
+
+  expect(popup()).toBeNull();
+  expect(press("Enter")).toBe(true);
+  expect(value("Part")).toBe("rtx 3060");
+});
+
+test("tells screen readers when rows appear, in the same status line", async () => {
+  setup([Response.json(found(MSI, GALAX)), Response.json(found(MSI))]);
+  const status = screen.getByRole("status");
+  expect(status.textContent).toBe("");
+
+  await search("rtx");
+  expect(status.textContent).toBe(
+    "2 products found. Use the up and down arrows to choose.",
+  );
+
+  await search("rtx 3060");
+  expect(status.textContent).toBe(
+    "1 product found. Use the up and down arrows to choose.",
+  );
+
+  press("Escape");
+  expect(status.textContent).toBe("");
+  expect(screen.getByRole("status")).toBe(status);
+});
+
 test("Esc closes only the pop-up; a second Esc closes the part", async () => {
   const { onClose } = setup([Response.json(found(MSI))]);
   await search("rtx 3060");

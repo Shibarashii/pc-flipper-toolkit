@@ -33,6 +33,12 @@ const fromPart = (p: Part) => ({
   bundle: p.bundle === null ? "" : String(p.bundle),
 });
 
+/** What a shop's product fills in; nothing is saved until Save. */
+const fromProduct = (p: ShopProduct) => ({
+  listed_price: formatMoney(p.price),
+  shop: p.shop,
+});
+
 // Desktop layouts differ: adding is one compact row with hidden labels (Figma "Add part
 // row"), editing (or adding inside a bundle) is two labelled rows with the Bundle select
 // (Figma "Part row (editing)"). Mobile is the same.
@@ -103,24 +109,18 @@ export function PartForm({
     findRef.current?.focus();
   }
 
-  /** Fills the price and shop from a shop's product; nothing is saved until Save. */
   function pick(product: ShopProduct) {
-    setForm((f) => ({
-      ...f,
-      listed_price: formatMoney(product.price),
-      shop: product.shop,
-    }));
+    setForm((f) => ({ ...f, ...fromProduct(product) }));
     setLookup(null);
     priceRef.current?.focus();
   }
 
   /** Like pick, plus the name; the focus stays in Part, so the name can be trimmed. */
-  function fillFromPartSearch(product: ShopProduct) {
+  function pickFromPartSearch(product: ShopProduct) {
     setForm((f) => ({
       ...f,
       name: product.short_title,
-      listed_price: formatMoney(product.price),
-      shop: product.shop,
+      ...fromProduct(product),
     }));
     setLookup(null);
   }
@@ -167,7 +167,7 @@ export function PartForm({
             <PartSearch
               value={form.name}
               onChange={set("name")}
-              onPick={fillFromPartSearch}
+              onPick={pickFromPartSearch}
               inputRef={nameRef}
               errors={errors.name}
               labelClass={layout.label}

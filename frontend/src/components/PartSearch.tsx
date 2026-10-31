@@ -14,6 +14,8 @@ import { ProductFacts } from "./PriceLookup";
 const PAUSE = 300; // ms after the last keystroke
 const MAX_ROWS = 8;
 
+const optionId = (listId: string, row: number) => `${listId}-${row}`;
+
 /** The part form's Part box: typing searches the shops' copy and offers a pop-up of products
  * (docs/specs/price-lookup.md, part 2). A combobox with a listbox pop-up, in the WAI-ARIA
  * pattern. The pop-up is only a suggestion, so it stays out of the way of plain typing: a
@@ -40,7 +42,6 @@ export function PartSearch({
   const [rows, setRows] = useState<ShopProduct[]>([]);
   const [active, setActive] = useState(-1); // the highlighted row; -1 is none
   const listId = useId();
-  const optionId = (row: number) => `${listId}-${row}`;
   const open = rows.length > 0;
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
   // Only the newest search may show its rows; an older, slower one is dropped.
@@ -52,24 +53,29 @@ export function PartSearch({
   useEffect(() => {
     if (active >= 0)
       document
-        .getElementById(optionId(active))
+        .getElementById(optionId(listId, active))
         ?.scrollIntoView({ block: "nearest" });
-  });
+  }, [active, listId]);
+
+  /** New rows always clear the highlight: the old position may not exist any more. */
+  function show(products: ShopProduct[]) {
+    setRows(products);
+    setActive(-1);
+  }
 
   /** Closes the pop-up and drops any search that's waiting or on its way. */
   function close() {
     clearTimeout(timer.current);
     latest.current++;
-    setRows([]);
-    setActive(-1);
+    show([]);
   }
 
   function search(q: string) {
     const mine = ++latest.current;
     findPrices(q).then(
       ({ results }) =>
-        mine === latest.current && setRows(results.slice(0, MAX_ROWS)),
-      () => mine === latest.current && setRows([]),
+        mine === latest.current && show(results.slice(0, MAX_ROWS)),
+      () => mine === latest.current && show([]),
     );
   }
 
@@ -123,7 +129,9 @@ export function PartSearch({
           aria-autocomplete="list"
           aria-expanded={open}
           aria-controls={open ? listId : undefined}
-          aria-activedescendant={active >= 0 ? optionId(active) : undefined}
+          aria-activedescendant={
+            active >= 0 ? optionId(listId, active) : undefined
+          }
           autoComplete="off"
           value={value}
           onChange={(e) => type(e.target.value)}
@@ -135,6 +143,11 @@ export function PartSearch({
           className={input(!!errors)}
         />
       </Field>
+      {/* Always in the page, so screen readers announce each change. */}
+      <p role="status" className="sr-only">
+        {open &&
+          `${rows.length} ${rows.length === 1 ? "product" : "products"} found. Use the up and down arrows to choose.`}
+      </p>
       {open && (
         <ul
           id={listId}
@@ -147,7 +160,7 @@ export function PartSearch({
           {rows.map((product, row) => (
             <li
               key={product.url}
-              id={optionId(row)}
+              id={optionId(listId, row)}
               role="option"
               aria-selected={row === active}
               onClick={() => pick(product)}
