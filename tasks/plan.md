@@ -124,7 +124,7 @@ Render's build runs `migrate`, so merging T26 creates the table on Neon before T
 
 ### Phase 10: Part search pop-up ([docs/specs/price-lookup.md, part 2](../docs/specs/price-lookup.md#part-2-part-search-pop-up))
 - [x] T30: Short names in the search API (`shorten()`, `short_title`)
-- [ ] T31: The Part box's search pop-up
+- [x] T31: The Part box's search pop-up
 
 ```
 T30 shorten() + short_title ── T31 Part combobox

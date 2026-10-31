@@ -69,6 +69,11 @@ function setup(responses: Response[], part: Part | null = PART) {
 
 const value = (label: string) =>
   (screen.getByLabelText(label) as HTMLInputElement).value;
+/** The panel's status line; the Part box has its own. */
+const lookupStatus = () =>
+  within(screen.getByRole("group", { name: "Find prices" })).getByRole(
+    "status",
+  );
 const openLookup = () =>
   fireEvent.click(screen.getByRole("button", { name: "Find prices" }));
 
@@ -201,9 +206,7 @@ test("a new part with no name yet waits for a search of 2+ characters", () => {
   });
   fireEvent.click(screen.getByRole("button", { name: "Search" }));
 
-  expect(screen.getByRole("status").textContent).toBe(
-    "Type at least 2 characters.",
-  );
+  expect(lookupStatus().textContent).toBe("Type at least 2 characters.");
   expect(fetchMock).not.toHaveBeenCalled();
 });
 
@@ -216,7 +219,7 @@ test("an older, slower search can't replace a newer one's results", async () => 
       Response.json({ ...SEARCH, results: [SEARCH.results[1]] }),
     );
   openLookup(); // searches "RTX 3060", which hangs
-  const status = screen.getByRole("status");
+  const status = lookupStatus();
 
   const box = screen.getByLabelText("Search the shops");
   fireEvent.change(box, { target: { value: "rtx 3060 ti" } });
@@ -229,5 +232,5 @@ test("an older, slower search can't replace a newer one's results", async () => 
   expect(items).toHaveLength(1);
   expect(items[0].textContent).toContain("3060 Ti");
   // The same status line all along, so screen readers announce its changes.
-  expect(screen.getByRole("status")).toBe(status);
+  expect(lookupStatus()).toBe(status);
 });

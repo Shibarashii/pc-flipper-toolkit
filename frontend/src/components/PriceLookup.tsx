@@ -126,6 +126,23 @@ function statusText(state: State): string {
   return `Prices from ${formatDay(updated_at)}. Choose one to fill in the price and shop.`;
 }
 
+/** A product's price, shop and "Out of stock", in a result here or a row of PartSearch. */
+export function ProductFacts({ product }: { product: ShopProduct }) {
+  return (
+    <span className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] leading-[18px] text-muted">
+      <span className="font-medium text-ink tabular-nums">
+        {formatMoney(product.price)}
+      </span>
+      <span>{product.shop}</span>
+      {!product.in_stock && (
+        <span className="rounded border border-muted px-1.5 font-medium">
+          Out of stock
+        </span>
+      )}
+    </span>
+  );
+}
+
 function Results({
   state,
   onPick,
@@ -162,17 +179,7 @@ function Results({
                 <span className="block text-[14px] leading-5 text-ink">
                   {product.title}
                 </span>
-                <span className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] leading-[18px] text-muted">
-                  <span className="font-medium text-ink tabular-nums">
-                    {formatMoney(product.price)}
-                  </span>
-                  <span>{product.shop}</span>
-                  {!product.in_stock && (
-                    <span className="rounded border border-muted px-1.5 font-medium">
-                      Out of stock
-                    </span>
-                  )}
-                </span>
+                <ProductFacts product={product} />
               </button>
               <a
                 href={product.url}

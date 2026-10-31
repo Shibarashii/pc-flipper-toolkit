@@ -11,6 +11,7 @@ import {
 import { formatMoney } from "../money";
 import { buttonPrimary, buttonSecondary, input } from "../ui";
 import { cleanMoney, Field, RowActions, Select, useSave } from "./form";
+import { PartSearch } from "./PartSearch";
 import { PriceLookup } from "./PriceLookup";
 
 const EMPTY = {
@@ -30,6 +31,12 @@ const fromPart = (p: Part) => ({
   listed_price: formatMoney(p.listed_price),
   bought_for: p.bought_for === null ? "" : formatMoney(p.bought_for),
   bundle: p.bundle === null ? "" : String(p.bundle),
+});
+
+/** What a shop's product fills in; nothing is saved until Save. */
+const fromProduct = (p: ShopProduct) => ({
+  listed_price: formatMoney(p.price),
+  shop: p.shop,
 });
 
 // Desktop layouts differ: adding is one compact row with hidden labels (Figma "Add part
@@ -102,15 +109,20 @@ export function PartForm({
     findRef.current?.focus();
   }
 
-  /** Fills the price and shop from a shop's product; nothing is saved until Save. */
   function pick(product: ShopProduct) {
-    setForm((f) => ({
-      ...f,
-      listed_price: formatMoney(product.price),
-      shop: product.shop,
-    }));
+    setForm((f) => ({ ...f, ...fromProduct(product) }));
     setLookup(null);
     priceRef.current?.focus();
+  }
+
+  /** Like pick, plus the name; the focus stays in Part, so the name can be trimmed. */
+  function pickFromPartSearch(product: ShopProduct) {
+    setForm((f) => ({
+      ...f,
+      name: product.short_title,
+      ...fromProduct(product),
+    }));
+    setLookup(null);
   }
 
   function submit(e: SubmitEvent<HTMLFormElement>) {
@@ -152,23 +164,15 @@ export function PartForm({
             {title}
           </p>
           <div className={`flex flex-col gap-3 ${layout.row}`}>
-            <Field
-              label="Part"
+            <PartSearch
+              value={form.name}
+              onChange={set("name")}
+              onPick={pickFromPartSearch}
+              inputRef={nameRef}
               errors={errors.name}
               labelClass={layout.label}
               className="sm:flex-1"
-            >
-              <input
-                ref={nameRef}
-                autoFocus
-                value={form.name}
-                onChange={(e) => set("name")(e.target.value)}
-                placeholder="Part name"
-                maxLength={200}
-                aria-invalid={!!errors.name}
-                className={input(!!errors.name)}
-              />
-            </Field>
+            />
             <Field
               label="Shop"
               errors={errors.shop}

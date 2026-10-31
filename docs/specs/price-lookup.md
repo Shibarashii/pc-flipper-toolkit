@@ -309,7 +309,7 @@ the same. The pop-up shows the first 8.
     `aria-activedescendant`.
   - The pop-up is a `role="listbox"` of `role="option"` rows.
 - **Placement:** the pop-up sits right under the Part box, over the fields below it. It is as
-  wide as the box, with a 280px minimum on desktop's compact add row.
+  wide as the box, with a 320px minimum on desktop's compact add row. It scrolls past 320px tall.
 - **Style:** `surface` background, 1px `line-strong` border, 4px radius (it's a control),
   hairlines between rows and no shadow, per the brand.
   - Each row's short name is in body text, and the shop's full name is under it in small
@@ -325,6 +325,9 @@ the same. The pop-up shows the first 8.
   - **Enter picks only when a row is active; otherwise Enter saves the part, as today.**
   - Esc closes the pop-up only; a second Esc cancels the edit.
   - Tab and clicking elsewhere close it without picking.
+- **Screen readers:** a visually hidden status line says when rows appear ("8 products found.
+  Use the up and down arrows to choose."), since a change to `aria-expanded` isn't announced
+  reliably. New rows clear the highlighted row, because its old position may not exist.
 - **Picking** fills the three fields, closes the pop-up and keeps the focus in Part with the
   cursor at the end, so the name can be trimmed.
 - **After a save in the add row** (which stays open for the next part), the pop-up is closed.
