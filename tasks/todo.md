@@ -648,7 +648,7 @@ the job, the secret, and re-enabling it after GitHub's 60-day pause.
 **Scope:** S
 
 ### Checkpoint 7: Price lookup
-- [ ] price lookup spec success criteria 1–6 pass on the live site (1–4 and 6 do; criterion 5, "runs green daily", waits on the first scheduled run, 2026-10-29 18:00 UTC)
+- [x] price lookup spec success criteria 1–6 pass on the live site (criterion 5: the scheduled runs of 2026-10-29 and 2026-10-30 were green)
 - [x] All tests pass on `main`
 
 ## Phase 10: Part search pop-up
