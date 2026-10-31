@@ -39,30 +39,10 @@ const fromProduct = (p: ShopProduct) => ({
   shop: p.shop,
 });
 
-// Desktop layouts differ: adding is one compact row with hidden labels (Figma "Add part
-// row"), editing (or adding inside a bundle) is two labelled rows with the Bundle select
-// (Figma "Part row (editing)"). Mobile is the same.
-const ADD_LAYOUT = {
-  box: "sm:flex-row sm:items-start sm:gap-2 sm:p-2",
-  row: "sm:contents",
-  label: "sm:sr-only",
-  shop: "sm:w-[120px]",
-  category: "sm:w-[112px]",
-  price: "sm:w-[96px]",
-  actions: "sm:contents",
-  footer: "sm:p-2",
-};
-const EDIT_LAYOUT = {
-  box: "",
-  row: "sm:flex-row sm:items-start sm:gap-2",
-  label: "",
-  shop: "sm:w-[200px]",
-  category: "sm:w-[140px]",
-  price: "sm:w-[140px]",
-  // Clears the label so the buttons line up with the inputs.
-  actions: "sm:mt-6 sm:ml-auto sm:gap-1.5",
-  footer: "",
-};
+// Two labelled rows on desktop, for adding and editing alike: a one-line add row left too
+// little room for a part's name and price.
+const ROW =
+  "flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start sm:gap-2";
 
 export function PartForm({
   part,
@@ -98,7 +78,6 @@ export function PartForm({
   const [lookup, setLookup] = useState<string | null>(null);
   const lookupId = useId();
   const full = part !== undefined || bundle !== undefined;
-  const layout = full ? EDIT_LAYOUT : ADD_LAYOUT;
   const title = part ? "Edit part" : "New part";
 
   const set = (field: keyof typeof EMPTY) => (value: string) =>
@@ -159,26 +138,20 @@ export function PartForm({
       aria-label={part ? `Edit ${part.name}` : title}
     >
       <div className="rounded bg-sunken">
-        <div className={`flex flex-col gap-3 p-3 ${layout.box}`}>
+        <div className="flex flex-col gap-3 p-3">
           <p className="text-[13px] leading-[18px] font-medium sm:hidden">
             {title}
           </p>
-          <div className={`flex flex-col gap-3 ${layout.row}`}>
+          <div className={ROW}>
             <PartSearch
               value={form.name}
               onChange={set("name")}
               onPick={pickFromPartSearch}
               inputRef={nameRef}
               errors={errors.name}
-              labelClass={layout.label}
               className="sm:flex-1"
             />
-            <Field
-              label="Shop"
-              errors={errors.shop}
-              labelClass={layout.label}
-              className={layout.shop}
-            >
+            <Field label="Shop" errors={errors.shop} className="sm:w-[200px]">
               <input
                 value={form.shop}
                 onChange={(e) => set("shop")(e.target.value)}
@@ -192,7 +165,7 @@ export function PartForm({
               <Field
                 label="Bundle"
                 errors={errors.bundle}
-                className={layout.shop}
+                className="sm:w-[200px]"
               >
                 <Select
                   value={form.bundle}
@@ -209,12 +182,11 @@ export function PartForm({
               </Field>
             )}
           </div>
-          <div className={`flex flex-col gap-3 ${layout.row}`}>
+          <div className={ROW}>
             <Field
               label="Category"
               errors={errors.category}
-              labelClass={layout.label}
-              className={layout.category}
+              className="sm:w-[140px]"
             >
               <Select
                 value={form.category}
@@ -236,8 +208,7 @@ export function PartForm({
               <Field
                 label="Listed price"
                 errors={errors.listed_price}
-                labelClass={layout.label}
-                className={`flex-1 sm:flex-none ${layout.price}`}
+                className="flex-1 sm:w-[140px] sm:flex-none"
               >
                 <input
                   ref={priceRef}
@@ -252,8 +223,7 @@ export function PartForm({
               <Field
                 label="Bought for"
                 errors={errors.bought_for}
-                labelClass={layout.label}
-                className={`flex-1 sm:flex-none ${layout.price}`}
+                className="flex-1 sm:w-[140px] sm:flex-none"
               >
                 <input
                   inputMode="decimal"
@@ -266,7 +236,9 @@ export function PartForm({
                 />
               </Field>
             </div>
-            <div className={`flex justify-end gap-2 ${layout.actions}`}>
+            <div // Clears the label so the buttons line up with the inputs.
+              className="flex justify-end gap-2 sm:mt-6 sm:ml-auto sm:gap-1.5"
+            >
               <button
                 type="button"
                 onClick={onClose}
@@ -288,7 +260,7 @@ export function PartForm({
           </div>
         </div>
         {/* Inside the box, on its own strip, so it reads as part of the form. */}
-        <div className={`border-t border-line p-3 ${layout.footer}`}>
+        <div className="border-t border-line p-3">
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
             <button
               ref={findRef}

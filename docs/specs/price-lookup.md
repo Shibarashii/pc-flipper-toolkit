@@ -116,11 +116,13 @@ Adding one is a code change plus a robots.txt and terms check.
 
 The part form (`PartForm` in `components/PartRow.tsx`) on desktop and at 375px:
 
+- Adding and editing share two labelled rows on desktop. A one-line add row left Part about
+  150px and the prices 96px, too little for a picked name or "₱17,900.00".
+
 - "Find prices" is a secondary button with a search icon, on its own strip at the bottom of
   the form's sunken box (a `line` hairline above it), with a muted hint beside it: "Fill in the
   price and shop from EasyPC or PC Express." It sits inside the box so it reads as part of the
-  form, and on its own strip because the compact add row hides its labels on desktop and has
-  no room by Listed price. The hint hides while the panel is open. The panel opens on that
+  form. The hint hides while the panel is open. The panel opens on that
   strip (full width) with a search box (prefilled, focused), Search and Close, and the
   results as a hairline-divided list (hover fill: `surface`, since it sits on `sunken`).
   Enter in the search box searches; it never saves the part. A part name under 2 characters isn't searched until the user types more.
@@ -309,7 +311,7 @@ the same. The pop-up shows the first 8.
     `aria-activedescendant`.
   - The pop-up is a `role="listbox"` of `role="option"` rows.
 - **Placement:** the pop-up sits right under the Part box, over the fields below it. It is as
-  wide as the box, with a 320px minimum on desktop's compact add row. It scrolls past 320px tall.
+  wide as the box, and scrolls past 320px tall.
 - **Style:** `surface` background, 1px `line-strong` border, 4px radius (it's a control),
   hairlines between rows and no shadow, per the brand.
   - Each row's short name is in body text, and the shop's full name is under it in small

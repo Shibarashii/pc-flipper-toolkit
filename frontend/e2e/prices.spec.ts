@@ -111,6 +111,26 @@ test.describe("part search pop-up", () => {
     await form.getByRole("button", { name: "Cancel" }).click();
   });
 
+  test("adding a part leaves room for a picked name and price", async () => {
+    await page
+      .getByRole("button", { name: "Add part" })
+      .filter({ visible: true })
+      .first()
+      .click();
+    const form = page.getByRole("form", { name: "New part" });
+    const box = form.getByRole("combobox", { name: "Part" });
+    await box.fill("rtx 3060");
+    await form.getByRole("listbox").getByRole("option").click();
+
+    // ₱100,000.00 needs about 120px; a short name about 300.
+    const part = await box.boundingBox();
+    const price = await form.getByLabel("Listed price").boundingBox();
+    expect(part?.width).toBeGreaterThanOrEqual(300);
+    expect(price?.width).toBeGreaterThanOrEqual(120);
+
+    await form.getByRole("button", { name: "Cancel" }).click();
+  });
+
   test("Enter with no active row saves the part", async () => {
     const form = await editPart();
     const box = form.getByRole("combobox", { name: "Part" });
