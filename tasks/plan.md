@@ -161,7 +161,7 @@ function, one dialog and one button. Frontend only: no API, migration or depende
 
 ### Phase 14: Public ids ([docs/specs/public-ids.md](../docs/specs/public-ids.md))
 - [x] T36: The frontend takes any id, as a string
-- [ ] T37: Public UUIDs in the database and the API
+- [x] T37: Public UUIDs in the database and the API
 
 ```
 T36 frontend takes any id ── (deployed) ── T37 UUIDs in the database and API

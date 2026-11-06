@@ -58,6 +58,10 @@ Exact versions get pinned in `requirements.txt` / `package.json` when the projec
 
 ## Data Model
 
+Build, Part, Bundle and ExtraCost also each have a `public_id`, a random UUID made by
+Postgres. It's the record's only name outside the database; the integer ids stay inside it
+([public ids spec](docs/specs/public-ids.md)).
+
 ```
 Build
   owner           User (Django's built-in user), deleted with it
@@ -106,6 +110,10 @@ caught.
 
 All endpoints are under `/api/`. JSON in, JSON out. Only `PATCH` is supported for updates (no `PUT`).
 
+**Ids:** a build's, part's, bundle's or extra cost's `id` is a UUID (its `public_id`), and
+so are the `build` and `bundle` fields that point at one. An integer or malformed `{id}` is
+a 404, and in a body it's a 400 under the field ([public ids spec](docs/specs/public-ids.md)).
+
 **Reference docs:** an OpenAPI 3 schema is generated from the code with drf-spectacular. Interactive docs (Swagger UI) are at `/api/docs/` and the raw schema at `/api/schema/`. This table is the overview, and `/api/docs/` is the source of truth for fields and examples.
 
 **Admin:** the Django admin at `/admin/` can browse and fix builds, parts, bundles and extra costs directly. Logging in needs a superuser (`python manage.py createsuperuser`), and is rate-limited per IP like the API's log-in. The admin shows every user's builds.
@@ -139,7 +147,7 @@ All endpoints are under `/api/`. JSON in, JSON out. Only `PATCH` is supported fo
 `profit`, `profit_margin`, `below_market` and `below_market_pct` are `null` when there's no
 selling price yet. The percentage fields are also `null` when they would divide by zero.
 
-Each part has a `bundle` id (or `null`). Each bundle in `bundles` also has read-only
+Each part has a `bundle` (the bundle's `id`, or `null`). Each bundle in `bundles` also has read-only
 `listed_total` (its parts' listed prices) and `unassigned` (its price minus its parts' typed
 bought-for amounts). Errors (400, under the field): a loose part without `bought_for`; bundled
 amounts adding up to more than the bundle's price (under the part's `bought_for`, or the

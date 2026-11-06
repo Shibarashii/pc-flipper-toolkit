@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import models
 from rest_framework import serializers
 
@@ -94,8 +95,33 @@ class MoneyField(serializers.DecimalField):
     }
 
 
+class PublicIdField(serializers.SlugRelatedField):
+    """Another record, by its public UUID (docs/specs/public-ids.md)."""
+
+    default_error_messages = {
+        "does_not_exist": "No such record: {value}.",
+        "invalid": "Must be a UUID.",
+    }
+
+    def __init__(self, **kwargs):
+        super().__init__(slug_field="public_id", **kwargs)
+
+    def to_internal_value(self, data):
+        # Django rejects a malformed UUID with its own ValidationError, which DRF's
+        # field doesn't catch: without this, "nope" is a 500 instead of a 400.
+        try:
+            return super().to_internal_value(data)
+        except DjangoValidationError:
+            self.fail("invalid")
+
+
 class ModelSerializer(serializers.ModelSerializer):
-    """ModelSerializer whose decimal (money) fields use MoneyField."""
+    """ModelSerializer whose decimal (money) fields use MoneyField, and whose `id` is
+    the record's public UUID: the integer id never leaves the database."""
+
+    id = serializers.UUIDField(
+        source="public_id", read_only=True, help_text="A random UUID."
+    )
 
     serializer_field_mapping = {
         **serializers.ModelSerializer.serializer_field_mapping,
@@ -110,11 +136,15 @@ def peso(amount) -> str:
 class ChildSerializer(ModelSerializer):
     """A part, bundle or extra cost: it goes in one of the user's own builds, and stays there."""
 
+    build = PublicIdField(
+        queryset=Build.objects.all(), help_text="`id` of the build it belongs to."
+    )
+
     def get_fields(self):
         fields = super().get_fields()
         request = self.context.get("request")
-        # Another user's build (or bundle) id is "object does not exist", as if it
-        # weren't there. (No user while the API docs are generated.)
+        # Another user's build (or bundle) is "no such record", as if it weren't
+        # there. (No user while the API docs are generated.)
         if request and request.user.is_authenticated:
             fields["build"].queryset = Build.objects.filter(owner=request.user)
             if "bundle" in fields:
@@ -130,6 +160,13 @@ class ChildSerializer(ModelSerializer):
 
 
 class PartSerializer(ChildSerializer):
+    bundle = PublicIdField(
+        queryset=Bundle.objects.all(),
+        allow_null=True,
+        required=False,
+        help_text="`id` of the bundle it was bought in (same build), or `null`.",
+    )
+
     class Meta:
         model = Part
         fields = [
@@ -143,7 +180,6 @@ class PartSerializer(ChildSerializer):
             "bought_for",
         ]
         extra_kwargs = {
-            "build": {"help_text": "ID of the build this part belongs to."},
             "name": {"help_text": 'Part name, e.g. "Ryzen 5 7600".'},
             "shop": {"help_text": 'Where it was bought, e.g. "Shopee - DynaQuest".'},
             "listed_price": {"help_text": f"Market price. {MONEY_INPUT}"},
@@ -151,9 +187,6 @@ class PartSerializer(ChildSerializer):
                 "help_text": f"What was actually paid, after vouchers. {MONEY_INPUT} "
                 "Required unless the part is in a bundle, where it's an optional "
                 "breakdown of the bundle's price."
-            },
-            "bundle": {
-                "help_text": "ID of the bundle it was bought in (same build), or `null`."
             },
         }
 
@@ -207,7 +240,6 @@ class BundleSerializer(ChildSerializer):
             "unassigned",
         ]
         extra_kwargs = {
-            "build": {"help_text": "ID of the build this bundle belongs to."},
             "name": {"help_text": 'What it was sold as, e.g. "B550m + R5 5600".'},
             "shop": {"help_text": "Where it was bought."},
             "bought_for": {
@@ -229,7 +261,6 @@ class ExtraCostSerializer(ChildSerializer):
         model = ExtraCost
         fields = ["id", "build", "label", "amount"]
         extra_kwargs = {
-            "build": {"help_text": "ID of the build this cost belongs to."},
             "label": {"help_text": 'What it was for, e.g. "Shipping".'},
             "amount": {"help_text": MONEY_INPUT},
         }
@@ -242,7 +273,7 @@ class BuildSerializer(ModelSerializer):
     totals = TotalsSerializer(source="*", read_only=True)
     number = serializers.SerializerMethodField(
         help_text="1 for the user's oldest build, then 2, 3… Deleting one renumbers "
-        "the later ones. Use it in the UI rather than `id`, which counts every user's."
+        "the later ones. Use it in the UI; `id` is a random UUID."
     )
 
     class Meta:

@@ -44,7 +44,10 @@ test("flip a PC: sign up, add parts and a bundle, price it, delete it", async ({
   await page.getByRole("button", { name: "New build" }).click();
   await page.getByLabel("Name").fill("Ryzen 5 7600 + RTX 4060");
   await page.getByRole("button", { name: "Create build" }).click();
-  await expect(page).toHaveURL(/\/builds\/\d+$/);
+  // A build's address is its random public id, never the database's integer one.
+  await expect(page).toHaveURL(
+    /\/builds\/[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
+  );
 
   await page.getByRole("button", { name: "Add part", exact: true }).click();
   await fill(page, "New part", {
