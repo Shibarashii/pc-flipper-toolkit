@@ -159,6 +159,20 @@ function, one dialog and one button. Frontend only: no API, migration or depende
 
 **Checkpoint 11 (done):** the copy listing spec's success criteria 1–4 pass on the live site.
 
+### Phase 14: Public ids ([docs/specs/public-ids.md](../docs/specs/public-ids.md))
+- [ ] T36: The frontend takes any id, as a string
+- [ ] T37: Public UUIDs in the database and the API
+
+```
+T36 frontend takes any id ── (deployed) ── T37 UUIDs in the database and API
+```
+T36 goes first and is deployed on its own: it works with today's integer API, so when T37
+lands, the frontend is already live and there's no window where the two disagree. T37 is one
+task because the four models share one migration, and the children's `build`/`bundle`
+fields must switch at the same time as the builds' ids. No new dependencies.
+
+**Checkpoint 12:** the public ids spec's success criteria 1–4 pass on the live site.
+
 ## Risks and Mitigations
 
 | Risk | Impact | Mitigation |
@@ -183,6 +197,10 @@ function, one dialog and one button. Frontend only: no API, migration or depende
 | A demo opened on the 1st–3rd shows ₱0 this month | Low | The demo's sale is dated today (T32) |
 | The post leaks what was paid, a shop or a note | High (a buyer sees the margin) | `listingText` reads only names, categories and the selling price; a test fills in every other field and checks none appear (T35) |
 | Copying fails on a phone or an insecure page | Med | The text is selected and the dialog says to press Ctrl+C or use Copy; a test covers the failed path, and a manual paste on a phone (T35) |
+| The migration fails or locks the live database | High (the app is down until it's fixed) | One `ADD COLUMN` per table with a database default, on a few hundred rows; run on a copy of the schema in CI first; the migration is reversible (T37) |
+| Old code inserts during the deploy and fails on the new column | Med | The column's database default (`gen_random_uuid()`) fills it; a test inserts without it (T37) |
+| An integer id slips through somewhere (a nested field, a docs example) | Med (the point of the change) | A test walks every response of all four resources and fails on any integer `id`, `build` or `bundle` (T37) |
+| New frontend and old API (or the reverse) disagree mid-deploy | Med | T36 ships first and works with integer ids; it never checks an id's format (T36) |
 
 ## Open Questions
 
