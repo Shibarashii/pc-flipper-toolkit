@@ -19,10 +19,10 @@ export default function App() {
   const { session } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  // Set by the redirect to /login, so logging in goes back to the page you wanted.
+  // The redirect to /login remembers the page you wanted, so logging in goes back to it. Only
+  // for a link opened before anyone logged in: once a session ends (Log out, Exit demo, or the
+  // server), the page belonged to that account.
   const from = (location.state as { from?: string } | null)?.from ?? "/";
-  // Only a link opened before anyone logged in comes back after logging in. Once a session
-  // ends (Log out, Exit demo, or the server), the page belonged to that account.
   const [hadSession, setHadSession] = useState(session !== null);
   if (session && !hadSession) setHadSession(true);
 

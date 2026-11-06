@@ -175,7 +175,7 @@ test.each([
   "%s on a build, then logging in, opens the builds list",
   async (button, username) => {
     saveSession({ token: "abc", username });
-    stubFetch(
+    const fetchMock = stubFetch(
       () => Response.json(makeBuild()),
       () => new Response(null, { status: 204 }),
       () => Response.json({ token: "xyz", username: "dave" }),
@@ -190,12 +190,13 @@ test.each([
     fireEvent.click(screen.getByRole("button", { name: "Log in" }));
 
     expect(await screen.findByText("No builds yet")).toBeTruthy();
+    expect(fetchMock.mock.calls.at(-1)?.[0]).toBe("/api/builds/");
   },
 );
 
 test("an ended session on a build, then logging in, opens the builds list", async () => {
   saveSession({ token: "d1", username: "demo-abc" });
-  stubFetch(
+  const fetchMock = stubFetch(
     () => Response.json({ detail: "Invalid token." }, { status: 401 }),
     () => Response.json({ token: "xyz", username: "dave" }),
     () => Response.json([]),
@@ -207,6 +208,7 @@ test("an ended session on a build, then logging in, opens the builds list", asyn
   fireEvent.click(screen.getByRole("button", { name: "Log in" }));
 
   expect(await screen.findByText("No builds yet")).toBeTruthy();
+  expect(fetchMock.mock.calls.at(-1)?.[0]).toBe("/api/builds/");
 });
 
 test("a 401 for an older token doesn't end the current session", async () => {
