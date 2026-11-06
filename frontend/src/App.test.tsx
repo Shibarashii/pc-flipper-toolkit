@@ -167,6 +167,48 @@ test("Log out deletes the token on the server and goes to log in", async () => {
   expect(getToken()).toBe("");
 });
 
+// The page you were on belonged to the account that left, so the next one starts at home.
+test.each([
+  ["Exit demo", "demo-abc"],
+  ["Log out", "carol"],
+])(
+  "%s on a build, then logging in, opens the builds list",
+  async (button, username) => {
+    saveSession({ token: "abc", username });
+    stubFetch(
+      () => Response.json(makeBuild()),
+      () => new Response(null, { status: 204 }),
+      () => Response.json({ token: "xyz", username: "dave" }),
+      () => Response.json([]),
+    );
+    renderAt("/builds/3");
+    await screen.findByText("Ryzen 5 7600 + RTX 4060");
+
+    fireEvent.click(screen.getByRole("button", { name: button }));
+    await screen.findByRole("heading", { name: "Log in" });
+    fillIn("dave", "a long passphrase");
+    fireEvent.click(screen.getByRole("button", { name: "Log in" }));
+
+    expect(await screen.findByText("No builds yet")).toBeTruthy();
+  },
+);
+
+test("an ended session on a build, then logging in, opens the builds list", async () => {
+  saveSession({ token: "d1", username: "demo-abc" });
+  stubFetch(
+    () => Response.json({ detail: "Invalid token." }, { status: 401 }),
+    () => Response.json({ token: "xyz", username: "dave" }),
+    () => Response.json([]),
+  );
+  renderAt("/builds/3");
+  await screen.findByText("Your demo ended. Try it again or sign up.");
+
+  fillIn("dave", "a long passphrase");
+  fireEvent.click(screen.getByRole("button", { name: "Log in" }));
+
+  expect(await screen.findByText("No builds yet")).toBeTruthy();
+});
+
 test("a 401 for an older token doesn't end the current session", async () => {
   saveSession({ token: "old", username: "carol" });
   let respond: (response: Response) => void = () => {};

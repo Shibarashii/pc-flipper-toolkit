@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Link,
   Navigate,
@@ -20,6 +21,10 @@ export default function App() {
   const navigate = useNavigate();
   // Set by the redirect to /login, so logging in goes back to the page you wanted.
   const from = (location.state as { from?: string } | null)?.from ?? "/";
+  // Only a link opened before anyone logged in comes back after logging in. Once a session
+  // ends (Log out, Exit demo, or the server), the page belonged to that account.
+  const [hadSession, setHadSession] = useState(session !== null);
+  if (session && !hadSession) setHadSession(true);
 
   async function logOutEverywhere() {
     // Log out here even if the server can't be reached; the token just lingers there.
@@ -89,7 +94,11 @@ export default function App() {
               <Navigate
                 to="/login"
                 replace
-                state={{ from: location.pathname + location.search }}
+                state={
+                  hadSession
+                    ? undefined
+                    : { from: location.pathname + location.search }
+                }
               />
             }
           />
