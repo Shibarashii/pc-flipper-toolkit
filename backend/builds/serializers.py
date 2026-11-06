@@ -54,6 +54,37 @@ class TotalsSerializer(serializers.Serializer):
 MONEY_INPUT = "Decimal string in PHP, ≥ 0, up to 2 decimal places."
 
 
+class SoldSummarySerializer(serializers.Serializer):
+    profit = money(
+        "Sum of the sold builds' `profit`. Negative is a loss. A sold build with no "
+        "selling price adds nothing."
+    )
+    sold = serializers.IntegerField(read_only=True, help_text="How many builds sold.")
+
+
+class TiedUpSerializer(serializers.Serializer):
+    cost = money("Sum of the unsold builds' `total_cost`.")
+    builds = serializers.IntegerField(
+        read_only=True, help_text="How many unsold builds have money in them."
+    )
+
+
+class BuildsSummarySerializer(serializers.Serializer):
+    """The builds list's summary line (docs/specs/builds-summary.md). Read-only."""
+
+    this_month = SoldSummarySerializer(
+        read_only=True,
+        help_text="Sold builds whose `sold_at` is in this calendar month, Manila time.",
+    )
+    all_time = SoldSummarySerializer(
+        read_only=True, help_text="Every sold build, with or without a `sold_at`."
+    )
+    tied_up = TiedUpSerializer(
+        read_only=True,
+        help_text="Builds not sold yet whose `total_cost` is above 0.",
+    )
+
+
 class MoneyField(serializers.DecimalField):
     # DRF turns the models' MinValueValidator(0) into its own min_value check,
     # so the plain-language message has to live here.

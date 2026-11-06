@@ -135,7 +135,7 @@ live once T30 is on Render. No new dependencies (the combobox is hand-written), 
 **Checkpoint 8:** part 2's success criteria 1–5 pass on the live site.
 
 ### Phase 11: Builds summary ([docs/specs/builds-summary.md](../docs/specs/builds-summary.md))
-- [ ] T32: Summary API (`GET /api/builds/summary/`) and the demo's sale dated today
+- [x] T32: Summary API (`GET /api/builds/summary/`) and the demo's sale dated today
 - [ ] T33: The summary line on the builds list
 
 ```

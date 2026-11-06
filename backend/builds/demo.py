@@ -93,7 +93,8 @@ def create_demo_user():
         name="Ryzen 5 5600 + RX 6600",
         status=Build.Status.SOLD,
         selling_price=D(32000),
-        sold_at=timezone.localdate() - timedelta(days=3),
+        # Today, so the builds summary counts it this month even on the 1st.
+        sold_at=timezone.localdate(),
         notes="Buyer from Quezon City, paid by GCash. Asked for the box of the GPU.",
     )
     bundle = Bundle.objects.create(
