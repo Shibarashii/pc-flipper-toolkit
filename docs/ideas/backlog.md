@@ -23,22 +23,9 @@ one click.
   it's posted, offers, days listed), photos, posting to Facebook directly, other marketplaces'
   formats.
 
-### Builds summary (intent agreed 2026-11-06, not specced)
+### Builds summary (specced 2026-11-06)
 
-One summary line above the builds list: this month's profit (and how many builds sold),
-all-time profit, and money tied up (the total spent on builds not sold yet, and how many).
-
-> **This month:** ₱8,400 profit from 2 sold · **All time:** ₱41,200 · **Tied up:** ₱23,500 in 3 builds
-
-- **Why:** the app stores every build's cost, profit and sold date, but only shows them one
-  build at a time. A flipper wants "how am I doing?" and "how much cash is stuck in unsold
-  PCs?" without adding anything up.
-- **Success:** the numbers match a hand calculation over the builds list to the centavo.
-  "This month" means builds whose sold date falls in the current calendar month, in
-  Philippine time.
-- **Constraint:** no data model change, no new screen, no new dependency. Worked out on the
-  server, like the other totals.
-- **Not doing:** the stats screen (below), days to sell, filtering by status or date.
+Moved to [docs/specs/builds-summary.md](../specs/builds-summary.md).
 
 ### Stats screen (step 2 after the builds summary, added 2026-11-06)
 

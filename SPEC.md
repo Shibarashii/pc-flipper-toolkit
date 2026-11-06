@@ -126,6 +126,7 @@ All endpoints are under `/api/`. JSON in, JSON out. Only `PATCH` is supported fo
 | POST | `/api/extra-costs/` | Add an extra cost (`build` id in the body) |
 | PATCH, DELETE | `/api/extra-costs/{id}/` | Edit / remove an extra cost |
 | GET | `/api/prices/?q=` | Search the PC shops' prices ([price lookup spec](docs/specs/price-lookup.md)) |
+| GET | `/api/builds/summary/` | This month's and all-time profit, and money tied up in unsold builds ([builds summary spec](docs/specs/builds-summary.md)) |
 
 `totals` is computed on the server and read-only:
 ```json
