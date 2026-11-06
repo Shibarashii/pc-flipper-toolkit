@@ -9,9 +9,17 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  # One run per PR: a new push cancels the older one. Runs on main are never grouped, so
+  # every merged commit gets its own run and Render can deploy it (docs/specs/ci-speedups.md).
+  group: ${{ github.event_name == 'pull_request' && format('ci-{0}', github.ref) || format('ci-run-{0}', github.run_id) }}
+  cancel-in-progress: true
+
 jobs:
   backend:
     runs-on: ubuntu-latest
+    # Fail fast instead of GitHub's 6-hour default if a step hangs.
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: backend
@@ -40,6 +48,7 @@ jobs:
 
   frontend:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: frontend
@@ -59,6 +68,8 @@ jobs:
   # One browser walk-through of the main flow, against Django and Vite on a throwaway DB.
   e2e:
     runs-on: ubuntu-latest
+    # About 2 minutes normally; 11 at worst on 2026-11-06, when installing the browser was slow.
+    timeout-minutes: 20
     services:
       postgres:
         image: postgres:18
@@ -88,7 +99,21 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci
         working-directory: frontend
-      - run: npx playwright install --with-deps chromium
+      # Chromium is cached under the exact Playwright version; a cache saved on main is
+      # shared with every PR. The system packages still install each time.
+      - id: playwright
+        run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+        working-directory: frontend
+      - uses: actions/cache@v6
+        id: browsers
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+      - if: steps.browsers.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps chromium
+        working-directory: frontend
+      - if: steps.browsers.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium
         working-directory: frontend
       - run: npm run e2e
         working-directory: frontend

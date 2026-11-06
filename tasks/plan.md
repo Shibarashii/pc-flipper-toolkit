@@ -146,6 +146,11 @@ live once T32 is on Render. No migration, no new dependencies.
 
 **Checkpoint 9:** the builds summary spec's success criteria 1–4 pass on the live site.
 
+### Phase 12: CI speedups ([docs/specs/ci-speedups.md](../docs/specs/ci-speedups.md))
+- [x] T34: Cache Playwright's Chromium, cancel superseded PR runs, job time limits
+
+**Checkpoint 10:** the CI speedups spec's success criteria 2–4 hold on the next PRs.
+
 ## Risks and Mitigations
 
 | Risk | Impact | Mitigation |
