@@ -151,6 +151,14 @@ live once T32 is on Render. No migration, no new dependencies.
 
 **Checkpoint 10:** the CI speedups spec's success criteria 2–4 hold on the next PRs.
 
+### Phase 13: Copy listing ([docs/specs/copy-listing.md](../docs/specs/copy-listing.md))
+- [x] T35: Copy listing: the post, the dialog and the header button
+
+One task: the post is only useful through the dialog, and the whole feature is a pure
+function, one dialog and one button. Frontend only: no API, migration or dependency.
+
+**Checkpoint 11:** the copy listing spec's success criteria 1–4 pass on the live site.
+
 ## Risks and Mitigations
 
 | Risk | Impact | Mitigation |
@@ -173,6 +181,8 @@ live once T32 is on Render. No migration, no new dependencies.
 | "This month" uses the server's or browser's month instead of Manila's | Med (wrong numbers near midnight on the 1st) | `timezone.localdate()` (`TIME_ZONE = Asia/Manila`); a test with the date mocked on both sides of the boundary (T32) |
 | The summary disagrees with the list (bundles, extra costs) | High (the feature is trust in the numbers) | It sums the model's own `profit` and `total_cost`, never a second formula; a test with a bundle and extra costs (T32) |
 | A demo opened on the 1st–3rd shows ₱0 this month | Low | The demo's sale is dated today (T32) |
+| The post leaks what was paid, a shop or a note | High (a buyer sees the margin) | `listingText` reads only names, categories and the selling price; a test fills in every other field and checks none appear (T35) |
+| Copying fails on a phone or an insecure page | Med | The text is selected and the dialog says to press Ctrl+C or use Copy; a test covers the failed path, and a manual paste on a phone (T35) |
 
 ## Open Questions
 

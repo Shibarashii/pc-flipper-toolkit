@@ -9,7 +9,7 @@ import {
 } from "../api";
 import { buildNo } from "../buildNo";
 import { formatMoney } from "../money";
-import { buttonDanger, input } from "../ui";
+import { buttonDanger, buttonSecondary, input } from "../ui";
 import { DeleteBuildDialog } from "./DeleteBuildDialog";
 import {
   cleanMoney,
@@ -19,6 +19,7 @@ import {
   Select,
   type SaveState,
 } from "./form";
+import { ListingDialog } from "./ListingDialog";
 import { StatusTag } from "./StatusTag";
 
 const STATUSES: Record<BuildStatus, string> = {
@@ -68,6 +69,7 @@ export function BuildHeader({
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [renaming, setRenaming] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [listing, setListing] = useState(false);
   const [name, setName] = useState(build.name);
   // Esc closes the rename input; some browsers then fire blur, which must not save.
   const renameCancelled = useRef(false);
@@ -244,14 +246,26 @@ export function BuildHeader({
           />
         </div>
         {/* Lines up with the inputs' bottom edge, even when a field shows an error. */}
-        <button
-          type="button"
-          onClick={() => setConfirmingDelete(true)}
-          className={`shrink-0 self-end ${buttonDanger}`}
-        >
-          Delete build
-        </button>
+        <div className="flex shrink-0 gap-2 self-end">
+          <button
+            type="button"
+            onClick={() => setListing(true)}
+            className={buttonSecondary}
+          >
+            Copy listing
+          </button>
+          <button
+            type="button"
+            onClick={() => setConfirmingDelete(true)}
+            className={buttonDanger}
+          >
+            Delete build
+          </button>
+        </div>
       </div>
+      {listing && (
+        <ListingDialog build={shown} onClose={() => setListing(false)} />
+      )}
       {confirmingDelete && (
         <DeleteBuildDialog
           build={build}
