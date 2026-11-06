@@ -805,3 +805,29 @@ loaded at the same time as the list:
 ### Checkpoint 9: Builds summary
 - [ ] The spec's success criteria 1–4 pass on the live site
 - [ ] All tests pass on `main`
+
+## Phase 12: CI speedups
+
+Spec: [docs/specs/ci-speedups.md](../docs/specs/ci-speedups.md). Only
+`.github/workflows/ci.yml` changes; the job names stay.
+
+### - [x] T34: Cache Playwright's Chromium, cancel superseded PR runs, job time limits
+
+**Acceptance criteria:**
+- [x] The e2e job caches `~/.cache/ms-playwright` under the installed Playwright version, and
+  on a hit installs only the system packages.
+- [x] A new push to a PR cancels its older run; runs on `main` are never grouped.
+- [x] Time limits: backend 10, frontend 10, e2e 20 minutes.
+- [x] The jobs are still `backend`, `frontend` and `e2e`.
+
+**Verification:**
+- [x] This PR's three checks pass; its e2e log shows a cache miss and the full install
+
+**Dependencies:** None
+**Files:** `.github/workflows/ci.yml`
+**Scope:** XS
+
+### Checkpoint 10: CI speedups
+- [ ] After the merge, the next PR's e2e log shows a Chromium cache hit
+- [ ] A PR that gets a second push mid-run ends with only the newest run finished
+- [ ] Every merge on `main` keeps its own run, and Render still deploys after it
