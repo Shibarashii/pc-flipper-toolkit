@@ -28,6 +28,13 @@ export type Build = {
   totals: Totals;
 };
 
+/** The builds list's summary line, worked out on the server (docs/specs/builds-summary.md). */
+export type BuildsSummary = {
+  this_month: { profit: string; sold: number };
+  all_time: { profit: string; sold: number };
+  tied_up: { cost: string; builds: number };
+};
+
 export const CATEGORIES = {
   cpu: "CPU",
   gpu: "GPU",
@@ -157,6 +164,9 @@ export const tryDemo = () =>
 export const logOut = () => request<null>("/auth/logout/", { method: "POST" });
 
 export const listBuilds = () => request<Build[]>("/builds/");
+
+export const getBuildsSummary = () =>
+  request<BuildsSummary>("/builds/summary/");
 
 export const getBuild = (id: number) => request<BuildDetail>(`/builds/${id}/`);
 

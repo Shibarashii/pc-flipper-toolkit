@@ -739,7 +739,7 @@ WAI-ARIA 1.2 combobox with a listbox pop-up.
 Spec: [docs/specs/builds-summary.md](../docs/specs/builds-summary.md). No migration, no new
 dependencies.
 
-### - [ ] T32: Summary API and the demo's sale dated today
+### - [x] T32: Summary API and the demo's sale dated today
 
 **Description:** `BuildViewSet.summary`, an `@action(detail=False)` at `GET
 /api/builds/summary/`. It reuses the viewset's owner filter and prefetching, and sums the
@@ -754,20 +754,20 @@ description, example). `demo.py` dates the sample sale `timezone.localdate()`. `
 `getBuildsSummary()` and the `BuildsSummary` type.
 
 **Acceptance criteria:**
-- [ ] On a mix of builds, each figure matches the spec's rules: a sold build without a price
+- [x] On a mix of builds, each figure matches the spec's rules: a sold build without a price
   counts in "sold" but adds ₱0, one without a date counts only in All time, a loss is
   negative, and an empty Planning build isn't in Tied up.
-- [ ] With the date mocked in Manila time, a sale on the last day of last month isn't in This
+- [x] With the date mocked in Manila time, a sale on the last day of last month isn't in This
   month, and one on the 1st is.
-- [ ] Bundles count once and extra costs are included, the same as `totals`.
-- [ ] Only the user's own builds count; 401 without a token; the query count doesn't grow
+- [x] Bundles count once and extra costs are included, the same as `totals`.
+- [x] Only the user's own builds count; 401 without a token; the query count doesn't grow
   with the number of builds.
-- [ ] A new demo's summary has its sold build in This month.
+- [x] A new demo's summary has its sold build in This month.
 
 **Verification:**
-- [ ] `python manage.py test` and `ruff check . && ruff format --check .`
-- [ ] `python manage.py spectacular --validate --fail-on-warn`
-- [ ] Manual: `curl` the endpoint for a local demo account
+- [x] `python manage.py test` and `ruff check . && ruff format --check .`
+- [x] `python manage.py spectacular --validate --fail-on-warn`
+- [x] Manual: `curl` the endpoint for a local demo account
 
 **Dependencies:** None
 **Files:** `backend/builds/views.py`, `backend/builds/serializers.py`, `backend/builds/demo.py`, `backend/builds/tests.py`, `frontend/src/api.ts`

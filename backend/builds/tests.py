@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import UTC, datetime, timedelta
 from decimal import Decimal as D
 from io import StringIO
 from unittest import mock
@@ -88,6 +88,149 @@ class BuildApiTests(LoggedInApiTestCase):
         res = self.client.patch(url, {"notes": "x" * 10_001}, format="json")
         self.assertEqual(res.status_code, 400)
         self.assertIn("notes", res.json())
+
+
+def at(when: str):
+    """Freezes the clock at an ISO time, e.g. "2026-11-01T00:30+08:00" (Manila).
+
+    In UTC, like the real `timezone.now()`, so code that forgets Manila time fails."""
+    return mock.patch(
+        "django.utils.timezone.now",
+        return_value=datetime.fromisoformat(when).astimezone(UTC),
+    )
+
+
+class SummaryTests(LoggedInApiTestCase):
+    """GET /api/builds/summary/ (docs/specs/builds-summary.md)."""
+
+    def build(self, cost: str = "0.00", **fields) -> Build:
+        build = new_build(name="B", **fields)
+        if D(cost):
+            build.parts.create(
+                name="P", category="gpu", listed_price=cost, bought_for=cost
+            )
+        return build
+
+    def summary(self) -> dict:
+        res = self.client.get("/api/builds/summary/")
+        self.assertEqual(res.status_code, 200)
+        return res.json()
+
+    def test_each_figure_follows_the_rules(self):
+        sold = Build.Status.SOLD
+        self.build(
+            "8000.00", status=sold, selling_price="10000.00", sold_at="2026-11-03"
+        )
+        self.build(
+            "6000.00", status=sold, selling_price="5000.00", sold_at="2026-11-10"
+        )
+        self.build("3000.00", status=sold, sold_at="2026-11-12")  # no price: adds ₱0
+        self.build(
+            "7000.00", status=sold, selling_price="9000.00", sold_at="2026-10-31"
+        )
+        self.build("3000.00", status=sold, selling_price="4000.00")  # no sold date
+        self.build("12000.00", status=Build.Status.LISTED)
+        self.build("500.00", status=Build.Status.BUILDING)
+        self.build(status=Build.Status.PLANNING)  # nothing spent: not tied up
+
+        with at("2026-11-15T12:00+08:00"):
+            summary = self.summary()
+
+        self.assertEqual(
+            summary,
+            {
+                "this_month": {"profit": "1000.00", "sold": 3},
+                "all_time": {"profit": "4000.00", "sold": 5},
+                "tied_up": {"cost": "12500.00", "builds": 2},
+            },
+        )
+
+    def test_no_builds_is_all_zero(self):
+        self.assertEqual(
+            self.summary(),
+            {
+                "this_month": {"profit": "0.00", "sold": 0},
+                "all_time": {"profit": "0.00", "sold": 0},
+                "tied_up": {"cost": "0.00", "builds": 0},
+            },
+        )
+
+    def test_this_month_is_manilas_month(self):
+        sold = Build.Status.SOLD
+        self.build(
+            "1000.00", status=sold, selling_price="2000.00", sold_at="2026-10-31"
+        )
+        self.build(
+            "1000.00", status=sold, selling_price="4000.00", sold_at="2026-11-01"
+        )
+
+        # 00:30 on the 1st in Manila is still October 31st in UTC.
+        with at("2026-11-01T00:30+08:00"):
+            self.assertEqual(
+                self.summary()["this_month"], {"profit": "3000.00", "sold": 1}
+            )
+        with at("2026-10-31T23:30+08:00"):
+            self.assertEqual(
+                self.summary()["this_month"], {"profit": "1000.00", "sold": 1}
+            )
+
+    def test_bundles_count_once_and_extra_costs_count(self):
+        def with_a_bundle(**fields) -> Build:
+            build = self.build("3000.00", **fields)
+            bundle = build.bundles.create(name="Deal", bought_for="7500.00")
+            # A bundled part's own bought-for is only a breakdown of the bundle's.
+            build.parts.create(
+                bundle=bundle,
+                name="R5 5600",
+                category="cpu",
+                listed_price="7000.00",
+                bought_for="3500.00",
+            )
+            build.extra_costs.create(label="Thermal paste", amount="500.00")
+            return build
+
+        sold = with_a_bundle(
+            status=Build.Status.SOLD, selling_price="12000.00", sold_at="2026-11-02"
+        )
+        with_a_bundle(status=Build.Status.LISTED)
+
+        with at("2026-11-15T12:00+08:00"):
+            summary = self.summary()
+
+        totals = self.client.get(f"/api/builds/{sold.id}/").json()["totals"]
+        self.assertEqual(totals["profit"], "1000.00")  # 12,000 − (3,000 + 7,500 + 500)
+        self.assertEqual(summary["this_month"]["profit"], totals["profit"])
+        self.assertEqual(summary["tied_up"]["cost"], totals["total_cost"])
+
+    def test_only_your_own_builds_count(self):
+        bob = User.objects.create(username="bob")
+        new_build(
+            owner=bob, name="Bob's", status=Build.Status.SOLD, selling_price="9000.00"
+        )
+        new_build(owner=bob, name="Bob's listed").parts.create(
+            name="P", category="gpu", listed_price="1.00", bought_for="1.00"
+        )
+
+        summary = self.summary()
+
+        self.assertEqual(summary["all_time"], {"profit": "0.00", "sold": 0})
+        self.assertEqual(summary["tied_up"], {"cost": "0.00", "builds": 0})
+
+    def test_needs_a_login(self):
+        self.client.force_authenticate(None)
+
+        self.assertEqual(self.client.get("/api/builds/summary/").status_code, 401)
+
+    def test_query_count_does_not_grow_with_builds(self):
+        for i in range(5):
+            build = self.build("1.00", status=Build.Status.LISTED)
+            build.extra_costs.create(label="C", amount="1.00")
+            build.bundles.create(name="Deal", bought_for="1.00").parts.create(
+                build=build, name="Q", category="cpu", listed_price="1.00"
+            )
+
+        with self.assertNumQueries(4):  # builds, parts, bundles, extra costs
+            self.summary()
 
 
 class SoldDateTests(LoggedInApiTestCase):
@@ -944,6 +1087,15 @@ class DemoTests(APITestCase):
         self.assertEqual(building["status"], "building")
         self.assertIsNone(building["totals"]["profit"])
         self.assertEqual(building["totals"]["listed_total"], "24000.00")
+
+    def test_a_new_demos_sale_counts_this_month(self):
+        # On the 1st, a sale dated a few days back would land in last month.
+        with at("2026-11-01T09:00+08:00"):
+            self.demo()
+            summary = self.client.get("/api/builds/summary/").json()
+
+        self.assertEqual(summary["this_month"], {"profit": "4200.00", "sold": 1})
+        self.assertEqual(summary["tied_up"]["builds"], 1)
 
     def test_demos_are_separate_and_editable(self):
         self.demo()

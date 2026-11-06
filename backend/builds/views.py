@@ -1,13 +1,16 @@
 from django.db.models import Count, Min, OuterRef, Subquery
+from django.utils import timezone
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
 from rest_framework import viewsets
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import Build, Bundle, ExtraCost, Part, ShopProduct
+from .models import ZERO, Build, Bundle, ExtraCost, Part, ShopProduct
 from .serializers import (
     BuildDetailSerializer,
     BuildSerializer,
+    BuildsSummarySerializer,
     BundleSerializer,
     ExtraCostSerializer,
     PartSerializer,
@@ -116,7 +119,8 @@ class BuildViewSet(viewsets.ModelViewSet):
         # Only the user's own builds: anyone else's are a 404. The totals read parts,
         # bundles and extra costs; prefetching keeps the query count flat. Only the
         # detail shows bundles, which read their own parts.
-        bundles = "bundles" if self.action == "list" else "bundles__parts"
+        many = self.action in ("list", "summary")
+        bundles = "bundles" if many else "bundles__parts"
         return (
             Build.objects.filter(owner=self.request.user)
             .annotate(number=Subquery(numbers))
@@ -128,6 +132,56 @@ class BuildViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         return BuildSerializer if self.action == "list" else BuildDetailSerializer
+
+    @extend_schema(
+        summary="Summary of your builds",
+        description="This month's and all-time profit from sold builds, and the money "
+        "tied up in builds not sold yet. Worked out from each build's `totals`.",
+        responses={200: BuildsSummarySerializer},
+        examples=[
+            OpenApiExample(
+                "A few flips",
+                response_only=True,
+                value={
+                    "this_month": {"profit": "8400.00", "sold": 2},
+                    "all_time": {"profit": "41200.00", "sold": 9},
+                    "tied_up": {"cost": "23500.00", "builds": 3},
+                },
+            )
+        ],
+    )
+    @action(detail=False)
+    def summary(self, request):
+        # ponytail: sums every build in Python, so the bundle rules stay in the model.
+        # Fine for a flipper's few hundred; a database aggregate if it gets slow.
+        builds = list(self.get_queryset())
+        sold = [b for b in builds if b.status == Build.Status.SOLD]
+        month = timezone.localdate().replace(day=1)
+        this_month = [
+            b for b in sold if b.sold_at and b.sold_at.replace(day=1) == month
+        ]
+        tied_up = [
+            b for b in builds if b.status != Build.Status.SOLD and b.total_cost > ZERO
+        ]
+
+        def profit(sales):
+            return {
+                "profit": sum((b.profit for b in sales if b.profit is not None), ZERO),
+                "sold": len(sales),
+            }
+
+        return Response(
+            BuildsSummarySerializer(
+                {
+                    "this_month": profit(this_month),
+                    "all_time": profit(sold),
+                    "tied_up": {
+                        "cost": sum((b.total_cost for b in tied_up), ZERO),
+                        "builds": len(tied_up),
+                    },
+                }
+            ).data
+        )
 
 
 @extend_schema_view(
