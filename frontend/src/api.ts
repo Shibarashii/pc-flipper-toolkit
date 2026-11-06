@@ -16,7 +16,7 @@ export type Totals = {
 };
 
 export type Build = {
-  id: number;
+  id: string;
   /** 1, 2, 3… among this user's builds, oldest first. Shown in the UI instead of id. */
   number: number;
   name: string;
@@ -50,21 +50,21 @@ export const CATEGORIES = {
 export type PartCategory = keyof typeof CATEGORIES;
 
 export type Part = {
-  id: number;
-  build: number;
+  id: string;
+  build: string;
   name: string;
   category: PartCategory;
   shop: string;
   listed_price: string;
   /** null only for a part in a bundle whose share wasn't typed in. */
   bought_for: string | null;
-  bundle: number | null;
+  bundle: string | null;
 };
 
 /** Parts bought together for one price. Their own bought-for is an optional breakdown. */
 export type Bundle = {
-  id: number;
-  build: number;
+  id: string;
+  build: string;
   name: string;
   shop: string;
   bought_for: string;
@@ -74,8 +74,8 @@ export type Bundle = {
 };
 
 export type ExtraCost = {
-  id: number;
-  build: number;
+  id: string;
+  build: string;
   label: string;
   amount: string;
 };
@@ -86,7 +86,7 @@ export type BuildDetail = Build & {
   extra_costs: ExtraCost[];
 };
 
-export type NewPart = Omit<Part, "id" | "bundle"> & { bundle?: number | null };
+export type NewPart = Omit<Part, "id" | "bundle"> & { bundle?: string | null };
 
 /** A product from a PC shop's catalogue, from the daily copy (docs/specs/price-lookup.md). */
 export type ShopProduct = {
@@ -168,7 +168,9 @@ export const listBuilds = () => request<Build[]>("/builds/");
 export const getBuildsSummary = () =>
   request<BuildsSummary>("/builds/summary/");
 
-export const getBuild = (id: number) => request<BuildDetail>(`/builds/${id}/`);
+/** The id comes from the page's URL, so it's encoded: "x/../auth" can't reach another path. */
+export const getBuild = (id: string) =>
+  request<BuildDetail>(`/builds/${encodeURIComponent(id)}/`);
 
 export const createBuild = (name: string) =>
   request<Build>("/builds/", {
@@ -180,25 +182,25 @@ export type BuildPatch = Partial<
   Pick<Build, "name" | "status" | "selling_price" | "sold_at" | "notes">
 >;
 
-export const updateBuild = (id: number, patch: BuildPatch) =>
+export const updateBuild = (id: string, patch: BuildPatch) =>
   request<BuildDetail>(`/builds/${id}/`, {
     method: "PATCH",
     body: JSON.stringify(patch),
   });
 
-export const deleteBuild = (id: number) =>
+export const deleteBuild = (id: string) =>
   request<null>(`/builds/${id}/`, { method: "DELETE" });
 
 export const createPart = (part: NewPart) =>
   request<Part>("/parts/", { method: "POST", body: JSON.stringify(part) });
 
-export const updatePart = (id: number, patch: Partial<NewPart>) =>
+export const updatePart = (id: string, patch: Partial<NewPart>) =>
   request<Part>(`/parts/${id}/`, {
     method: "PATCH",
     body: JSON.stringify(patch),
   });
 
-export const deletePart = (id: number) =>
+export const deletePart = (id: string) =>
   request<null>(`/parts/${id}/`, { method: "DELETE" });
 
 export type NewBundle = Pick<Bundle, "build" | "name" | "shop" | "bought_for">;
@@ -209,14 +211,14 @@ export const createBundle = (bundle: NewBundle) =>
     body: JSON.stringify(bundle),
   });
 
-export const updateBundle = (id: number, patch: Partial<NewBundle>) =>
+export const updateBundle = (id: string, patch: Partial<NewBundle>) =>
   request<Bundle>(`/bundles/${id}/`, {
     method: "PATCH",
     body: JSON.stringify(patch),
   });
 
 /** Its parts go with it. */
-export const deleteBundle = (id: number) =>
+export const deleteBundle = (id: string) =>
   request<null>(`/bundles/${id}/`, { method: "DELETE" });
 
 export type NewExtraCost = Omit<ExtraCost, "id">;
@@ -227,13 +229,13 @@ export const createExtraCost = (cost: NewExtraCost) =>
     body: JSON.stringify(cost),
   });
 
-export const updateExtraCost = (id: number, patch: Partial<NewExtraCost>) =>
+export const updateExtraCost = (id: string, patch: Partial<NewExtraCost>) =>
   request<ExtraCost>(`/extra-costs/${id}/`, {
     method: "PATCH",
     body: JSON.stringify(patch),
   });
 
-export const deleteExtraCost = (id: number) =>
+export const deleteExtraCost = (id: string) =>
   request<null>(`/extra-costs/${id}/`, { method: "DELETE" });
 
 export const findPrices = (q: string) =>

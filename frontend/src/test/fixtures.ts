@@ -28,7 +28,7 @@ export const EMPTY_TOTALS: Totals = {
 export const makeBuild = (
   overrides: Partial<BuildDetail> = {},
 ): BuildDetail => ({
-  id: 3,
+  id: "3",
   // Not the id, so tests catch the UI showing the wrong one.
   number: 2,
   name: "Ryzen 5 7600 + RTX 4060",

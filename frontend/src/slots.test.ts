@@ -3,8 +3,8 @@ import type { Part, PartCategory } from "./api";
 import { buildSlots, REQUIRED_SLOTS } from "./slots";
 
 const part = (category: PartCategory, name: string = category): Part => ({
-  id: 0,
-  build: 1,
+  id: "0",
+  build: "1",
   name,
   category,
   shop: "",

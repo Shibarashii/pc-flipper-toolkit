@@ -131,7 +131,7 @@ export function BundleForm({
 }: {
   /** The bundle to edit; omit to add a new one. */
   bundle?: Bundle;
-  buildId: number;
+  buildId: string;
   onSaved: () => void;
   onClose: () => void;
 }) {

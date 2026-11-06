@@ -9,8 +9,8 @@ const part = (
   name: string,
   extra: Partial<Part> = {},
 ): Part => ({
-  id: nextId++,
-  build: 3,
+  id: String(nextId++),
+  build: "3",
   name,
   category,
   shop: "",
@@ -28,9 +28,9 @@ test("the demo's sold build gives the spec's post", () => {
     // Entered in a different order from the slots, like a real build.
     parts: [
       part("gpu", "RX 6600 8GB"),
-      part("cpu", "Ryzen 5 5600", { bundle: 1 }),
-      part("motherboard", "MSI B550M Pro-VDH", { bundle: 1 }),
-      part("ram", "16GB DDR4 3200", { bundle: 1 }),
+      part("cpu", "Ryzen 5 5600", { bundle: "1" }),
+      part("motherboard", "MSI B550M Pro-VDH", { bundle: "1" }),
+      part("ram", "16GB DDR4 3200", { bundle: "1" }),
       part("storage", "1TB NVMe SSD"),
       part("psu", "650W 80+ Bronze"),
       part("case", "Tecware Nexus Air"),
@@ -124,13 +124,13 @@ test("never shows what was paid, listed prices, shops, extra costs, profit, stat
         shop: "PC Express",
         listed_price: "7777.00",
         bought_for: "6666.00",
-        bundle: 9,
+        bundle: "9",
       }),
     ],
     bundles: [
       {
-        id: 9,
-        build: 3,
+        id: "9",
+        build: "3",
         name: "Secret bundle",
         shop: "Facebook",
         bought_for: "5555.00",
@@ -139,7 +139,7 @@ test("never shows what was paid, listed prices, shops, extra costs, profit, stat
       },
     ],
     extra_costs: [
-      { id: 1, build: 3, label: "Thermal paste", amount: "444.00" },
+      { id: "1", build: "3", label: "Thermal paste", amount: "444.00" },
     ],
   });
 

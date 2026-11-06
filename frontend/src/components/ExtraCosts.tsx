@@ -17,14 +17,14 @@ export function ExtraCosts({
   total,
   onChanged,
 }: {
-  buildId: number;
+  buildId: string;
   costs: ExtraCost[];
   total: string;
   onChanged: () => void;
 }) {
   // One form at a time: the add row, or the cost being edited.
-  const [open, setOpen] = useState<"new" | number | null>(null);
-  const [deleting, setDeleting] = useState<number | null>(null);
+  const [open, setOpen] = useState<"new" | string | null>(null);
+  const [deleting, setDeleting] = useState<string | null>(null);
   const [deleteFailed, setDeleteFailed] = useState(false);
   const close = () => setOpen(null);
 
@@ -132,7 +132,7 @@ function CostForm({
 }: {
   /** The cost to edit; omit to add a new one. */
   cost?: ExtraCost;
-  buildId: number;
+  buildId: string;
   onSaved: () => void;
   onClose: () => void;
 }) {

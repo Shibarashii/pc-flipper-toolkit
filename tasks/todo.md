@@ -886,3 +886,67 @@ migration or new dependency.
   phone copied it correctly. Criterion 2, edits copied and reset on reopen, is proven by the
   frontend tests.)
 - [x] All tests pass on `main` (CI on `8518651`)
+
+## Phase 14: Public ids
+
+Spec: [docs/specs/public-ids.md](../docs/specs/public-ids.md). One migration, no new
+dependencies.
+
+### - [x] T36: The frontend takes any id, as a string
+
+**Description:** ids become strings in `api.ts` (`id`, `build`, `bundle`) and in the test
+fixtures. `BuildDetail` drops its "positive integer" check and sends whatever is in the URL
+to the API; a 404 shows "Build not found". Nothing checks an id's format, and ids are compared
+as strings, so this works with today's integer API and with UUIDs.
+
+**Acceptance criteria:**
+- [x] `/builds/abc` asks the API and shows "Build not found" after its 404.
+- [x] Against today's integer API, every page works as before (the build page loads, saves,
+  refetches and doesn't get stuck on "loading" when the param is "12" and the build's id is 12).
+- [x] No `Number(...)` on an id anywhere in the frontend.
+- [x] The URL's id is encoded into the API path, so a crafted link can't reach another
+  endpoint (found while building: `Number()` used to clean it)
+
+**Verification:**
+- [x] `npm test`, `npm run lint`, `npx tsc -b`
+- [x] e2e against the real, still-integer API passes unchanged (locally, 14/14; CI on the PR)
+
+**Dependencies:** None
+**Files:** `frontend/src/api.ts`, `frontend/src/pages/BuildDetail.tsx`, `frontend/src/pages/BuildDetail.test.tsx`, `frontend/src/test/fixtures.ts`, the other `*.test.tsx` with numeric ids
+**Scope:** S (mostly mechanical: about 48 numeric ids in 11 test files)
+
+### - [ ] T37: Public UUIDs in the database and the API
+
+**Description:**
+- `public_id = UUIDField(unique=True, editable=False, db_default=RandomUUID())` on `Build`,
+  `Part`, `Bundle` and `ExtraCost`, in one migration.
+- Serializers: `id` reads `public_id`; `build` and `bundle` are slug fields on `public_id`,
+  keeping the owner-filtered querysets.
+- Viewsets: `lookup_field = "public_id"`, `lookup_url_kwarg = "id"`.
+- API docs examples use UUIDs.
+- SPEC.md's API table and data model say UUID.
+
+**Acceptance criteria:**
+- [ ] No response of the four resources (list, detail, create, update, and nested in the
+  build detail) has an integer `id`, `build` or `bundle`.
+- [ ] Integer and malformed ids give 404 on every detail path; another user's UUID gives 404,
+  and in a body it's "object does not exist".
+- [ ] Rows that existed before the migration each get a different UUID; an insert without
+  `public_id` gets one from the database.
+- [ ] `number`, totals, the builds summary and the query counts are unchanged.
+
+**Verification:**
+- [ ] `python manage.py test`, `ruff check . && ruff format --check .`,
+  `python manage.py makemigrations --check`, `python manage.py spectacular --validate --fail-on-warn`
+- [ ] `python manage.py migrate` then `migrate builds 0006` then `migrate` on a local copy with
+  data: forward and back both work
+- [ ] e2e locally against the new API; a local demo opens builds at UUID URLs
+
+**Dependencies:** T36 deployed
+**Files:** `backend/builds/models.py`, a new `backend/builds/migrations/0007_*.py`, `backend/builds/serializers.py`, `backend/builds/views.py`, `backend/builds/tests.py`, `SPEC.md`
+**Scope:** M
+
+### Checkpoint 12: Public ids
+- [ ] The spec's success criteria 1–4 pass on the live site: an existing build opens at its
+  UUID URL, its old integer URL shows not found, and no request failed during the deploy
+- [ ] All tests pass on `main`

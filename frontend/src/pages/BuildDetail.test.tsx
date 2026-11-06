@@ -8,7 +8,7 @@ import {
 } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router";
 import { afterEach, expect, test, vi } from "vitest";
-import type { Part } from "../api";
+import type { BuildDetail as Detail, Part } from "../api";
 import { makeBuild } from "../test/fixtures";
 import { BuildDetail } from "./BuildDetail";
 
@@ -62,17 +62,65 @@ test("a 404 shows the not-found state", async () => {
   expect(await screen.findByText("Build not found")).toBeTruthy();
 });
 
-test("a non-numeric id shows not-found without calling the API", async () => {
-  renderAt("/builds/abc", Response.json({}));
+test("any id goes to the API; its 404 shows not found", async () => {
+  renderAt(
+    "/builds/abc",
+    Response.json({ detail: "No Build matches" }, { status: 404 }),
+  );
 
   expect(await screen.findByText("Build not found")).toBeTruthy();
-  expect(fetch).not.toHaveBeenCalled();
+  expect(vi.mocked(fetch).mock.calls[0][0]).toBe("/api/builds/abc/");
+});
+
+test("the URL's id can't steer the request to another API path", async () => {
+  renderAt(
+    "/builds/x%2F..%2Fauth%2Fdemo",
+    Response.json({ detail: "No Build matches" }, { status: 404 }),
+  );
+
+  expect(await screen.findByText("Build not found")).toBeTruthy();
+  expect(vi.mocked(fetch).mock.calls[0][0]).toBe(
+    "/api/builds/x%2F..%2Fauth%2Fdemo/",
+  );
+});
+
+test("a save shows its build whatever form the API's id takes", async () => {
+  // Until the API sends UUIDs, its ids are integers while the URL's is a string.
+  const asApi = (build: Detail) => ({ ...build, id: 3 });
+  vi.stubGlobal(
+    "fetch",
+    vi.fn((_url: string, init?: RequestInit) =>
+      Promise.resolve(
+        Response.json(
+          asApi(
+            makeBuild(
+              init?.method === "PATCH" ? { selling_price: "50000.00" } : {},
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+  render(
+    <MemoryRouter initialEntries={["/builds/3"]}>
+      <Routes>
+        <Route path="/builds/:id" element={<BuildDetail />} />
+      </Routes>
+    </MemoryRouter>,
+  );
+
+  const price = await screen.findByLabelText("Selling price");
+  fireEvent.change(price, { target: { value: "50000" } });
+  fireEvent.blur(price);
+
+  expect(await screen.findByText("₱50,000.00")).toBeTruthy();
+  expect(screen.queryByText("Loading build")).toBeNull();
 });
 
 test("a refetch that read the database before a header save doesn't undo it", async () => {
   const part: Part = {
-    id: 7,
-    build: 3,
+    id: "7",
+    build: "3",
     name: "Ryzen 5 7600",
     category: "cpu",
     shop: "",

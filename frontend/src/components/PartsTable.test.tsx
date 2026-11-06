@@ -41,7 +41,7 @@ function setup(response: Response) {
   const onChanged = vi.fn();
   render(
     <PartsTable
-      buildId={3}
+      buildId="3"
       parts={[]}
       totals={EMPTY_TOTALS}
       onChanged={onChanged}
@@ -61,7 +61,7 @@ function setup(response: Response) {
 test("shows the empty state before any parts exist", () => {
   render(
     <PartsTable
-      buildId={3}
+      buildId="3"
       parts={[]}
       totals={EMPTY_TOTALS}
       onChanged={() => {}}
@@ -73,14 +73,14 @@ test("shows the empty state before any parts exist", () => {
 
 test("adding a part posts it (without ₱ or separators) and refreshes", async () => {
   const { fetchMock, onChanged } = setup(
-    Response.json({ id: 1 }, { status: 201 }),
+    Response.json({ id: "1" }, { status: 201 }),
   );
 
   await waitFor(() => expect(onChanged).toHaveBeenCalled());
   const [url, init] = fetchMock.mock.calls[0];
   expect(url).toBe("/api/parts/");
   expect(JSON.parse(init.body)).toEqual({
-    build: 3,
+    build: "3",
     name: "Ryzen 5 7600",
     shop: "",
     category: "cpu",
@@ -115,7 +115,7 @@ test("a 400 on a field the form doesn't show still explains the failure", async 
 });
 
 test("Cancel closes the form", () => {
-  setup(Response.json({ id: 1 }, { status: 201 }));
+  setup(Response.json({ id: "1" }, { status: 201 }));
 
   fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
 
@@ -124,8 +124,8 @@ test("Cancel closes the form", () => {
 
 const PARTS: Part[] = [
   {
-    id: 7,
-    build: 3,
+    id: "7",
+    build: "3",
     name: "Ryzen 5 7600",
     category: "cpu",
     shop: "Shopee",
@@ -134,8 +134,8 @@ const PARTS: Part[] = [
     bundle: null,
   },
   {
-    id: 8,
-    build: 3,
+    id: "8",
+    build: "3",
     name: "RX 7600",
     category: "gpu",
     shop: "",
@@ -155,7 +155,7 @@ function renderParts(response: Response) {
   const onChanged = vi.fn();
   render(
     <PartsTable
-      buildId={3}
+      buildId="3"
       parts={PARTS}
       totals={EMPTY_TOTALS}
       onChanged={onChanged}
@@ -165,7 +165,7 @@ function renderParts(response: Response) {
 }
 
 test("editing a part patches it (prefilled, cleaned) and refreshes", async () => {
-  const { fetchMock, onChanged } = renderParts(Response.json({ id: 7 }));
+  const { fetchMock, onChanged } = renderParts(Response.json({ id: "7" }));
 
   clickAction("Edit Ryzen 5 7600");
   expect(
@@ -244,28 +244,28 @@ test("a failed delete says so", async () => {
 
 test("bundled parts sit under their bundle, with its price and what's not assigned", () => {
   const bundle: Bundle = {
-    id: 1,
-    build: 3,
+    id: "1",
+    build: "3",
     name: "B550m + R5 5600 + 16GB",
     shop: "Marketplace",
     bought_for: "7500.00",
     listed_total: "9199.00",
     unassigned: "4000.00",
   };
-  const inBundle = (id: number, name: string, bought_for: string | null) => ({
+  const inBundle = (id: string, name: string, bought_for: string | null) => ({
     ...PARTS[0],
     id,
     name,
     bought_for,
-    bundle: 1,
+    bundle: "1",
   });
   render(
     <PartsTable
-      buildId={3}
+      buildId="3"
       parts={[
-        inBundle(10, "Ryzen 5 5600", "3500.00"),
+        inBundle("10", "Ryzen 5 5600", "3500.00"),
         PARTS[1],
-        inBundle(11, "Asrock B550m", null),
+        inBundle("11", "Asrock B550m", null),
       ]}
       bundles={[bundle]}
       totals={EMPTY_TOTALS}
@@ -291,12 +291,12 @@ test("bundled parts sit under their bundle, with its price and what's not assign
 test("a fully assigned bundle shows no remainder", () => {
   render(
     <PartsTable
-      buildId={3}
+      buildId="3"
       parts={[]}
       bundles={[
         {
-          id: 1,
-          build: 3,
+          id: "1",
+          build: "3",
           name: "Deal",
           shop: "",
           bought_for: "500.00",
@@ -315,8 +315,8 @@ test("a fully assigned bundle shows no remainder", () => {
 });
 
 const BUNDLE: Bundle = {
-  id: 1,
-  build: 3,
+  id: "1",
+  build: "3",
   name: "B550m deal",
   shop: "",
   bought_for: "7500.00",
@@ -330,8 +330,8 @@ function renderWithBundle(response: Response) {
   const onChanged = vi.fn();
   render(
     <PartsTable
-      buildId={3}
-      parts={[{ ...PARTS[0], bundle: 1, bought_for: null }, PARTS[1]]}
+      buildId="3"
+      parts={[{ ...PARTS[0], bundle: "1", bought_for: null }, PARTS[1]]}
       bundles={[BUNDLE]}
       totals={EMPTY_TOTALS}
       onChanged={onChanged}
@@ -346,7 +346,7 @@ const type = (label: string, value: string) =>
 
 test("adding a bundle posts its name, shop and price", async () => {
   const { fetchMock, onChanged, body } = renderWithBundle(
-    Response.json({ id: 2 }, { status: 201 }),
+    Response.json({ id: "2" }, { status: 201 }),
   );
 
   fireEvent.click(screen.getByRole("button", { name: "Add bundle" }));
@@ -358,7 +358,7 @@ test("adding a bundle posts its name, shop and price", async () => {
   await waitFor(() => expect(onChanged).toHaveBeenCalled());
   expect(fetchMock.mock.calls[0][0]).toBe("/api/bundles/");
   expect(body()).toEqual({
-    build: 3,
+    build: "3",
     name: "Mobo + CPU",
     shop: "Marketplace",
     bought_for: "1583",
@@ -368,7 +368,7 @@ test("adding a bundle posts its name, shop and price", async () => {
 
 test("a bundle's Add part adds inside it, bought-for optional", async () => {
   const { onChanged, body } = renderWithBundle(
-    Response.json({ id: 9 }, { status: 201 }),
+    Response.json({ id: "9" }, { status: 201 }),
   );
 
   clickAction("Add part to B550m deal");
@@ -382,7 +382,7 @@ test("a bundle's Add part adds inside it, bought-for optional", async () => {
   fireEvent.submit(screen.getByRole("form", { name: "New part" }));
 
   await waitFor(() => expect(onChanged).toHaveBeenCalled());
-  expect(body()).toMatchObject({ bundle: 1, bought_for: null });
+  expect(body()).toMatchObject({ bundle: "1", bought_for: null });
 });
 
 test("moving a part out of its bundle shows the server's bought-for error", async () => {

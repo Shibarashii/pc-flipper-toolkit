@@ -46,8 +46,8 @@ const found = (...results: ShopProduct[]): PriceSearch => ({
 });
 
 const PART: Part = {
-  id: 7,
-  build: 3,
+  id: "7",
+  build: "3",
   name: "RTX 3060",
   category: "gpu",
   shop: "Facebook Marketplace",
@@ -66,7 +66,7 @@ function setup(responses: Response[], part: Part | null = null) {
     <PartForm
       part={part ?? undefined}
       bundles={[]}
-      buildId={3}
+      buildId="3"
       onSaved={onSaved}
       onClose={onClose}
     />,

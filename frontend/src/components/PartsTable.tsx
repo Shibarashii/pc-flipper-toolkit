@@ -14,11 +14,11 @@ import { PartForm, PartItem } from "./PartRow";
 /** Which form is open (one at a time), or null. */
 export type PartsOpen =
   // The add-part row, maybe with a category picked, or inside a bundle.
-  | { category: PartCategory | ""; bundle?: number }
+  | { category: PartCategory | ""; bundle?: string }
   // The add-bundle row, or the bundle being edited.
-  | { bundleForm: number | "new" }
+  | { bundleForm: string | "new" }
   // The part being edited.
-  | number
+  | string
   | null;
 
 export function PartsTable({
@@ -30,7 +30,7 @@ export function PartsTable({
   setOpen,
   onChanged,
 }: {
-  buildId: number;
+  buildId: string;
   parts: Part[];
   bundles: Bundle[];
   totals: Totals;
@@ -47,7 +47,7 @@ export function PartsTable({
     open !== null && typeof open === "object" && "bundleForm" in open
       ? open.bundleForm
       : null;
-  const [deleting, setDeleting] = useState<number | null>(null);
+  const [deleting, setDeleting] = useState<string | null>(null);
   const [deleteFailed, setDeleteFailed] = useState(false);
   const [confirming, setConfirming] = useState<Bundle | null>(null);
   const close = () => setOpen(null);

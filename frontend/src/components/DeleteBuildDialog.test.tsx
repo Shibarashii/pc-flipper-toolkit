@@ -24,9 +24,9 @@ afterEach(() => {
 });
 
 const parts = (n: number) =>
-  Array.from({ length: n }, (_, i) => ({ id: i }) as Part);
+  Array.from({ length: n }, (_, i) => ({ id: String(i) }) as Part);
 const costs = (n: number) =>
-  Array.from({ length: n }, (_, i) => ({ id: i }) as ExtraCost);
+  Array.from({ length: n }, (_, i) => ({ id: String(i) }) as ExtraCost);
 
 function renderDialog(build: BuildDetail, response = Response.json({})) {
   const fetchMock = vi.fn().mockResolvedValue(response);
@@ -63,7 +63,7 @@ test("counts bundles too", () => {
     makeBuild({
       name: "Budget build",
       parts: parts(7),
-      bundles: [{ id: 1 } as Bundle],
+      bundles: [{ id: "1" } as Bundle],
       extra_costs: costs(3),
     }),
   );

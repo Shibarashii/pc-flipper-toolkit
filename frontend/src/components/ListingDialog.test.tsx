@@ -21,8 +21,8 @@ const build = makeBuild({
   name: "Ryzen 5 5600 + RX 6600",
   selling_price: "32000.00",
   parts: [
-    { id: 1, category: "cpu", name: "Ryzen 5 5600" } as Part,
-    { id: 2, category: "gpu", name: "RX 6600 8GB" } as Part,
+    { id: "1", category: "cpu", name: "Ryzen 5 5600" } as Part,
+    { id: "2", category: "gpu", name: "RX 6600 8GB" } as Part,
   ],
 });
 const post =
