@@ -953,6 +953,12 @@ as strings, so this works with today's integer API and with UUIDs.
 **Scope:** M
 
 ### Checkpoint 12: Public ids
-- [ ] The spec's success criteria 1–4 pass on the live site: an existing build opens at its
+- [x] The spec's success criteria 1–4 pass on the live site: an existing build opens at its
   UUID URL, its old integer URL shows not found, and no request failed during the deploy
-- [ ] All tests pass on `main`
+  (2026-11-07: a demo made just before the merge had builds 57 and 56; after the deploy they
+  were `d2e586b6-…` and `3447f38f-…` with their numbers and totals unchanged. The build opened
+  and saved at its UUID URL in the browser, `/builds/57` showed not found, `/api/builds/57/`
+  and `/api/builds/nope/` were 404, and the detail and the parts, bundles and extra costs
+  lists carried no integer ids. No 5xx in the browser session; Render's own deploy log
+  wasn't checked.)
+- [x] All tests pass on `main` (CI on `c76675f`)
