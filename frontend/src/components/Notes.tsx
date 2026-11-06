@@ -43,7 +43,7 @@ export function Notes({
         onChange={(e) => setNotes(e.target.value)}
         onBlur={save}
         placeholder="Buyer, payment, anything worth remembering about this flip."
-        className="block min-h-[96px] w-full rounded border border-line-strong bg-surface px-3 py-2.5 text-[15px] leading-[22px] text-ink placeholder:text-faint focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+        className="block min-h-[96px] w-full rounded border border-line-strong bg-surface px-3 py-2.5 text-[16px] leading-[22px] sm:text-[15px] text-ink placeholder:text-faint focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
       />
     </section>
   );

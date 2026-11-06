@@ -18,6 +18,7 @@ export const link = `rounded text-[13px] leading-[18px] font-medium text-accent 
 /** 28×28 ghost button around a 16px icon. Needs an aria-label. */
 export const iconButton = `flex size-7 items-center justify-center rounded hover:bg-sunken disabled:opacity-45 ${focusRing}`;
 
-/** Text input / select. Pass `error` to switch the border to the loss color. */
+/** Text input / select. Pass `error` to switch the border to the loss color. 16px on phones:
+ * iOS Safari zooms into any smaller input on focus, and doesn't zoom back out. */
 export const input = (error = false) =>
-  `block w-full rounded border bg-surface py-2 pr-2.5 pl-3 text-[15px] leading-[22px] text-ink placeholder:text-faint ${focusRing} ${error ? "border-loss" : "border-line-strong"}`;
+  `block w-full rounded border bg-surface py-2 pr-2.5 pl-3 text-[16px] sm:text-[15px] leading-[22px] text-ink placeholder:text-faint ${focusRing} ${error ? "border-loss" : "border-line-strong"}`;
