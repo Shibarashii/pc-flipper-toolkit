@@ -157,7 +157,7 @@ live once T32 is on Render. No migration, no new dependencies.
 One task: the post is only useful through the dialog, and the whole feature is a pure
 function, one dialog and one button. Frontend only: no API, migration or dependency.
 
-**Checkpoint 11:** the copy listing spec's success criteria 1–4 pass on the live site.
+**Checkpoint 11 (done):** the copy listing spec's success criteria 1–4 pass on the live site.
 
 ## Risks and Mitigations
 
