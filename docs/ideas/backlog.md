@@ -23,6 +23,36 @@ one click.
   it's posted, offers, days listed), photos, posting to Facebook directly, other marketplaces'
   formats.
 
+### Builds summary (intent agreed 2026-11-06, not specced)
+
+One summary line above the builds list: this month's profit (and how many builds sold),
+all-time profit, and money tied up (the total spent on builds not sold yet, and how many).
+
+> **This month:** ₱8,400 profit from 2 sold · **All time:** ₱41,200 · **Tied up:** ₱23,500 in 3 builds
+
+- **Why:** the app stores every build's cost, profit and sold date, but only shows them one
+  build at a time. A flipper wants "how am I doing?" and "how much cash is stuck in unsold
+  PCs?" without adding anything up.
+- **Success:** the numbers match a hand calculation over the builds list to the centavo.
+  "This month" means builds whose sold date falls in the current calendar month, in
+  Philippine time.
+- **Constraint:** no data model change, no new screen, no new dependency. Worked out on the
+  server, like the other totals.
+- **Not doing:** the stats screen (below), days to sell, filtering by status or date.
+
+### Stats screen (step 2 after the builds summary, added 2026-11-06)
+
+A separate screen to compare months: profit per month as a chart, maybe a month picker.
+Waits until there are 3+ months of sold builds to compare; before that it shows one bar and
+zeros. Days to sell could go here too, but the app only knows when a build was added, not when
+its first part was bought.
+
+### Parts inventory (added 2026-11-06)
+
+Parts bought but not in a build yet, like a GPU bought cheap for a future flip. Useful, but
+it's a new kind of record, so it leans toward bloat. Not clear yet how it should work. To
+brainstorm.
+
 ### A part's condition (added 2026-11-04)
 
 Mark each part as something like "brand new", "barely used" or "2nd-hand". Not sure yet what
