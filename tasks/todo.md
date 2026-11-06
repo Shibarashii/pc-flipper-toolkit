@@ -880,5 +880,9 @@ migration or new dependency.
 **Scope:** S
 
 ### Checkpoint 11: Copy listing
-- [ ] The spec's success criteria 1–4 pass on the live site (including a paste on a phone)
-- [ ] All tests pass on `main`
+- [x] The spec's success criteria 1–4 pass on the live site (including a paste on a phone)
+  (2026-11-07: on a fresh demo's sold build, Copy had the focus and the clipboard held exactly
+  the spec's post; no sideways scrolling at 1280px or 375px, light and dark; the author's
+  phone copied it correctly. Criterion 2, edits copied and reset on reopen, is proven by the
+  frontend tests.)
+- [x] All tests pass on `main` (CI on `8518651`)
