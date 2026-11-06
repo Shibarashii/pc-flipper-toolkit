@@ -28,21 +28,21 @@ function stubApi(builds: Build[]) {
 test("each build shows its total cost, selling price and signed profit", async () => {
   const builds = [
     makeBuild({
-      id: 1,
+      id: "1",
       number: 1,
       name: "Profit",
       selling_price: "50000.00",
       totals: SPEC_TOTALS,
     }),
     makeBuild({
-      id: 2,
+      id: "2",
       number: 2,
       name: "Loss",
       selling_price: "43500.00",
       totals: { ...SPEC_TOTALS, total_cost: "44800.00", profit: "-1300.00" },
     }),
     makeBuild({
-      id: 3,
+      id: "3",
       number: 3,
       name: "Unpriced",
       totals: { ...EMPTY_TOTALS, total_cost: "9200.00" },

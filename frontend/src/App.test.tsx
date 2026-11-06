@@ -223,7 +223,7 @@ test("a 401 for an older token doesn't end the current session", async () => {
     "fetch",
     vi.fn(() => new Promise<Response>((resolve) => (respond = resolve))),
   );
-  const request = getBuild(3).catch(() => {});
+  const request = getBuild("3").catch(() => {});
 
   // Logged out and back in (as someone else) while that request was in flight.
   saveSession({ token: "new", username: "dave" });

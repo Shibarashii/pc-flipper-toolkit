@@ -30,7 +30,7 @@ const fromPart = (p: Part) => ({
   category: p.category as string,
   listed_price: formatMoney(p.listed_price),
   bought_for: p.bought_for === null ? "" : formatMoney(p.bought_for),
-  bundle: p.bundle === null ? "" : String(p.bundle),
+  bundle: p.bundle ?? "",
 });
 
 /** What a shop's product fills in; nothing is saved until Save. */
@@ -58,17 +58,15 @@ export function PartForm({
   /** Preselected when adding. */
   category?: PartCategory | "";
   /** Adding inside this bundle (from its "Add part"). */
-  bundle?: number;
+  bundle?: string;
   /** The build's bundles, for the Bundle select. */
   bundles: Bundle[];
-  buildId: number;
+  buildId: string;
   onSaved: () => void;
   onClose: () => void;
 }) {
   const [form, setForm] = useState(
-    part
-      ? fromPart(part)
-      : { ...EMPTY, category, bundle: String(bundle ?? "") },
+    part ? fromPart(part) : { ...EMPTY, category, bundle: bundle ?? "" },
   );
   const { errors, failed, saving, save } = useSave(EMPTY);
   const nameRef = useRef<HTMLInputElement>(null);
@@ -113,7 +111,7 @@ export function PartForm({
       listed_price: cleanMoney(form.listed_price),
       // Blank is null: allowed inside a bundle, and the server says so otherwise.
       bought_for: cleanMoney(form.bought_for) || null,
-      bundle: form.bundle ? Number(form.bundle) : null,
+      bundle: form.bundle || null,
     };
     save(async () => {
       if (part) {

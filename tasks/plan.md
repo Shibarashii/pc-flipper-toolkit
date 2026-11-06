@@ -160,7 +160,7 @@ function, one dialog and one button. Frontend only: no API, migration or depende
 **Checkpoint 11 (done):** the copy listing spec's success criteria 1–4 pass on the live site.
 
 ### Phase 14: Public ids ([docs/specs/public-ids.md](../docs/specs/public-ids.md))
-- [ ] T36: The frontend takes any id, as a string
+- [x] T36: The frontend takes any id, as a string
 - [ ] T37: Public UUIDs in the database and the API
 
 ```

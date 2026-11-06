@@ -15,8 +15,8 @@ afterEach(() => {
 });
 
 const COSTS: ExtraCost[] = [
-  { id: 4, build: 3, label: "Shipping", amount: "350.00" },
-  { id: 5, build: 3, label: "Platform fee", amount: "300.00" },
+  { id: "4", build: "3", label: "Shipping", amount: "350.00" },
+  { id: "5", build: "3", label: "Platform fee", amount: "300.00" },
 ];
 
 function renderCosts(response: Response, costs = COSTS) {
@@ -25,7 +25,7 @@ function renderCosts(response: Response, costs = COSTS) {
   const onChanged = vi.fn();
   render(
     <ExtraCosts
-      buildId={3}
+      buildId="3"
       costs={costs}
       total="650.00"
       onChanged={onChanged}
@@ -53,7 +53,7 @@ test("shows each cost and the total", () => {
 
 test("adding a cost posts it (without ₱ or separators) and refreshes", async () => {
   const { fetchMock, onChanged } = renderCosts(
-    Response.json({ id: 6 }, { status: 201 }),
+    Response.json({ id: "6" }, { status: 201 }),
   );
 
   fireEvent.click(screen.getByRole("button", { name: "Add cost" }));
@@ -65,7 +65,7 @@ test("adding a cost posts it (without ₱ or separators) and refreshes", async (
   const [url, init] = fetchMock.mock.calls[0];
   expect(url).toBe("/api/extra-costs/");
   expect(JSON.parse(init.body)).toEqual({
-    build: 3,
+    build: "3",
     label: "Thermal paste",
     amount: "1150",
   });
@@ -87,7 +87,7 @@ test("a negative amount shows the error on the field", async () => {
 });
 
 test("editing a cost patches it and refreshes", async () => {
-  const { fetchMock, onChanged } = renderCosts(Response.json({ id: 4 }));
+  const { fetchMock, onChanged } = renderCosts(Response.json({ id: "4" }));
 
   fireEvent.click(screen.getByRole("button", { name: "Edit Shipping" }));
   expect((screen.getByLabelText("Amount") as HTMLInputElement).value).toBe(

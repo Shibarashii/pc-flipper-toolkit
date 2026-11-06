@@ -892,7 +892,7 @@ migration or new dependency.
 Spec: [docs/specs/public-ids.md](../docs/specs/public-ids.md). One migration, no new
 dependencies.
 
-### - [ ] T36: The frontend takes any id, as a string
+### - [x] T36: The frontend takes any id, as a string
 
 **Description:** ids become strings in `api.ts` (`id`, `build`, `bundle`) and in the test
 fixtures. `BuildDetail` drops its "positive integer" check and sends whatever is in the URL
@@ -900,14 +900,16 @@ to the API; a 404 shows "Build not found". Nothing checks an id's format, and id
 as strings, so this works with today's integer API and with UUIDs.
 
 **Acceptance criteria:**
-- [ ] `/builds/abc` asks the API and shows "Build not found" after its 404.
-- [ ] Against today's integer API, every page works as before (the build page loads, saves,
+- [x] `/builds/abc` asks the API and shows "Build not found" after its 404.
+- [x] Against today's integer API, every page works as before (the build page loads, saves,
   refetches and doesn't get stuck on "loading" when the param is "12" and the build's id is 12).
-- [ ] No `Number(...)` on an id anywhere in the frontend.
+- [x] No `Number(...)` on an id anywhere in the frontend.
+- [x] The URL's id is encoded into the API path, so a crafted link can't reach another
+  endpoint (found while building: `Number()` used to clean it)
 
 **Verification:**
-- [ ] `npm test`, `npm run lint`, `npx tsc -b`
-- [ ] CI's e2e (against the real, still-integer API) passes unchanged
+- [x] `npm test`, `npm run lint`, `npx tsc -b`
+- [x] e2e against the real, still-integer API passes unchanged (locally, 14/14; CI on the PR)
 
 **Dependencies:** None
 **Files:** `frontend/src/api.ts`, `frontend/src/pages/BuildDetail.tsx`, `frontend/src/pages/BuildDetail.test.tsx`, `frontend/src/test/fixtures.ts`, the other `*.test.tsx` with numeric ids

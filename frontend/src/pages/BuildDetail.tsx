@@ -23,10 +23,10 @@ type Result =
   { kind: "error" } | { kind: "not-found" } | { kind: "ok"; build: Build };
 
 export function BuildDetail() {
-  const id = Number(useParams().id);
-  const validId = Number.isInteger(id) && id > 0;
-  // Tagged with the id it belongs to, so navigating to another build shows "loading".
-  const [result, setResult] = useState<{ id: number; result: Result } | null>(
+  // Any id goes to the API: a malformed one is its 404, like a deleted build.
+  const id = useParams().id ?? "";
+  // Tagged with the URL's id, so navigating to another build shows "loading".
+  const [result, setResult] = useState<{ id: string; result: Result } | null>(
     null,
   );
   // Bumped after every change; refetching keeps showing the current data meanwhile.
@@ -37,12 +37,12 @@ export function BuildDetail() {
   // Then refetch anyway: a GET already in flight (after a part change) may have read
   // the database before this save, and refreshing makes the page ignore it.
   const showBuild = (build: Build) => {
-    setResult({ id: build.id, result: { kind: "ok", build } });
+    // The URL's id, not build.id: the page is this URL's, whatever form the API's id takes.
+    setResult({ id, result: { kind: "ok", build } });
     refresh();
   };
 
   useEffect(() => {
-    if (!validId) return;
     let ignore = false;
     getBuild(id).then(
       (build) => !ignore && setResult({ id, result: { kind: "ok", build } }),
@@ -59,13 +59,10 @@ export function BuildDetail() {
     return () => {
       ignore = true;
     };
-  }, [id, validId, version]);
+  }, [id, version]);
 
-  const state: Result | { kind: "loading" } = !validId
-    ? { kind: "not-found" }
-    : result?.id === id
-      ? result.result
-      : { kind: "loading" };
+  const state: Result | { kind: "loading" } =
+    result?.id === id ? result.result : { kind: "loading" };
 
   return (
     <main className="mx-auto max-w-[1216px] px-4 pt-6 pb-10 sm:px-8 sm:pt-8">
