@@ -14,7 +14,7 @@ test("try the demo: sample builds, then sign up instead", async ({ page }) => {
   await expect(build("i5-12400F + RTX 3060")).toBeVisible();
   await build("Ryzen 5 5600 + RX 6600").click();
 
-  const summary = page.getByRole("region", { name: "Summary" });
+  const summary = page.getByRole("region", { name: "Summary", exact: true });
   await expect(summary.getByText("+₱4,200.00")).toBeVisible();
   await expect(
     page
