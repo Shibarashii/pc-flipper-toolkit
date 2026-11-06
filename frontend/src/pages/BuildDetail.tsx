@@ -10,8 +10,14 @@ import { Bone, Skeleton } from "../components/Skeleton";
 import { Summary } from "../components/Summary";
 
 // The page's two columns; the loading skeleton uses them too, so it keeps matching.
+// Below 1280px they stack with the summary first: it's the numbers you open a build
+// for. Wider, the summary is the right-hand column (narrower than that, the add-part
+// row gets too cramped). It comes first in the HTML too, so screen readers and the
+// keyboard meet it in the order it's seen on a phone.
 const columns =
   "mt-8 grid gap-12 sm:mt-12 xl:grid-cols-[minmax(0,1fr)_320px] xl:gap-14";
+const summaryCell = "xl:col-start-2 xl:row-start-1";
+const mainCell = "flex min-w-0 flex-col gap-12 xl:col-start-1 xl:row-start-1";
 
 type Result =
   { kind: "error" } | { kind: "not-found" } | { kind: "ok"; build: Build };
@@ -104,10 +110,14 @@ export function BuildDetail() {
             onUpdated={showBuild}
           />
 
-          {/* Below 1280px: stacked, with the summary last. Wider: the summary is the
-              right-hand column (narrower than that, the add-part row gets too cramped). */}
           <div className={columns}>
-            <div className="flex min-w-0 flex-col gap-12">
+            <div className={summaryCell}>
+              <Summary
+                totals={state.build.totals}
+                sellingPrice={state.build.selling_price}
+              />
+            </div>
+            <div className={mainCell}>
               <BuildChecklist
                 parts={state.build.parts}
                 onAdd={(category) => setPartsOpen({ category })}
@@ -133,10 +143,6 @@ export function BuildDetail() {
                 onUpdated={showBuild}
               />
             </div>
-            <Summary
-              totals={state.build.totals}
-              sellingPrice={state.build.selling_price}
-            />
           </div>
         </>
       )}
@@ -144,7 +150,8 @@ export function BuildDetail() {
   );
 }
 
-/** Shaped like the page: header, then checklist and parts beside the summary. */
+/** Shaped like the page: header, then the summary beside (or, below 1280px, above)
+ * the checklist and parts. */
 function DetailSkeleton() {
   return (
     <Skeleton label="Loading build">
@@ -159,7 +166,14 @@ function DetailSkeleton() {
       </div>
 
       <div className={columns}>
-        <div className="flex min-w-0 flex-col gap-12">
+        <div className={`flex flex-col gap-3 ${summaryCell}`}>
+          <Bone className="h-7 w-28" />
+          <Bone className="h-[72px] w-48" />
+          {[0, 1, 2, 3, 4].map((i) => (
+            <Bone key={i} className="h-[22px]" />
+          ))}
+        </div>
+        <div className={mainCell}>
           <div>
             <Bone className="h-7 w-40" />
             <div className="mt-6 flex flex-col items-center gap-5 sm:flex-row sm:items-start sm:gap-8">
@@ -176,13 +190,6 @@ function DetailSkeleton() {
             <Bone className="h-12" />
             <Bone className="h-12" />
           </div>
-        </div>
-        <div className="flex flex-col gap-3">
-          <Bone className="h-7 w-28" />
-          <Bone className="h-[72px] w-48" />
-          {[0, 1, 2, 3, 4].map((i) => (
-            <Bone key={i} className="h-[22px]" />
-          ))}
         </div>
       </div>
     </Skeleton>

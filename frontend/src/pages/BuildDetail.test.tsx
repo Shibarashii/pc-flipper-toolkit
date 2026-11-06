@@ -35,6 +35,16 @@ test("shows the build's number and name", async () => {
   expect(screen.getByText("Build 02")).toBeTruthy();
 });
 
+test("the summary comes before the checklist and parts, so phones show it first", async () => {
+  renderAt("/builds/3", Response.json(makeBuild()));
+
+  await screen.findByText("Ryzen 5 7600 + RTX 4060");
+  const sections = screen
+    .getAllByRole("heading", { level: 2 })
+    .map((h) => h.textContent);
+  expect(sections.slice(0, 3)).toEqual(["Summary", "Build", "Parts"]);
+});
+
 test("shows a loading skeleton until the build arrives", async () => {
   renderAt("/builds/3", Response.json(makeBuild()));
 
