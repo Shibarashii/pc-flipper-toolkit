@@ -821,7 +821,7 @@ Spec: [docs/specs/ci-speedups.md](../docs/specs/ci-speedups.md). Only
 - [x] The jobs are still `backend`, `frontend` and `e2e`.
 
 **Verification:**
-- [ ] This PR's three checks pass; its e2e log shows a cache miss and the full install
+- [x] This PR's three checks pass; its e2e log shows a cache miss and the full install
 
 **Dependencies:** None
 **Files:** `.github/workflows/ci.yml`
