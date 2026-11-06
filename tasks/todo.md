@@ -803,8 +803,11 @@ loaded at the same time as the list:
 **Scope:** S
 
 ### Checkpoint 9: Builds summary
-- [ ] The spec's success criteria 1–4 pass on the live site
-- [ ] All tests pass on `main`
+- [x] The spec's success criteria 1–4 pass on the live site (2026-11-07: a fresh demo shows
+  This month +₱4,200.00 / 1 sold and Tied up ₱21,300.00 / in 1 build, matching both build
+  pages; no sideways scrolling at 375px or 320px. Criterion 4, a failed summary, is proven
+  by the frontend tests rather than by breaking the live API.)
+- [x] All tests pass on `main` (CI on `acd24ec`)
 
 ## Phase 12: CI speedups
 
