@@ -1,13 +1,29 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { afterEach, expect, test, vi } from "vitest";
-import { EMPTY_TOTALS, makeBuild, SPEC_TOTALS } from "../test/fixtures";
+import type { Build } from "../api";
+import {
+  EMPTY_SUMMARY,
+  EMPTY_TOTALS,
+  makeBuild,
+  SPEC_TOTALS,
+} from "../test/fixtures";
 import { BuildsList } from "./BuildsList";
 
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
 });
+
+/** Answers each request by its URL, with a fresh response every time (a body reads once). */
+function stubApi(builds: Build[]) {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (url: string) =>
+      Response.json(url.endsWith("/builds/summary/") ? EMPTY_SUMMARY : builds),
+    ),
+  );
+}
 
 test("each build shows its total cost, selling price and signed profit", async () => {
   const builds = [
@@ -32,7 +48,7 @@ test("each build shows its total cost, selling price and signed profit", async (
       totals: { ...EMPTY_TOTALS, total_cost: "9200.00" },
     }),
   ];
-  vi.stubGlobal("fetch", vi.fn().mockResolvedValue(Response.json(builds)));
+  stubApi(builds);
   render(
     <MemoryRouter>
       <BuildsList />
@@ -52,7 +68,7 @@ test("each build shows its total cost, selling price and signed profit", async (
 });
 
 test("shows a loading skeleton until the builds arrive", async () => {
-  vi.stubGlobal("fetch", vi.fn().mockResolvedValue(Response.json([])));
+  stubApi([]);
   render(
     <MemoryRouter>
       <BuildsList />

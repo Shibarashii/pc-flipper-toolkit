@@ -18,10 +18,17 @@ export function BuildsSummary({ summary }: { summary: Summary | null }) {
       <Skeleton label="Loading summary" className="mt-6 sm:mt-8">
         <div className="grid grid-cols-3 gap-4 sm:gap-8">
           {[0, 1, 2].map((i) => (
-            <div key={i} className={cell}>
-              <Bone className="my-[2px] h-[14px] w-16" />
-              <Bone className="my-[2px] h-[18px] w-20 sm:h-[24px] sm:w-28" />
-              <Bone className="my-[2px] h-[14px] w-12" />
+            // Padding, not margins: stacked margins collapse and the cell comes out short.
+            <div key={i} className={`${cell} [&>*]:py-[2px]`}>
+              <div>
+                <Bone className="h-[14px] w-16" />
+              </div>
+              <div>
+                <Bone className="h-[18px] w-20 sm:h-[24px] sm:w-28" />
+              </div>
+              <div>
+                <Bone className="h-[14px] w-12" />
+              </div>
             </div>
           ))}
         </div>
