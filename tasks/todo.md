@@ -841,7 +841,7 @@ Spec: [docs/specs/ci-speedups.md](../docs/specs/ci-speedups.md). Only
 Spec: [docs/specs/copy-listing.md](../docs/specs/copy-listing.md). Frontend only: no API,
 migration or new dependency.
 
-### - [ ] T35: Copy listing: the post, the dialog and the header button
+### - [x] T35: Copy listing: the post, the dialog and the header button
 
 **Description:**
 - `listingText(build)` in a new `frontend/src/listing.ts` writes the post from the build the
@@ -855,24 +855,25 @@ migration or new dependency.
   rendered only while open, so each open starts from a freshly made post.
 
 **Acceptance criteria:**
-- [ ] The demo's sold build gives exactly the spec's example post.
-- [ ] Empty slots are left out; the same name twice is `2× name`; different names in a slot are
+- [x] The demo's sold build gives exactly the spec's example post.
+- [x] Empty slots are left out; the same name twice is `2× name`; different names in a slot are
   joined with ` + `; a bundle's parts are listed; "Other" comes last.
-- [ ] `₱32,000` for whole pesos, `₱32,000.50` otherwise; no price line (and no blank line before
+- [x] `₱32,000` for whole pesos, `₱32,000.50` otherwise; no price line (and no blank line before
   it) without a selling price.
-- [ ] Bought-for, listed prices, shops, bundle prices, extra costs, profit, status and notes
+- [x] Bought-for, listed prices, shops, bundle prices, extra costs, profit, status and notes
   never appear.
-- [ ] An edited text is what gets copied; closing and reopening shows the generated post again.
-- [ ] A failed copy selects the text and shows the Ctrl+C message.
-- [ ] Usable at 375px without horizontal scrolling, light and dark.
+- [x] An edited text is what gets copied; closing and reopening shows the generated post again.
+- [x] A failed copy selects the text and shows the Ctrl+C message.
+- [x] Usable at 375px without horizontal scrolling, light and dark.
 
 **Verification:**
-- [ ] Vitest: `listing.test.ts` for each rule above, including a build with every private field
+- [x] Vitest: `listing.test.ts` for each rule above, including a build with every private field
   set; `ListingDialog.test.tsx` with `navigator.clipboard` stubbed (opens with the post and Copy
   focused, edit then copy, "Copied", failed copy, reopen resets)
-- [ ] `npm test`, `npm run lint`, `npx tsc -b`
-- [ ] Screenshots: desktop and 375px, light and dark, with a local demo
-- [ ] Manual: copy from a local demo and paste into a text box
+- [x] `npm test`, `npm run lint`, `npx tsc -b`
+- [x] Screenshots: desktop and 375px, light and dark, with a local demo
+- [x] Manual: copy from a local demo in Chromium; the clipboard held exactly the spec's post,
+  and Enter copied straight away (Copy had the focus)
 
 **Dependencies:** None
 **Files:** a new `frontend/src/listing.ts`, a new `frontend/src/listing.test.ts`, a new `frontend/src/components/ListingDialog.tsx`, a new `frontend/src/components/ListingDialog.test.tsx`, `frontend/src/components/BuildHeader.tsx`

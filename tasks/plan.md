@@ -152,7 +152,7 @@ live once T32 is on Render. No migration, no new dependencies.
 **Checkpoint 10:** the CI speedups spec's success criteria 2–4 hold on the next PRs.
 
 ### Phase 13: Copy listing ([docs/specs/copy-listing.md](../docs/specs/copy-listing.md))
-- [ ] T35: Copy listing: the post, the dialog and the header button
+- [x] T35: Copy listing: the post, the dialog and the header button
 
 One task: the post is only useful through the dialog, and the whole feature is a pure
 function, one dialog and one button. Frontend only: no API, migration or dependency.
