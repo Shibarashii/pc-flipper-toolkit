@@ -4,7 +4,7 @@ import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { getBuild } from "./api";
 import App from "./App";
 import { endSession, getToken, saveSession } from "./auth";
-import { makeBuild } from "./test/fixtures";
+import { EMPTY_SUMMARY, makeBuild } from "./test/fixtures";
 
 beforeEach(() => endSession());
 
@@ -13,13 +13,18 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-/** Each call to fetch gets the next response (the last one repeats). */
+/** Each call to fetch gets the next response (the last one repeats). The builds list's
+ * summary is answered on the side, so it doesn't take a response or count as a call. */
 function stubFetch(...responses: (() => Response)[]) {
   let call = 0;
   const fetchMock = vi.fn<typeof fetch>(async () =>
     responses[Math.min(call++, responses.length - 1)](),
   );
-  vi.stubGlobal("fetch", fetchMock);
+  vi.stubGlobal("fetch", (url: string, init?: RequestInit) =>
+    url.endsWith("/builds/summary/")
+      ? Promise.resolve(Response.json(EMPTY_SUMMARY))
+      : fetchMock(url, init),
+  );
   return fetchMock;
 }
 

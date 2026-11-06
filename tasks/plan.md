@@ -136,7 +136,7 @@ live once T30 is on Render. No new dependencies (the combobox is hand-written), 
 
 ### Phase 11: Builds summary ([docs/specs/builds-summary.md](../docs/specs/builds-summary.md))
 - [x] T32: Summary API (`GET /api/builds/summary/`) and the demo's sale dated today
-- [ ] T33: The summary line on the builds list
+- [x] T33: The summary line on the builds list
 
 ```
 T32 summary API ── T33 builds list line

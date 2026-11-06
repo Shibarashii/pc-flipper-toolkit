@@ -1,4 +1,4 @@
-import type { BuildDetail, Totals } from "../api";
+import type { BuildDetail, BuildsSummary, Totals } from "../api";
 
 /** The SPEC's worked example: ₱3,700.00 profit on a ₱50,000.00 sale. */
 export const SPEC_TOTALS: Totals = {
@@ -43,3 +43,10 @@ export const makeBuild = (
   extra_costs: [],
   ...overrides,
 });
+
+/** A builds summary with nothing sold and nothing tied up. */
+export const EMPTY_SUMMARY: BuildsSummary = {
+  this_month: { profit: "0.00", sold: 0 },
+  all_time: { profit: "0.00", sold: 0 },
+  tied_up: { cost: "0.00", builds: 0 },
+};
