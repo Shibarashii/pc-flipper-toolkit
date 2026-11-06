@@ -39,13 +39,15 @@ cache `~/.cache/ms-playwright` under it:
 
 ```yaml
 - id: playwright
-  run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+  run: |
+    echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+    echo "image=$ImageOS" >> "$GITHUB_OUTPUT"
   working-directory: frontend
 - uses: actions/cache@v6
   id: browsers
   with:
     path: ~/.cache/ms-playwright
-    key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+    key: playwright-${{ steps.playwright.outputs.image }}-${{ steps.playwright.outputs.version }}
 - if: steps.browsers.outputs.cache-hit != 'true'
   run: npx playwright install --with-deps chromium
   working-directory: frontend
@@ -54,8 +56,9 @@ cache `~/.cache/ms-playwright` under it:
   working-directory: frontend
 ```
 
-- Keyed by the exact Playwright version, so upgrading Playwright downloads the matching
-  Chromium once.
+- Keyed by the runner's image (`$ImageOS`, e.g. `ubuntu24`) and the exact Playwright version,
+  so upgrading Playwright, or GitHub moving `ubuntu-latest` to a new Ubuntu, downloads a
+  fresh Chromium once.
 - GitHub shares a cache saved on `main` with every PR. A PR's own cache is only shared with
   later runs of that PR.
 
@@ -65,7 +68,7 @@ cache `~/.cache/ms-playwright` under it:
 concurrency:
   # One run per PR: a new push cancels the older one. Runs on main are never grouped, so
   # every merged commit gets its own run and Render can deploy it.
-  group: ${{ github.event_name == 'pull_request' && format('ci-{0}', github.ref) || format('ci-run-{0}', github.run_id) }}
+  group: ci-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
   cancel-in-progress: true
 ```
 

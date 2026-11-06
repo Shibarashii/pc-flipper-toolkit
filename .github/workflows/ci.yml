@@ -12,7 +12,7 @@ permissions:
 concurrency:
   # One run per PR: a new push cancels the older one. Runs on main are never grouped, so
   # every merged commit gets its own run and Render can deploy it (docs/specs/ci-speedups.md).
-  group: ${{ github.event_name == 'pull_request' && format('ci-{0}', github.ref) || format('ci-run-{0}', github.run_id) }}
+  group: ci-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
   cancel-in-progress: true
 
 jobs:
@@ -99,16 +99,19 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci
         working-directory: frontend
-      # Chromium is cached under the exact Playwright version; a cache saved on main is
-      # shared with every PR. The system packages still install each time.
+      # Chromium is cached under the runner's image (e.g. ubuntu24) and the exact Playwright
+      # version; a cache saved on main is shared with every PR. The system packages still
+      # install each time.
       - id: playwright
-        run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+        run: |
+          echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+          echo "image=$ImageOS" >> "$GITHUB_OUTPUT"
         working-directory: frontend
       - uses: actions/cache@v6
         id: browsers
         with:
           path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+          key: playwright-${{ steps.playwright.outputs.image }}-${{ steps.playwright.outputs.version }}
       - if: steps.browsers.outputs.cache-hit != 'true'
         run: npx playwright install --with-deps chromium
         working-directory: frontend
