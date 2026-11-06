@@ -159,7 +159,7 @@ export function BuildHeader({
               }
             }}
             aria-invalid={!!errors.name}
-            className={`${input(!!errors.name)} py-0 font-serif text-[40px] leading-[52px] font-medium tracking-[-0.01em]`}
+            className={`${input(!!errors.name)} py-0 font-serif text-[40px] leading-[52px] sm:text-[40px] font-medium tracking-[-0.01em]`}
           />
           {errors.name?.map((message) => (
             <p key={message} className="mt-1.5 text-[13px] text-loss">
@@ -235,7 +235,8 @@ export function BuildHeader({
                   setErrors((e) => without(e, "sold_at"));
                 })}
                 aria-invalid={!!errors.sold_at}
-                className={input(!!errors.sold_at)}
+                // iOS Safari sizes a native date input to its contents, past the column.
+                className={`${input(!!errors.sold_at)} min-w-0 appearance-none`}
               />
             </Field>
           )}
