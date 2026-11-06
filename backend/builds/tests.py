@@ -1,3 +1,4 @@
+import uuid
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal as D
 from io import StringIO
@@ -8,8 +9,9 @@ from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.management import call_command
-from django.db import IntegrityError, transaction
-from django.test import TestCase, override_settings
+from django.db import IntegrityError, connection, transaction
+from django.db.migrations.executor import MigrationExecutor
+from django.test import TestCase, TransactionTestCase, override_settings
 from django.utils import timezone
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APITestCase
@@ -72,16 +74,16 @@ class BuildApiTests(LoggedInApiTestCase):
             [(b["name"], b["number"]) for b in listed],
             [("A3", 3), ("A2", 2), ("A1", 1)],
         )
-        detail = self.client.get(f"/api/builds/{second.id}/").json()
+        detail = self.client.get(f"/api/builds/{second.public_id}/").json()
         self.assertEqual(detail["number"], 2)
 
         # It's a count, so deleting one moves the later ones down.
-        self.client.delete(f"/api/builds/{first.id}/")
-        detail = self.client.get(f"/api/builds/{second.id}/").json()
+        self.client.delete(f"/api/builds/{first.public_id}/")
+        detail = self.client.get(f"/api/builds/{second.public_id}/").json()
         self.assertEqual(detail["number"], 1)
 
     def test_notes_are_capped_at_10000_characters(self):
-        url = f"/api/builds/{new_build(name='B').id}/"
+        url = f"/api/builds/{new_build(name='B').public_id}/"
 
         res = self.client.patch(url, {"notes": "x" * 10_000}, format="json")
         self.assertEqual(res.status_code, 200)
@@ -197,7 +199,7 @@ class SummaryTests(LoggedInApiTestCase):
         with at("2026-11-15T12:00+08:00"):
             summary = self.summary()
 
-        totals = self.client.get(f"/api/builds/{sold.id}/").json()["totals"]
+        totals = self.client.get(f"/api/builds/{sold.public_id}/").json()["totals"]
         self.assertEqual(totals["profit"], "1000.00")  # 12,000 − (3,000 + 7,500 + 500)
         self.assertEqual(summary["this_month"]["profit"], totals["profit"])
         self.assertEqual(summary["tied_up"]["cost"], totals["total_cost"])
@@ -236,7 +238,7 @@ class SummaryTests(LoggedInApiTestCase):
 class SoldDateTests(LoggedInApiTestCase):
     def test_only_a_sold_build_has_a_sold_date(self):
         build = new_build(name="B")
-        url = f"/api/builds/{build.id}/"
+        url = f"/api/builds/{build.public_id}/"
 
         res = self.client.patch(url, {"sold_at": "2026-10-28"}, format="json")
         self.assertEqual(res.status_code, 400)
@@ -260,7 +262,7 @@ class SoldDateTests(LoggedInApiTestCase):
         build = new_build(name="B", sold_at="2026-10-01")
 
         res = self.client.patch(
-            f"/api/builds/{build.id}/", {"name": "Renamed"}, format="json"
+            f"/api/builds/{build.public_id}/", {"name": "Renamed"}, format="json"
         )
 
         self.assertEqual(res.status_code, 200)
@@ -409,7 +411,7 @@ class DetailApiTests(LoggedInApiTestCase):
         self.build.extra_costs.create(label="Platform fee", amount="300.00")
 
     def test_detail_nests_parts_extra_costs_and_spec_totals(self):
-        res = self.client.get(f"/api/builds/{self.build.id}/")
+        res = self.client.get(f"/api/builds/{self.build.public_id}/")
 
         self.assertEqual(res.status_code, 200)
         body = res.json()
@@ -438,7 +440,7 @@ class DetailApiTests(LoggedInApiTestCase):
     def test_without_selling_price_the_dependent_totals_are_null(self):
         build = new_build(name="Unpriced")
 
-        totals = self.client.get(f"/api/builds/{build.id}/").json()["totals"]
+        totals = self.client.get(f"/api/builds/{build.public_id}/").json()["totals"]
 
         self.assertEqual(totals["total_cost"], "0.00")
         for key in ["profit", "profit_margin", "below_market", "below_market_pct"]:
@@ -464,10 +466,18 @@ class DetailApiTests(LoggedInApiTestCase):
         with self.assertNumQueries(4):  # builds, parts, bundles, extra costs
             self.client.get("/api/builds/")
         with self.assertNumQueries(5):  # ... and the bundles' parts
-            self.client.get(f"/api/builds/{self.build.id}/")
+            self.client.get(f"/api/builds/{self.build.public_id}/")
+        # Each row names its build (and a part its bundle) by UUID, which is on the
+        # related row: joined, not fetched one row at a time.
+        with self.assertNumQueries(1):
+            self.client.get("/api/parts/")
+        with self.assertNumQueries(2):  # bundles (with builds), their parts
+            self.client.get("/api/bundles/")
+        with self.assertNumQueries(1):
+            self.client.get("/api/extra-costs/")
 
     def test_deleting_a_build_via_api_deletes_its_children(self):
-        res = self.client.delete(f"/api/builds/{self.build.id}/")
+        res = self.client.delete(f"/api/builds/{self.build.public_id}/")
 
         self.assertEqual(res.status_code, 204)
         self.assertEqual(Part.objects.count(), 0)
@@ -483,7 +493,7 @@ class ChildApiTests(LoggedInApiTestCase):
         res = self.client.post(
             "/api/parts/",
             {
-                "build": self.build.id,
+                "build": self.build.public_id,
                 "name": "Ryzen 5 7600",
                 "category": "cpu",
                 "shop": "Shopee",
@@ -499,7 +509,7 @@ class ChildApiTests(LoggedInApiTestCase):
             f"/api/parts/{part_id}/", {"bought_for": "10000.00"}, format="json"
         )
         self.assertEqual(res.status_code, 200)
-        self.assertEqual(Part.objects.get(pk=part_id).bought_for, D("10000.00"))
+        self.assertEqual(Part.objects.get(public_id=part_id).bought_for, D("10000.00"))
 
         self.assertEqual(self.client.delete(f"/api/parts/{part_id}/").status_code, 204)
         self.assertFalse(Part.objects.exists())
@@ -508,7 +518,7 @@ class ChildApiTests(LoggedInApiTestCase):
         res = self.client.post(
             "/api/extra-costs/",
             {
-                "build": self.build.id,
+                "build": self.build.public_id,
                 "label": "Shipping",
                 "amount": "150.00",
             },
@@ -521,7 +531,7 @@ class ChildApiTests(LoggedInApiTestCase):
             f"/api/extra-costs/{cost_id}/", {"amount": "180.00"}, format="json"
         )
         self.assertEqual(res.status_code, 200)
-        self.assertEqual(ExtraCost.objects.get(pk=cost_id).amount, D("180.00"))
+        self.assertEqual(ExtraCost.objects.get(public_id=cost_id).amount, D("180.00"))
 
         self.assertEqual(
             self.client.delete(f"/api/extra-costs/{cost_id}/").status_code, 204
@@ -531,7 +541,7 @@ class ChildApiTests(LoggedInApiTestCase):
         res = self.client.post(
             "/api/parts/",
             {
-                "build": self.build.id,
+                "build": self.build.public_id,
                 "name": "X",
                 "category": "cpu",
                 "listed_price": "-1.00",
@@ -545,7 +555,7 @@ class ChildApiTests(LoggedInApiTestCase):
         res = self.client.post(
             "/api/extra-costs/",
             {
-                "build": self.build.id,
+                "build": self.build.public_id,
                 "label": "Fee",
                 "amount": "-1.00",
             },
@@ -577,13 +587,18 @@ class ChildApiTests(LoggedInApiTestCase):
         )
         cost = self.build.extra_costs.create(label="Shipping", amount="1.00")
 
-        for url in (f"/api/parts/{part.id}/", f"/api/extra-costs/{cost.id}/"):
-            res = self.client.patch(url, {"build": other.id}, format="json")
+        for url in (
+            f"/api/parts/{part.public_id}/",
+            f"/api/extra-costs/{cost.public_id}/",
+        ):
+            res = self.client.patch(url, {"build": other.public_id}, format="json")
             self.assertEqual(res.status_code, 400)
             self.assertIn("build", res.json())
         # Sending its own build is fine.
         res = self.client.patch(
-            f"/api/parts/{part.id}/", {"build": self.build.id}, format="json"
+            f"/api/parts/{part.public_id}/",
+            {"build": self.build.public_id},
+            format="json",
         )
         self.assertEqual(res.status_code, 200)
         self.assertEqual(Part.objects.get(pk=part.id).build, self.build)
@@ -620,7 +635,7 @@ class BundleTests(LoggedInApiTestCase):
         return self.client.post(
             "/api/parts/",
             {
-                "build": self.build.id,
+                "build": self.build.public_id,
                 "name": "X",
                 "category": "other",
                 "listed_price": "1.00",
@@ -630,7 +645,7 @@ class BundleTests(LoggedInApiTestCase):
         )
 
     def test_the_bundle_price_counts_once_and_typed_amounts_dont(self):
-        body = self.client.get(f"/api/builds/{self.build.id}/").json()
+        body = self.client.get(f"/api/builds/{self.build.public_id}/").json()
 
         self.assertEqual(body["totals"]["listed_total"], "19199.00")
         self.assertEqual(body["totals"]["parts_cost"], "10500.00")  # 3000 + 7500
@@ -639,8 +654,8 @@ class BundleTests(LoggedInApiTestCase):
             body["bundles"],
             [
                 {
-                    "id": self.bundle.id,
-                    "build": self.build.id,
+                    "id": str(self.bundle.public_id),
+                    "build": str(self.build.public_id),
                     "name": "B550m + R5 5600 + 16GB",
                     "shop": "",
                     "bought_for": "7500.00",
@@ -650,13 +665,15 @@ class BundleTests(LoggedInApiTestCase):
             ],
         )
         board = next(p for p in body["parts"] if p["category"] == "motherboard")
-        self.assertEqual((board["bundle"], board["bought_for"]), (self.bundle.id, None))
+        self.assertEqual(
+            (board["bundle"], board["bought_for"]), (str(self.bundle.public_id), None)
+        )
 
     def test_an_empty_bundle_still_counts(self):
         build = new_build(name="Empty")
         build.bundles.create(name="Deal", bought_for="500.00")
 
-        body = self.client.get(f"/api/builds/{build.id}/").json()
+        body = self.client.get(f"/api/builds/{build.public_id}/").json()
 
         self.assertEqual(body["totals"]["parts_cost"], "500.00")
         self.assertEqual(body["bundles"][0]["unassigned"], "500.00")
@@ -669,7 +686,7 @@ class BundleTests(LoggedInApiTestCase):
         # Moving a part out of its bundle with nothing typed in, too.
         board = Part.objects.get(category="motherboard")
         res = self.client.patch(
-            f"/api/parts/{board.id}/", {"bundle": None}, format="json"
+            f"/api/parts/{board.public_id}/", {"bundle": None}, format="json"
         )
         self.assertEqual(res.status_code, 400)
         self.assertIn("bought_for", res.json())
@@ -680,7 +697,7 @@ class BundleTests(LoggedInApiTestCase):
             )
 
     def test_a_bundled_part_can_leave_bought_for_blank(self):
-        res = self.post_part(bundle=self.bundle.id)
+        res = self.post_part(bundle=self.bundle.public_id)
 
         self.assertEqual(res.status_code, 201)
         self.assertIsNone(res.json()["bought_for"])
@@ -688,9 +705,12 @@ class BundleTests(LoggedInApiTestCase):
     def test_bundled_amounts_cant_pass_the_bundle_price(self):
         # 3500 typed already: 4000 more fits exactly, 4000.01 doesn't.
         self.assertEqual(
-            self.post_part(bundle=self.bundle.id, bought_for="4000.00").status_code, 201
+            self.post_part(
+                bundle=self.bundle.public_id, bought_for="4000.00"
+            ).status_code,
+            201,
         )
-        res = self.post_part(bundle=self.bundle.id, bought_for="0.01")
+        res = self.post_part(bundle=self.bundle.public_id, bought_for="0.01")
         self.assertEqual(res.status_code, 400)
         self.assertEqual(
             res.json()["bought_for"],
@@ -699,7 +719,9 @@ class BundleTests(LoggedInApiTestCase):
 
         # Editing a part doesn't count its old amount against itself.
         res = self.client.patch(
-            f"/api/parts/{self.cpu.id}/", {"bought_for": "3500.00"}, format="json"
+            f"/api/parts/{self.cpu.public_id}/",
+            {"bought_for": "3500.00"},
+            format="json",
         )
         self.assertEqual(res.status_code, 200)
 
@@ -710,7 +732,9 @@ class BundleTests(LoggedInApiTestCase):
 
         def move(part, bundle):
             return self.client.patch(
-                f"/api/parts/{part.id}/", {"bundle": bundle.id}, format="json"
+                f"/api/parts/{part.public_id}/",
+                {"bundle": bundle.public_id},
+                format="json",
             )
 
         # The CPU's ₱3,500 doesn't fit in ₱1,000, but fits in ₱5,000.
@@ -722,14 +746,14 @@ class BundleTests(LoggedInApiTestCase):
         # The loose GPU's ₱3,000 fits back in the first bundle, now empty of amounts.
         self.assertEqual(move(gpu, self.bundle).status_code, 200)
         self.assertEqual(
-            self.client.get(f"/api/builds/{self.build.id}/").json()["totals"][
+            self.client.get(f"/api/builds/{self.build.public_id}/").json()["totals"][
                 "parts_cost"
             ],
             "13500.00",  # 7500 + 1000 + 5000, no loose parts left
         )
 
     def test_lowering_the_bundle_price_below_its_parts_is_400(self):
-        url = f"/api/bundles/{self.bundle.id}/"
+        url = f"/api/bundles/{self.bundle.public_id}/"
 
         res = self.client.patch(url, {"bought_for": "3499.99"}, format="json")
         self.assertEqual(res.status_code, 400)
@@ -741,20 +765,20 @@ class BundleTests(LoggedInApiTestCase):
     def test_a_bundle_from_another_build_is_400(self):
         other = new_build(name="Other").bundles.create(name="D", bought_for="1.00")
 
-        res = self.post_part(bundle=other.id, bought_for="1.00")
+        res = self.post_part(bundle=other.public_id, bought_for="1.00")
         self.assertEqual(res.status_code, 400)
         self.assertIn("bundle", res.json())
 
     def test_bundle_create_and_delete_takes_its_parts(self):
         res = self.client.post(
             "/api/bundles/",
-            {"build": self.build.id, "name": "Deal", "bought_for": "100.00"},
+            {"build": self.build.public_id, "name": "Deal", "bought_for": "100.00"},
             format="json",
         )
         self.assertEqual(res.status_code, 201)
         self.assertEqual(res.json()["listed_total"], "0.00")
 
-        res = self.client.delete(f"/api/bundles/{self.bundle.id}/")
+        res = self.client.delete(f"/api/bundles/{self.bundle.public_id}/")
         self.assertEqual(res.status_code, 204)
         self.assertEqual(list(Part.objects.values_list("name", flat=True)), ["RX 580"])
 
@@ -762,7 +786,9 @@ class BundleTests(LoggedInApiTestCase):
         other = new_build(name="Other")
 
         res = self.client.patch(
-            f"/api/bundles/{self.bundle.id}/", {"build": other.id}, format="json"
+            f"/api/bundles/{self.bundle.public_id}/",
+            {"build": other.public_id},
+            format="json",
         )
 
         self.assertEqual(res.status_code, 400)
@@ -849,7 +875,7 @@ class AuthTests(APITestCase):
         build = new_build(name="B")
         for url in [
             "/api/builds/",
-            f"/api/builds/{build.id}/",
+            f"/api/builds/{build.public_id}/",
             "/api/parts/",
             "/api/extra-costs/",
             "/api/auth/me/",
@@ -922,10 +948,10 @@ class IsolationTests(LoggedInApiTestCase):
 
     def test_another_users_build_part_and_cost_are_404(self):
         for url, patch in [
-            (f"/api/builds/{self.build.id}/", {"name": "Mine now"}),
-            (f"/api/parts/{self.part.id}/", {"name": "Mine now"}),
-            (f"/api/extra-costs/{self.cost.id}/", {"label": "Mine now"}),
-            (f"/api/bundles/{self.bundle.id}/", {"name": "Mine now"}),
+            (f"/api/builds/{self.build.public_id}/", {"name": "Mine now"}),
+            (f"/api/parts/{self.part.public_id}/", {"name": "Mine now"}),
+            (f"/api/extra-costs/{self.cost.public_id}/", {"label": "Mine now"}),
+            (f"/api/bundles/{self.bundle.public_id}/", {"name": "Mine now"}),
         ]:
             self.assertEqual(self.client.get(url).status_code, 404, url)
             self.assertEqual(
@@ -962,7 +988,9 @@ class IsolationTests(LoggedInApiTestCase):
             ("/api/extra-costs/", {"label": "X", "amount": "1.00"}),
             ("/api/bundles/", {"name": "X", "bought_for": "1.00"}),
         ]:
-            res = self.client.post(url, {"build": self.build.id, **data}, format="json")
+            res = self.client.post(
+                url, {"build": self.build.public_id, **data}, format="json"
+            )
             self.assertEqual(res.status_code, 400, url)
             self.assertIn("build", res.json())
         self.assertEqual(Part.objects.count(), 1)
@@ -975,8 +1003,8 @@ class IsolationTests(LoggedInApiTestCase):
         res = self.client.post(
             "/api/parts/",
             {
-                "build": mine.id,
-                "bundle": self.bundle.id,
+                "build": mine.public_id,
+                "bundle": self.bundle.public_id,
                 "name": "X",
                 "category": "cpu",
                 "listed_price": "1.00",
@@ -990,7 +1018,7 @@ class IsolationTests(LoggedInApiTestCase):
     def test_a_new_build_belongs_to_whoever_created_it(self):
         res = self.client.post("/api/builds/", {"name": "New"}, format="json")
 
-        self.assertEqual(Build.objects.get(pk=res.json()["id"]).owner, alice())
+        self.assertEqual(Build.objects.get(public_id=res.json()["id"]).owner, alice())
 
 
 class ApiDocsTests(LoggedInApiTestCase):
@@ -1006,7 +1034,9 @@ class ApiDocsTests(LoggedInApiTestCase):
     def test_put_is_not_offered(self):
         build = new_build(name="B")
 
-        res = self.client.put(f"/api/builds/{build.id}/", {"name": "X"}, format="json")
+        res = self.client.put(
+            f"/api/builds/{build.public_id}/", {"name": "X"}, format="json"
+        )
 
         self.assertEqual(res.status_code, 405)
 
@@ -1155,3 +1185,160 @@ class DemoTests(APITestCase):
             self.client.post("/api/auth/login/", wrong, format="json")
         self.assertEqual(self.client.post("/api/auth/demo/").status_code, 201)
         self.assertEqual(self.client.post("/api/auth/demo/").status_code, 429)
+
+
+def walk_ids(data, path="$"):
+    """Every id/build/bundle value in a response, with where it was found."""
+    if isinstance(data, list):
+        for i, item in enumerate(data):
+            yield from walk_ids(item, f"{path}[{i}]")
+    elif isinstance(data, dict):
+        for key, value in data.items():
+            if key in ("id", "build", "bundle") and value is not None:
+                yield f"{path}.{key}", value
+            yield from walk_ids(value, f"{path}.{key}")
+
+
+class PublicIdTests(LoggedInApiTestCase):
+    """Builds, parts, bundles and extra costs are named by a random UUID outside the
+    database; their integer ids never leave it (docs/specs/public-ids.md)."""
+
+    def setUp(self):
+        super().setUp()
+        self.build = new_build(name="B")
+        self.bundle = self.build.bundles.create(name="Deal", bought_for="100.00")
+        self.part = self.build.parts.create(
+            name="P", category="cpu", listed_price="1.00", bundle=self.bundle
+        )
+        self.cost = self.build.extra_costs.create(label="Shipping", amount="1.00")
+
+    def assert_uuids(self, res, url):
+        self.assertLess(res.status_code, 300, (url, res.content))
+        found = list(walk_ids(res.json()))
+        self.assertTrue(found, url)
+        for where, value in found:
+            self.assertIsInstance(value, str, f"{url} {where}")
+            self.assertEqual(str(uuid.UUID(value)), value, f"{url} {where}")
+
+    def test_every_response_names_records_by_uuid(self):
+        b, p = self.build.public_id, self.part.public_id
+        bundle, cost = self.bundle.public_id, self.cost.public_id
+        reads = [
+            "/api/builds/",
+            f"/api/builds/{b}/",
+            "/api/parts/",
+            f"/api/parts/{p}/",
+            "/api/bundles/",
+            f"/api/bundles/{bundle}/",
+            "/api/extra-costs/",
+            f"/api/extra-costs/{cost}/",
+        ]
+        for url in reads:
+            self.assert_uuids(self.client.get(url), url)
+        writes = [
+            ("post", "/api/builds/", {"name": "New"}),
+            ("patch", f"/api/builds/{b}/", {"name": "Renamed"}),
+            (
+                "post",
+                "/api/parts/",
+                {"build": str(b), "bundle": str(bundle), "name": "X"}
+                | {"category": "gpu", "listed_price": "1.00"},
+            ),
+            ("patch", f"/api/parts/{p}/", {"name": "P2"}),
+            (
+                "post",
+                "/api/bundles/",
+                {"build": str(b), "name": "D", "bought_for": "1"},
+            ),
+            ("patch", f"/api/bundles/{bundle}/", {"name": "D2"}),
+            (
+                "post",
+                "/api/extra-costs/",
+                {"build": str(b), "label": "L", "amount": "1"},
+            ),
+            ("patch", f"/api/extra-costs/{cost}/", {"label": "L2"}),
+        ]
+        for method, url, body in writes:
+            res = getattr(self.client, method)(url, body, format="json")
+            self.assert_uuids(res, f"{method} {url}")
+
+        detail = self.client.get(f"/api/builds/{b}/").json()
+        self.assertEqual(detail["id"], str(b))
+        board = next(x for x in detail["parts"] if x["name"] == "P2")
+        self.assertEqual((board["build"], board["bundle"]), (str(b), str(bundle)))
+
+    def test_integer_and_malformed_ids_are_404(self):
+        for resource, obj in [
+            ("builds", self.build),
+            ("parts", self.part),
+            ("bundles", self.bundle),
+            ("extra-costs", self.cost),
+        ]:
+            for bad in (obj.pk, "nope"):
+                url = f"/api/{resource}/{bad}/"
+                self.assertEqual(self.client.get(url).status_code, 404, url)
+
+    def test_integer_and_malformed_references_are_400(self):
+        for field, bad in [
+            ("build", self.build.pk),
+            ("build", "nope"),
+            ("bundle", self.bundle.pk),
+            ("bundle", "nope"),
+        ]:
+            body = {"build": str(self.build.public_id), "name": "X"} | {
+                "category": "cpu",
+                "listed_price": "1.00",
+                "bought_for": "1.00",
+                field: bad,
+            }
+            res = self.client.post("/api/parts/", body, format="json")
+            self.assertEqual(res.status_code, 400, (field, bad, res.content))
+            self.assertIn(field, res.json())
+
+    def test_an_insert_that_leaves_it_out_gets_one_from_the_database(self):
+        # Old code during a deploy doesn't know the column: Postgres fills it in.
+        with connection.cursor() as cursor:
+            cursor.execute(
+                "INSERT INTO builds_build (owner_id, name, status, notes, created_at)"
+                " VALUES (%s, 'Old code', 'planning', '', now()) RETURNING public_id",
+                [alice().pk],
+            )
+            made = cursor.fetchone()[0]
+        self.assertIsInstance(made, uuid.UUID)
+        self.assertNotEqual(made, self.build.public_id)
+
+
+class PublicIdMigrationTests(TransactionTestCase):
+    """Rows that existed before the migration each get their own UUID."""
+
+    before = [("builds", "0006_shopproduct")]
+    after = [("builds", "0007_public_ids")]
+
+    def test_existing_rows_get_distinct_uuids(self):
+        executor = MigrationExecutor(connection)
+        executor.migrate(self.before)
+        old = executor.loader.project_state(self.before).apps
+        owner = old.get_model("auth", "User").objects.create(username="old")
+        Build = old.get_model("builds", "Build")
+        builds = [Build.objects.create(owner=owner, name=f"B{i}") for i in range(3)]
+        builds[0].parts.create(
+            name="P", category="cpu", listed_price="1.00", bought_for="1.00"
+        )
+        builds[0].bundles.create(name="D", bought_for="1.00")
+        builds[0].extra_costs.create(label="L", amount="1.00")
+
+        executor = MigrationExecutor(connection)
+        executor.migrate(self.after)
+        new = executor.loader.project_state(self.after).apps
+        for model in ("Build", "Part", "Bundle", "ExtraCost"):
+            ids = list(
+                new.get_model("builds", model).objects.values_list(
+                    "public_id", flat=True
+                )
+            )
+            self.assertTrue(ids, model)
+            self.assertNotIn(None, ids, model)
+            self.assertEqual(len(set(ids)), len(ids), model)
+
+        executor = MigrationExecutor(connection)
+        executor.migrate(executor.loader.graph.leaf_nodes())

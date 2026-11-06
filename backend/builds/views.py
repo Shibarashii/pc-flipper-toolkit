@@ -1,4 +1,4 @@
-from django.db.models import Count, Min, OuterRef, Subquery
+from django.db.models import Count, Min, OuterRef, Prefetch, Subquery
 from django.utils import timezone
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
 from rest_framework import viewsets
@@ -18,8 +18,17 @@ from .serializers import (
     PriceSearchSerializer,
 )
 
-# The SPEC only supports partial updates; PUT is left out so the docs don't offer it.
-METHODS = ["get", "post", "patch", "delete", "head", "options"]
+
+class OwnedViewSet(viewsets.ModelViewSet):
+    """A user's builds, parts, bundles or extra costs."""
+
+    # The SPEC only supports partial updates; PUT is left out so the docs don't offer it.
+    http_method_names = ["get", "post", "patch", "delete", "head", "options"]
+    # Looked up by the public UUID, still called `id` in paths. Anything else, an
+    # integer id included, is a 404 (docs/specs/public-ids.md).
+    lookup_field = "public_id"
+    lookup_url_kwarg = "id"
+
 
 # A build's number is its place among its owner's builds, oldest first: how many of
 # theirs have an id up to its own. Ids only grow, so that's creation order.
@@ -36,7 +45,7 @@ BUILD_EXAMPLE = OpenApiExample(
     "A priced build",
     response_only=True,
     value={
-        "id": 1,
+        "id": "3f2c9a4e-0b6d-4c1e-9a57-2d8f6e1b4c90",
         "number": 1,
         "name": "Ryzen 5 7600 + RTX 4060",
         "status": "listed",
@@ -57,8 +66,8 @@ BUILD_EXAMPLE = OpenApiExample(
         },
         "parts": [
             {
-                "id": 1,
-                "build": 1,
+                "id": "8d1e4b2a-6c3f-4f7e-b0a9-5e2d7c1f9a36",
+                "build": "3f2c9a4e-0b6d-4c1e-9a57-2d8f6e1b4c90",
                 "name": "RTX 4060",
                 "category": "gpu",
                 "shop": "Shopee - DynaQuest",
@@ -67,8 +76,8 @@ BUILD_EXAMPLE = OpenApiExample(
                 "bought_for": "26000.00",
             },
             {
-                "id": 2,
-                "build": 1,
+                "id": "c47a9f10-2e5b-4d8c-9b3e-71f6a0d2e584",
+                "build": "3f2c9a4e-0b6d-4c1e-9a57-2d8f6e1b4c90",
                 "name": "Ryzen 5 7600",
                 "category": "cpu",
                 "shop": "",
@@ -79,8 +88,18 @@ BUILD_EXAMPLE = OpenApiExample(
         ],
         "bundles": [],
         "extra_costs": [
-            {"id": 1, "build": 1, "label": "Shipping", "amount": "500.00"},
-            {"id": 2, "build": 1, "label": "Platform fee", "amount": "300.00"},
+            {
+                "id": "5b9e2c7d-1a4f-4e6b-8d3c-0f7a2e9b1c45",
+                "build": "3f2c9a4e-0b6d-4c1e-9a57-2d8f6e1b4c90",
+                "label": "Shipping",
+                "amount": "500.00",
+            },
+            {
+                "id": "e2a6d8f4-7b1c-4a9e-a5d2-3c8f0b6e7a19",
+                "build": "3f2c9a4e-0b6d-4c1e-9a57-2d8f6e1b4c90",
+                "label": "Platform fee",
+                "amount": "300.00",
+            },
         ],
     },
 )
@@ -111,9 +130,8 @@ BUILD_EXAMPLE = OpenApiExample(
         "Cannot be undone.",
     ),
 )
-class BuildViewSet(viewsets.ModelViewSet):
+class BuildViewSet(OwnedViewSet):
     queryset = Build.objects.all()
-    http_method_names = METHODS
 
     def get_queryset(self):
         # Only the user's own builds: anyone else's are a 404. The totals read parts,
@@ -122,10 +140,12 @@ class BuildViewSet(viewsets.ModelViewSet):
         # don't need those parts.
         many = self.action in ("list", "summary")
         bundles = "bundles" if many else "bundles__parts"
+        # A part names its bundle by UUID, so the bundle row comes with it.
+        parts = Prefetch("parts", queryset=Part.objects.select_related("bundle"))
         return (
             Build.objects.filter(owner=self.request.user)
             .annotate(number=Subquery(numbers))
-            .prefetch_related("parts", bundles, "extra_costs")
+            .prefetch_related(parts, bundles, "extra_costs")
         )
 
     def perform_create(self, serializer):
@@ -194,13 +214,15 @@ class BuildViewSet(viewsets.ModelViewSet):
     partial_update=extend_schema(summary="Update a part"),
     destroy=extend_schema(summary="Delete a part"),
 )
-class PartViewSet(viewsets.ModelViewSet):
+class PartViewSet(OwnedViewSet):
     queryset = Part.objects.all()
     serializer_class = PartSerializer
-    http_method_names = METHODS
 
     def get_queryset(self):
-        return Part.objects.filter(build__owner=self.request.user)
+        # Its build and bundle are named by UUID, so their rows come with it.
+        return Part.objects.filter(build__owner=self.request.user).select_related(
+            "build", "bundle"
+        )
 
 
 @extend_schema_view(
@@ -210,7 +232,7 @@ class PartViewSet(viewsets.ModelViewSet):
     create=extend_schema(
         summary="Add a bundle to a build",
         description="Parts bought together for one price. Add parts to it with "
-        "their `bundle` id.",
+        "their `bundle` set to its `id`.",
     ),
     retrieve=extend_schema(summary="Get a bundle"),
     partial_update=extend_schema(summary="Update a bundle"),
@@ -218,14 +240,15 @@ class PartViewSet(viewsets.ModelViewSet):
         summary="Delete a bundle", description="Also deletes its parts."
     ),
 )
-class BundleViewSet(viewsets.ModelViewSet):
+class BundleViewSet(OwnedViewSet):
     queryset = Bundle.objects.all()
     serializer_class = BundleSerializer
-    http_method_names = METHODS
 
     def get_queryset(self):
-        return Bundle.objects.filter(build__owner=self.request.user).prefetch_related(
-            "parts"
+        return (
+            Bundle.objects.filter(build__owner=self.request.user)
+            .select_related("build")
+            .prefetch_related("parts")
         )
 
 
@@ -242,13 +265,14 @@ class BundleViewSet(viewsets.ModelViewSet):
     partial_update=extend_schema(summary="Update an extra cost"),
     destroy=extend_schema(summary="Delete an extra cost"),
 )
-class ExtraCostViewSet(viewsets.ModelViewSet):
+class ExtraCostViewSet(OwnedViewSet):
     queryset = ExtraCost.objects.all()
     serializer_class = ExtraCostSerializer
-    http_method_names = METHODS
 
     def get_queryset(self):
-        return ExtraCost.objects.filter(build__owner=self.request.user)
+        return ExtraCost.objects.filter(build__owner=self.request.user).select_related(
+            "build"
+        )
 
 
 PRICE_RESULTS = 20

@@ -1,6 +1,7 @@
 from decimal import ROUND_HALF_UP, Decimal
 
 from django.conf import settings
+from django.contrib.postgres.functions import RandomUUID
 from django.core.validators import MinValueValidator
 from django.db import models
 
@@ -12,6 +13,14 @@ def money_field(**kwargs) -> models.DecimalField:
     return models.DecimalField(
         max_digits=10, decimal_places=2, validators=[MinValueValidator(0)], **kwargs
     )
+
+
+def public_id_field() -> models.UUIDField:
+    """The record's name outside the database: a random UUID (version 4) in URLs and
+    the API, so the integer ids, which count every user's records, never leave it
+    (docs/specs/public-ids.md). Postgres makes it, so existing rows got one in the
+    migration, and an insert from code that doesn't know the column still gets one."""
+    return models.UUIDField(unique=True, editable=False, db_default=RandomUUID())
 
 
 def non_negative(*fields: str) -> list[models.CheckConstraint]:
@@ -38,6 +47,7 @@ class Build(models.Model):
         LISTED = "listed"
         SOLD = "sold"
 
+    public_id = public_id_field()
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="builds"
     )
@@ -107,6 +117,7 @@ class Build(models.Model):
 class Bundle(models.Model):
     """Parts bought together for one price, e.g. a motherboard + CPU + RAM deal."""
 
+    public_id = public_id_field()
     build = models.ForeignKey(Build, on_delete=models.CASCADE, related_name="bundles")
     name = models.CharField(max_length=200)
     shop = models.CharField(max_length=200, blank=True)
@@ -151,6 +162,7 @@ class Part(models.Model):
         COOLER = "cooler"
         OTHER = "other"
 
+    public_id = public_id_field()
     build = models.ForeignKey(Build, on_delete=models.CASCADE, related_name="parts")
     name = models.CharField(max_length=200)
     category = models.CharField(max_length=12, choices=Category)
@@ -178,6 +190,7 @@ class Part(models.Model):
 
 
 class ExtraCost(models.Model):
+    public_id = public_id_field()
     build = models.ForeignKey(
         Build, on_delete=models.CASCADE, related_name="extra_costs"
     )

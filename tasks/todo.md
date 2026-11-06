@@ -915,7 +915,7 @@ as strings, so this works with today's integer API and with UUIDs.
 **Files:** `frontend/src/api.ts`, `frontend/src/pages/BuildDetail.tsx`, `frontend/src/pages/BuildDetail.test.tsx`, `frontend/src/test/fixtures.ts`, the other `*.test.tsx` with numeric ids
 **Scope:** S (mostly mechanical: about 48 numeric ids in 11 test files)
 
-### - [ ] T37: Public UUIDs in the database and the API
+### - [x] T37: Public UUIDs in the database and the API
 
 **Description:**
 - `public_id = UUIDField(unique=True, editable=False, db_default=RandomUUID())` on `Build`,
@@ -927,20 +927,26 @@ as strings, so this works with today's integer API and with UUIDs.
 - SPEC.md's API table and data model say UUID.
 
 **Acceptance criteria:**
-- [ ] No response of the four resources (list, detail, create, update, and nested in the
+- [x] No response of the four resources (list, detail, create, update, and nested in the
   build detail) has an integer `id`, `build` or `bundle`.
-- [ ] Integer and malformed ids give 404 on every detail path; another user's UUID gives 404,
+- [x] Integer and malformed ids give 404 on every detail path; another user's UUID gives 404,
   and in a body it's "object does not exist".
-- [ ] Rows that existed before the migration each get a different UUID; an insert without
+- [x] Rows that existed before the migration each get a different UUID; an insert without
   `public_id` gets one from the database.
-- [ ] `number`, totals, the builds summary and the query counts are unchanged.
+- [x] `number`, totals, the builds summary and the query counts are unchanged. (Naming a
+  related record by UUID needs its row: joined in every queryset, and the parts, bundles
+  and extra costs lists now have query-count tests too.)
+- [x] A malformed `build`/`bundle` in a body is a 400, not a 500 (DRF's slug field doesn't
+  catch Django's own UUID error; `PublicIdField` does)
 
 **Verification:**
-- [ ] `python manage.py test`, `ruff check . && ruff format --check .`,
+- [x] `python manage.py test`, `ruff check . && ruff format --check .`,
   `python manage.py makemigrations --check`, `python manage.py spectacular --validate --fail-on-warn`
-- [ ] `python manage.py migrate` then `migrate builds 0006` then `migrate` on a local copy with
-  data: forward and back both work
-- [ ] e2e locally against the new API; a local demo opens builds at UUID URLs
+- [x] `python manage.py migrate` then `migrate builds 0006` then `migrate` on local data (359
+  rows): every row got its own UUID, and it reverses and re-applies cleanly
+- [x] e2e locally against the new API (14/14; the flip spec's URL check now requires a UUID);
+  a local demo opens builds at UUID URLs, `/builds/1` is not found, and no API response
+  carried an integer id
 
 **Dependencies:** T36 deployed
 **Files:** `backend/builds/models.py`, a new `backend/builds/migrations/0007_*.py`, `backend/builds/serializers.py`, `backend/builds/views.py`, `backend/builds/tests.py`, `SPEC.md`
