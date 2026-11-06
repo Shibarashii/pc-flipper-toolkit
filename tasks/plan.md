@@ -134,6 +134,18 @@ live once T30 is on Render. No new dependencies (the combobox is hand-written), 
 
 **Checkpoint 8:** part 2's success criteria 1–5 pass on the live site.
 
+### Phase 11: Builds summary ([docs/specs/builds-summary.md](../docs/specs/builds-summary.md))
+- [ ] T32: Summary API (`GET /api/builds/summary/`) and the demo's sale dated today
+- [ ] T33: The summary line on the builds list
+
+```
+T32 summary API ── T33 builds list line
+```
+T33's tests use fixtures, so it can be built before T32 is deployed, but it's only useful
+live once T32 is on Render. No migration, no new dependencies.
+
+**Checkpoint 9:** the builds summary spec's success criteria 1–4 pass on the live site.
+
 ## Risks and Mitigations
 
 | Risk | Impact | Mitigation |
@@ -153,6 +165,9 @@ live once T30 is on Render. No new dependencies (the combobox is hand-written), 
 | A short name drops something that matters (colour, "OC") | Low | The pop-up shows the full shop name under it, and the name stays editable (T31); each bad case becomes a `shorten()` test (T30) |
 | The pop-up breaks fast entry (Enter picks instead of saving) | High | Enter picks only an active row; a browser e2e test proves Enter with no active row saves (T31) |
 | A request on every typing pause loads Render and Neon | Low | 300 ms pause, 2+ characters, results capped at 20, and the search reads only our ~10k-row table |
+| "This month" uses the server's or browser's month instead of Manila's | Med (wrong numbers near midnight on the 1st) | `timezone.localdate()` (`TIME_ZONE = Asia/Manila`); a test with the date mocked on both sides of the boundary (T32) |
+| The summary disagrees with the list (bundles, extra costs) | High (the feature is trust in the numbers) | It sums the model's own `profit` and `total_cost`, never a second formula; a test with a bundle and extra costs (T32) |
+| A demo opened on the 1st–3rd shows ₱0 this month | Low | The demo's sale is dated today (T32) |
 
 ## Open Questions
 

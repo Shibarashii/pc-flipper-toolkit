@@ -733,3 +733,75 @@ WAI-ARIA 1.2 combobox with a listbox pop-up.
 - [ ] part 2's success criteria 1–5 pass on the live site
 - [ ] Manual, by the author: with Orca on, typing in Part announces the rows found, and Down reads each row (criterion 3)
 - [ ] All tests pass on `main`
+
+## Phase 11: Builds summary
+
+Spec: [docs/specs/builds-summary.md](../docs/specs/builds-summary.md). No migration, no new
+dependencies.
+
+### - [ ] T32: Summary API and the demo's sale dated today
+
+**Description:** `BuildViewSet.summary`, an `@action(detail=False)` at `GET
+/api/builds/summary/`. It reuses the viewset's owner filter and prefetching, and sums the
+model's `profit` and `total_cost` in Python (the spec's [The numbers](../docs/specs/builds-summary.md#the-numbers)):
+
+- `this_month`: Sold builds whose `sold_at` is in `timezone.localdate()`'s month
+- `all_time`: every Sold build
+- `tied_up`: unsold builds with `total_cost` above ₱0
+
+A `BuildsSummarySerializer` gives the response its shape and drf-spectacular schema (summary,
+description, example). `demo.py` dates the sample sale `timezone.localdate()`. `api.ts` gets
+`getBuildsSummary()` and the `BuildsSummary` type.
+
+**Acceptance criteria:**
+- [ ] On a mix of builds, each figure matches the spec's rules: a sold build without a price
+  counts in "sold" but adds ₱0, one without a date counts only in All time, a loss is
+  negative, and an empty Planning build isn't in Tied up.
+- [ ] With the date mocked in Manila time, a sale on the last day of last month isn't in This
+  month, and one on the 1st is.
+- [ ] Bundles count once and extra costs are included, the same as `totals`.
+- [ ] Only the user's own builds count; 401 without a token; the query count doesn't grow
+  with the number of builds.
+- [ ] A new demo's summary has its sold build in This month.
+
+**Verification:**
+- [ ] `python manage.py test` and `ruff check . && ruff format --check .`
+- [ ] `python manage.py spectacular --validate --fail-on-warn`
+- [ ] Manual: `curl` the endpoint for a local demo account
+
+**Dependencies:** None
+**Files:** `backend/builds/views.py`, `backend/builds/serializers.py`, `backend/builds/demo.py`, `backend/builds/tests.py`, `frontend/src/api.ts`
+**Scope:** S
+
+### - [ ] T33: The summary line on the builds list
+
+**Description:** A `BuildsSummary` component between the builds list's header and table,
+loaded at the same time as the list:
+
+- Three labelled figures in a row: "This month", "All time", "Tied up". Each has the amount
+  in tabular figures and a small muted line ("2 sold", "in 3 builds").
+- Profit uses `formatSignedMoney` and `profitColor`, like the table. Hairlines only: no
+  card, shadow or green.
+- While loading, a placeholder of the same height. If the request fails, the summary is left
+  out and the list works as usual.
+- With no builds, no summary: the empty state stays as it is.
+
+**Acceptance criteria:**
+- [ ] The figures and small lines come from the API, with no money math in the browser.
+- [ ] Singular and plural: "1 sold", "in 1 build".
+- [ ] A loss shows a sign in the loss colour.
+- [ ] Usable at 375px without horizontal scrolling, light and dark.
+
+**Verification:**
+- [ ] Vitest: figures from a fixture; a loss; singular and plural; no summary with no
+  builds; a failed summary request leaves the list working
+- [ ] `npm test`, `npm run lint`, `npx tsc -b`
+- [ ] Screenshots: desktop and 375px, light and dark, with a local demo
+
+**Dependencies:** T32 (for the endpoint; deploy T32 first so the live line has data)
+**Files:** a new `frontend/src/components/BuildsSummary.tsx`, a new `frontend/src/components/BuildsSummary.test.tsx`, `frontend/src/pages/BuildsList.tsx`
+**Scope:** S
+
+### Checkpoint 9: Builds summary
+- [ ] The spec's success criteria 1–4 pass on the live site
+- [ ] All tests pass on `main`
