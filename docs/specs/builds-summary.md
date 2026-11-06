@@ -83,9 +83,11 @@ This month             All time               Tied up
 **Builds list** (`frontend/src/pages/BuildsList.tsx`). The summary sits between the header
 ("Builds", the count line and New build) and the table:
 
-- Three labelled figures in a row, the same on desktop and phone. Each has a small label
-  ("This month", "All time", "Tied up"), the amount in tabular figures, and a small muted
-  line under it ("2 sold", "in 3 builds").
+- Three labelled figures. Each has a small label ("This month", "All time", "Tied up"), the
+  amount in serif tabular figures, and a small muted line under it ("2 sold", "in 3 builds").
+- On desktop they share a row. On phones, **This month** is the headline: full width and
+  larger (30px) than anything in the build cards, with All time and Tied up side by side
+  under it (20px). Three equal 15px columns read like another build (changed 2026-11-06).
 - It's set off with the hairline borders the page already uses, with no card or shadow, and
   no accent colour (that's for the primary action). Profit uses the same sign and colour
   helpers as the table (`formatSignedMoney`, `profitColor`), so a profit looks the same in
