@@ -33,6 +33,7 @@ export function BuildsSummary({ summary }: { summary: Summary | null }) {
                 <Bone className="h-[14px] w-16" />
               </div>
               <div>
+                {/* Each bar is its line height in `size` minus the 4px padding. */}
                 <Bone
                   className={
                     isHeadline
