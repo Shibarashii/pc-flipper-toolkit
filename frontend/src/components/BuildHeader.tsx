@@ -264,7 +264,7 @@ export function BuildHeader({
         </div>
       </div>
       {listing && (
-        <ListingDialog build={build} onClose={() => setListing(false)} />
+        <ListingDialog build={shown} onClose={() => setListing(false)} />
       )}
       {confirmingDelete && (
         <DeleteBuildDialog

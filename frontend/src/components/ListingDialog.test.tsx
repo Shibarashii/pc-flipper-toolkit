@@ -12,7 +12,10 @@ beforeAll(() => {
   };
 });
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.unstubAllGlobals();
+});
 
 const build = makeBuild({
   name: "Ryzen 5 5600 + RX 6600",
@@ -97,4 +100,21 @@ test("from the build header; reopening starts from the made post, not the edits"
 
   fireEvent.click(screen.getByRole("button", { name: "Copy listing" }));
   expect(textBox().value).toBe(post);
+});
+
+test("a price typed just before opening is in the post, while it's still saving", () => {
+  // The save never answers: the dialog opens mid-save.
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(() => new Promise<Response>(() => {})),
+  );
+  render(<BuildHeader build={makeBuild({ name: "B" })} onUpdated={() => {}} />);
+
+  const price = screen.getByLabelText("Selling price");
+  fireEvent.change(price, { target: { value: "45000" } });
+  // Clicking the button moves the focus, which saves the price.
+  fireEvent.blur(price);
+  fireEvent.click(screen.getByRole("button", { name: "Copy listing" }));
+
+  expect(textBox().value).toBe("B\n\nPrice: ₱45,000");
 });
