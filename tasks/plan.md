@@ -171,7 +171,7 @@ lands, the frontend is already live and there's no window where the two disagree
 task because the four models share one migration, and the children's `build`/`bundle`
 fields must switch at the same time as the builds' ids. No new dependencies.
 
-**Checkpoint 12:** the public ids spec's success criteria 1–4 pass on the live site.
+**Checkpoint 12 (done):** the public ids spec's success criteria 1–4 pass on the live site.
 
 ## Risks and Mitigations
 
