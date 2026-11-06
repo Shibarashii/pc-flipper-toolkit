@@ -1,7 +1,13 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
-import { listBuilds, type Build } from "../api";
+import {
+  getBuildsSummary,
+  listBuilds,
+  type Build,
+  type BuildsSummary as Summary,
+} from "../api";
 import { buildNo } from "../buildNo";
+import { BuildsSummary } from "../components/BuildsSummary";
 import { NewBuildDialog } from "../components/NewBuildDialog";
 import { Bone, Skeleton } from "../components/Skeleton";
 import { StatusTag } from "../components/StatusTag";
@@ -15,9 +21,13 @@ export function BuildsList() {
   const [builds, setBuilds] = useState<Build[] | null>(null);
   const [error, setError] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [summary, setSummary] = useState<Summary | null>(null);
+  // A failed summary is just left out; the list has its own error.
+  const [summaryFailed, setSummaryFailed] = useState(false);
 
   useEffect(() => {
     listBuilds().then(setBuilds, () => setError(true));
+    getBuildsSummary().then(setSummary, () => setSummaryFailed(true));
   }, []);
 
   // A blank line while loading, so the header doesn't shift when the count arrives.
@@ -75,6 +85,8 @@ export function BuildsList() {
 
       {builds && builds.length > 0 && (
         <>
+          {!summaryFailed && <BuildsSummary summary={summary} />}
+
           {/* Desktop table */}
           <table className="mt-8 hidden w-full border-t border-line-strong text-[15px] tabular-nums sm:table">
             <thead>

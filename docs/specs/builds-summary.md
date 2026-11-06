@@ -86,9 +86,10 @@ This month             All time               Tied up
 - Three labelled figures in a row, the same on desktop and phone. Each has a small label
   ("This month", "All time", "Tied up"), the amount in tabular figures, and a small muted
   line under it ("2 sold", "in 3 builds").
-- It's set off with the hairline borders the page already uses, with no card or shadow. Green
-  isn't used, because green is only for the primary action. Profit uses the same sign and
-  loss colour helpers as the table (`formatSignedMoney`, `profitColor`).
+- It's set off with the hairline borders the page already uses, with no card or shadow, and
+  no accent colour (that's for the primary action). Profit uses the same sign and colour
+  helpers as the table (`formatSignedMoney`, `profitColor`), so a profit looks the same in
+  both.
 - It loads at the same time as the list. While loading, a placeholder line of the same height
   keeps the table from jumping. If the summary fails to load, it's left out and the list
   works as usual. The list has its own error message.

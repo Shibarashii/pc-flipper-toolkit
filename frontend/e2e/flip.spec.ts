@@ -102,7 +102,7 @@ test("flip a PC: sign up, add parts and a bundle, price it, delete it", async ({
   await price.fill("38000");
   await price.blur();
 
-  const summary = page.getByRole("region", { name: "Summary" });
+  const summary = page.getByRole("region", { name: "Summary", exact: true });
   const value = (label: string) =>
     summary.locator(`dt:text-is("${label}") + dd`);
   await expect(summary.getByText("+₱3,500.00")).toBeVisible();
