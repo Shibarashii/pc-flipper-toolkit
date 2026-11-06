@@ -118,7 +118,8 @@ class BuildViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         # Only the user's own builds: anyone else's are a 404. The totals read parts,
         # bundles and extra costs; prefetching keeps the query count flat. Only the
-        # detail shows bundles, which read their own parts.
+        # detail shows bundles, which read their own parts; the list and the summary
+        # don't need those parts.
         many = self.action in ("list", "summary")
         bundles = "bundles" if many else "bundles__parts"
         return (
@@ -164,17 +165,17 @@ class BuildViewSet(viewsets.ModelViewSet):
             b for b in builds if b.status != Build.Status.SOLD and b.total_cost > ZERO
         ]
 
-        def profit(sales):
+        def sales(builds):
             return {
-                "profit": sum((b.profit for b in sales if b.profit is not None), ZERO),
-                "sold": len(sales),
+                "profit": sum((b.profit for b in builds if b.profit is not None), ZERO),
+                "sold": len(builds),
             }
 
         return Response(
             BuildsSummarySerializer(
                 {
-                    "this_month": profit(this_month),
-                    "all_time": profit(sold),
+                    "this_month": sales(this_month),
+                    "all_time": sales(sold),
                     "tied_up": {
                         "cost": sum((b.total_cost for b in tied_up), ZERO),
                         "builds": len(tied_up),
