@@ -144,7 +144,7 @@ T32 summary API ── T33 builds list line
 T33's tests use fixtures, so it can be built before T32 is deployed, but it's only useful
 live once T32 is on Render. No migration, no new dependencies.
 
-**Checkpoint 9:** the builds summary spec's success criteria 1–4 pass on the live site.
+**Checkpoint 9 (done):** the builds summary spec's success criteria 1–4 pass on the live site.
 
 ### Phase 12: CI speedups ([docs/specs/ci-speedups.md](../docs/specs/ci-speedups.md))
 - [x] T34: Cache Playwright's Chromium, cancel superseded PR runs, job time limits
