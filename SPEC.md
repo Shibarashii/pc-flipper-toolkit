@@ -259,6 +259,7 @@ pc-flipper-toolkit/
 │       ├── money.ts       ₱ formatting
 │       ├── pages/         BuildsList.tsx, BuildDetail.tsx, Login.tsx
 │       └── components/    PartsTable.tsx, ExtraCosts.tsx, Summary.tsx, ...
+├── docs/ideas/            Idea one-pagers, and backlog.md: rough ideas and parked decisions
 ├── docs/intent/           Confirmed statements of intent (the app, e2e tests, demo account)
 ├── docs/specs/            Specs for later features built on this one (price lookup)
 ├── SPEC.md
