@@ -140,8 +140,13 @@ class BuildViewSet(OwnedViewSet):
         # don't need those parts.
         many = self.action in ("list", "summary")
         bundles = "bundles" if many else "bundles__parts"
-        # A part names its bundle by UUID, so the bundle row comes with it.
-        parts = Prefetch("parts", queryset=Part.objects.select_related("bundle"))
+        # On the detail, a part names its bundle by UUID, so the bundle row comes with
+        # it. The list and the summary don't show parts.
+        parts = (
+            "parts"
+            if many
+            else Prefetch("parts", queryset=Part.objects.select_related("bundle"))
+        )
         return (
             Build.objects.filter(owner=self.request.user)
             .annotate(number=Subquery(numbers))

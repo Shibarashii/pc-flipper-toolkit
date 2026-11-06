@@ -131,7 +131,8 @@ SPEC.md                API table and data model say UUID
   - The query count for the list and detail stays the same.
 - **Frontend:** the existing tests with string ids; `/builds/123` shows not found after the
   API's 404.
-- **E2E:** the flip and demo specs pass unchanged; they follow links rather than build URLs.
+- **E2E:** the flip spec checks a new build's address: it requires a UUID instead of digits.
+  The rest follow links rather than build URLs.
 - **Live:** after the deploy, an existing build opens at its UUID URL, and its old integer URL
   shows not found.
 
