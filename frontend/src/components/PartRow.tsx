@@ -195,50 +195,49 @@ export function PartForm({
             )}
           </div>
           <div className={ROW}>
-            <div className="flex gap-3 sm:contents">
-              <Field
-                label="Category"
-                errors={errors.category}
-                className="flex-1 sm:w-[140px] sm:flex-none"
+            <Field
+              label="Category"
+              errors={errors.category}
+              className="sm:w-[140px]"
+            >
+              <Select
+                value={form.category}
+                onChange={(e) => set("category")(e.target.value)}
+                error={!!errors.category}
+                className={form.category ? "" : "text-faint"}
               >
-                <Select
-                  value={form.category}
-                  onChange={(e) => set("category")(e.target.value)}
-                  error={!!errors.category}
-                  className={form.category ? "" : "text-faint"}
-                >
-                  <option value="" disabled>
-                    Category
+                <option value="" disabled>
+                  Category
+                </option>
+                {Object.entries(CATEGORIES).map(([value, label]) => (
+                  <option key={value} value={value} className="text-ink">
+                    {label}
                   </option>
-                  {Object.entries(CATEGORIES).map(([value, label]) => (
-                    <option key={value} value={value} className="text-ink">
-                      {label}
-                    </option>
-                  ))}
-                </Select>
-              </Field>
-              <Field
-                label="Condition"
-                errors={errors.condition}
-                className="flex-1 sm:w-[160px] sm:flex-none"
+                ))}
+              </Select>
+            </Field>
+            <Field
+              label="Condition"
+              errors={errors.condition}
+              // Full width on phones: "Used – Like New" doesn't fit half of 375px.
+              className="sm:w-[160px]"
+            >
+              <Select
+                value={form.condition}
+                onChange={(e) => set("condition")(e.target.value)}
+                error={!!errors.condition}
+                className={form.condition ? "" : "text-faint"}
               >
-                <Select
-                  value={form.condition}
-                  onChange={(e) => set("condition")(e.target.value)}
-                  error={!!errors.condition}
-                  className={form.condition ? "" : "text-faint"}
-                >
-                  <option value="" className="text-ink">
-                    Not set
+                <option value="" className="text-ink">
+                  Not set
+                </option>
+                {Object.entries(CONDITIONS).map(([value, label]) => (
+                  <option key={value} value={value} className="text-ink">
+                    {label}
                   </option>
-                  {Object.entries(CONDITIONS).map(([value, label]) => (
-                    <option key={value} value={value} className="text-ink">
-                      {label}
-                    </option>
-                  ))}
-                </Select>
-              </Field>
-            </div>
+                ))}
+              </Select>
+            </Field>
             <div className="flex gap-3 sm:contents">
               <Field
                 label="Listed price"

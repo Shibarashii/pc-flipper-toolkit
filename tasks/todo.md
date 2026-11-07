@@ -990,6 +990,8 @@ dependencies.
 - [x] After adding a part, the form's condition is back to "Not set".
 - [x] A part without a condition (or from an API that doesn't send one) looks as it does today.
 - [x] Fits 375px without horizontal scrolling, light and dark, with a long name.
+- [x] "Used – Like New" shows in full in its select at 375px (found in review: beside
+  Category it was cut to "Used – Like N"; on phones Condition now has its own line)
 
 **Verification:**
 - [x] `python manage.py test`, `ruff check . && ruff format --check .`,
