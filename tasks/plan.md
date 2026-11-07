@@ -173,6 +173,20 @@ fields must switch at the same time as the builds' ids. No new dependencies.
 
 **Checkpoint 12 (done):** the public ids spec's success criteria 1–4 pass on the live site.
 
+### Phase 15: Part condition ([docs/specs/part-condition.md](../docs/specs/part-condition.md))
+- [ ] T38: Set and see a part's condition (field, API, form, table)
+- [ ] T39: Condition in the Copy listing post, and on the demo's parts
+
+```
+T38 set and see a condition ── T39 in the post + demo
+```
+T38 is the whole path from the form to the table, so it's useful on its own. T39 only reads
+the field. One migration (one column with a database default), no new dependencies. Either
+order of deploy is safe: DRF ignores a `condition` the old API doesn't know, and the
+frontend treats a missing `condition` as blank.
+
+**Checkpoint 13:** the part condition spec's success criteria 1–4 pass on the live site.
+
 ## Risks and Mitigations
 
 | Risk | Impact | Mitigation |
@@ -201,6 +215,9 @@ fields must switch at the same time as the builds' ids. No new dependencies.
 | Old code inserts during the deploy and fails on the new column | Med | The column's database default (`gen_random_uuid()`) fills it; a test inserts without it (T37) |
 | An integer id slips through somewhere (a nested field, a docs example) | Med (the point of the change) | A test walks every response of all four resources and fails on any integer `id`, `build` or `bundle` (T37) |
 | New frontend and old API (or the reverse) disagree mid-deploy | Med | T36 ships first and works with integer ids; it never checks an id's format (T36) |
+| Old code inserts during the deploy and fails on `condition` | Med | The column has a database default (`''`); a test inserts without it (T38) |
+| The condition label crowds a long name on a phone | Low | It wraps with the name, no new column; checked at 375px (T38) |
+| Condition changes the post for builds that have none | Med (posts people already copy) | A test: a build without conditions gives exactly today's post (T39) |
 
 ## Open Questions
 
