@@ -37,22 +37,23 @@ def delete_expired_demos() -> None:
     ).delete()
 
 
-# (name, category, shop, listed price, bought for); None = not known, inside a bundle.
+# (name, category, shop, listed price, bought for, condition); None = not known, inside a
+# bundle. Bought from shops: new; from Facebook Marketplace: used.
 IN_PROGRESS_PARTS = [
-    ("Intel Core i5-12400F", "cpu", "Shopee", "7000", "6200"),
-    ("RTX 3060 12GB", "gpu", "Facebook Marketplace", "15000", "13500"),
-    ("16GB DDR4 3200 (2×8GB)", "ram", "Lazada", "2000", "1600"),
+    ("Intel Core i5-12400F", "cpu", "Shopee", "7000", "6200", "new"),
+    ("RTX 3060 12GB", "gpu", "Facebook Marketplace", "15000", "13500", "like_new"),
+    ("16GB DDR4 3200 (2×8GB)", "ram", "Lazada", "2000", "1600", "new"),
 ]
 BUNDLE_PARTS = [
-    ("Ryzen 5 5600", "cpu", "", "6500", None),
-    ("MSI B550M Pro-VDH", "motherboard", "", "5500", "4000"),
-    ("16GB DDR4 3200", "ram", "", "2200", None),
+    ("Ryzen 5 5600", "cpu", "", "6500", None, "good"),
+    ("MSI B550M Pro-VDH", "motherboard", "", "5500", "4000", "good"),
+    ("16GB DDR4 3200", "ram", "", "2200", None, "good"),
 ]
 SOLD_PARTS = [
-    ("RX 6600 8GB", "gpu", "Shopee", "13000", "11000"),
-    ("1TB NVMe SSD", "storage", "Lazada", "3200", "2600"),
-    ("650W 80+ Bronze", "psu", "PC Express", "3000", "2400"),
-    ("Tecware Nexus Air", "case", "PC Express", "2500", "1800"),
+    ("RX 6600 8GB", "gpu", "Shopee", "13000", "11000", "new"),
+    ("1TB NVMe SSD", "storage", "Lazada", "3200", "2600", "new"),
+    ("650W 80+ Bronze", "psu", "PC Express", "3000", "2400", "new"),
+    ("Tecware Nexus Air", "case", "PC Express", "2500", "1800", "new"),
 ]
 
 
@@ -66,8 +67,9 @@ def add_parts(build: Build, parts, bundle: Bundle | None = None) -> None:
             shop=s,
             listed_price=D(lp),
             bought_for=None if bf is None else D(bf),
+            condition=cond,
         )
-        for n, c, s, lp, bf in parts
+        for n, c, s, lp, bf, cond in parts
     )
 
 

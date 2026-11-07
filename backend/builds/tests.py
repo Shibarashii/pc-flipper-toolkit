@@ -1137,6 +1137,16 @@ class DemoTests(APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION=f"Token {res.json()['token']}")
         return res.json()["username"]
 
+    def test_a_demo_shows_part_conditions_new_and_used(self):
+        self.demo()
+        conditions = {p.name: p.condition for p in Part.objects.all()}
+        # Bought from shops: new. The bundle and the 3060 from Facebook Marketplace: used.
+        self.assertEqual(conditions["Intel Core i5-12400F"], "new")
+        self.assertEqual(conditions["RTX 3060 12GB"], "like_new")
+        self.assertEqual(conditions["Ryzen 5 5600"], "good")
+        self.assertEqual(conditions["RX 6600 8GB"], "new")
+        self.assertTrue({"new", "like_new", "good"} <= set(conditions.values()))
+
     def test_a_demo_has_a_sold_flip_and_one_in_progress(self):
         self.assertTrue(self.demo().startswith("demo-"))
 

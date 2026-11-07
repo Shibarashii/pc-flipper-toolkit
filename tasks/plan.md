@@ -175,7 +175,7 @@ fields must switch at the same time as the builds' ids. No new dependencies.
 
 ### Phase 15: Part condition ([docs/specs/part-condition.md](../docs/specs/part-condition.md))
 - [x] T38: Set and see a part's condition (field, API, form, table)
-- [ ] T39: Condition in the Copy listing post, and on the demo's parts
+- [x] T39: Condition in the Copy listing post, and on the demo's parts
 
 ```
 T38 set and see a condition ── T39 in the post + demo

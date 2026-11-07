@@ -1007,7 +1007,7 @@ dependencies.
 **Files:** `backend/builds/models.py`, a new `backend/builds/migrations/0008_*.py`, `backend/builds/serializers.py`, `backend/builds/tests.py`, `frontend/src/api.ts`, `frontend/src/components/PartRow.tsx`, `frontend/src/components/PartsTable.test.tsx`, `frontend/src/test/fixtures.ts`, `frontend/e2e/flip.spec.ts`, `SPEC.md`
 **Scope:** M
 
-### - [ ] T39: Condition in the Copy listing post, and on the demo's parts
+### - [x] T39: Condition in the Copy listing post, and on the demo's parts
 
 **Description:**
 - `listingText` writes each part as `name` or `name (label)` with Facebook's full label,
@@ -1017,17 +1017,18 @@ dependencies.
   used, the parts from shops are new.
 
 **Acceptance criteria:**
-- [ ] `GPU: RX 6600 8GB (Used – Like New)`; no brackets for a part without a condition.
-- [ ] Two "8GB DDR4" with the same condition give `2× 8GB DDR4 (New)`; with different ones,
+- [x] `GPU: RX 6600 8GB (Used – Like New)`; no brackets for a part without a condition.
+- [x] Two "8GB DDR4" with the same condition give `2× 8GB DDR4 (New)`; with different ones,
   `8GB DDR4 (New) + 8GB DDR4 (Used – Good)`.
-- [ ] A build without conditions gives exactly today's post (the spec's example).
-- [ ] A new demo's builds have both new and used parts.
+- [x] A build without conditions gives exactly today's post (the spec's example).
+- [x] A new demo's builds have both new and used parts.
 
 **Verification:**
-- [ ] Vitest: `listing.test.ts` for each rule above
-- [ ] The demo test checks the conditions; `python manage.py test`
-- [ ] `npm test`, `npm run lint`, `npx tsc -b`
-- [ ] Manual: a local demo's sold build copies a post with conditions
+- [x] Vitest: `listing.test.ts` for each rule above
+- [x] The demo test checks the conditions; `python manage.py test`
+- [x] `npm test`, `npm run lint`, `npx tsc -b`
+- [x] Manual: a local demo's sold build copies a post with conditions (the bundle's three
+  parts "(Used – Good)", the other four "(New)")
 
 **Dependencies:** T38
 **Files:** `frontend/src/listing.ts`, `frontend/src/listing.test.ts`, `backend/builds/demo.py`, `backend/builds/tests.py`, `docs/specs/copy-listing.md` (its condition line points to the new spec)
