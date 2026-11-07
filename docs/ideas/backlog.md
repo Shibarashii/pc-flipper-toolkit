@@ -27,10 +27,15 @@ Parts bought but not in a build yet, like a GPU bought cheap for a future flip. 
 it's a new kind of record, so it leans toward bloat. Not clear yet how it should work. To
 brainstorm.
 
-### A part's condition (added 2026-11-04)
+### A part's condition (specced 2026-11-07)
 
-Mark each part as something like "brand new", "barely used" or "2nd-hand". Not sure yet what
-to call it ("condition"?) or which values it should have. To brainstorm.
+Moved to [docs/specs/part-condition.md](../specs/part-condition.md).
+
+### A build's condition (added 2026-11-07)
+
+One condition for the whole build, for the Facebook listing's own Condition field. Likely
+worked out from its parts: a build is only as new as its oldest part. Not "refurbished",
+which means repaired or restored and tested. Waits for part condition.
 
 ## Parked
 

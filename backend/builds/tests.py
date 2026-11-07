@@ -484,6 +484,57 @@ class DetailApiTests(LoggedInApiTestCase):
         self.assertEqual(ExtraCost.objects.count(), 0)
 
 
+class ConditionTests(LoggedInApiTestCase):
+    """A part's optional condition (docs/specs/part-condition.md)."""
+
+    def setUp(self):
+        super().setUp()
+        self.build = new_build(name="B")
+
+    def create(self, **fields):
+        body = {
+            "build": self.build.public_id,
+            "name": "RX 6600",
+            "category": "gpu",
+            "listed_price": "13000.00",
+            "bought_for": "11000.00",
+            **fields,
+        }
+        return self.client.post("/api/parts/", body, format="json")
+
+    def test_it_is_blank_unless_given(self):
+        res = self.create()
+        self.assertEqual(res.status_code, 201)
+        self.assertEqual(res.json()["condition"], "")
+
+    def test_each_value_saves_and_blank_clears_it(self):
+        part_id = self.create(condition="new").json()["id"]
+        for value in ["like_new", "good", "fair", ""]:
+            res = self.client.patch(
+                f"/api/parts/{part_id}/", {"condition": value}, format="json"
+            )
+            self.assertEqual(res.status_code, 200, res.content)
+            self.assertEqual(res.json()["condition"], value)
+            self.assertEqual(Part.objects.get().condition, value)
+
+    def test_an_unknown_value_is_400_on_condition(self):
+        for bad in ["used", "New", None]:
+            res = self.create(condition=bad)
+            self.assertEqual(res.status_code, 400, bad)
+            self.assertIn("condition", res.json())
+
+    def test_an_insert_that_leaves_it_out_gets_blank(self):
+        # Old code during a deploy doesn't know the column: Postgres fills it in.
+        with connection.cursor() as cursor:
+            cursor.execute(
+                "INSERT INTO builds_part (build_id, name, category, shop, listed_price,"
+                " bought_for) VALUES (%s, 'Old code', 'cpu', '', 1, 1)"
+                " RETURNING condition",
+                [self.build.pk],
+            )
+            self.assertEqual(cursor.fetchone()[0], "")
+
+
 class ChildApiTests(LoggedInApiTestCase):
     def setUp(self):
         super().setUp()
@@ -1085,6 +1136,16 @@ class DemoTests(APITestCase):
         self.assertEqual(res.status_code, 201)
         self.client.credentials(HTTP_AUTHORIZATION=f"Token {res.json()['token']}")
         return res.json()["username"]
+
+    def test_a_demo_shows_part_conditions_new_and_used(self):
+        self.demo()
+        conditions = {p.name: p.condition for p in Part.objects.all()}
+        # Bought from shops: new. The bundle and the 3060 from Facebook Marketplace: used.
+        self.assertEqual(conditions["Intel Core i5-12400F"], "new")
+        self.assertEqual(conditions["RTX 3060 12GB"], "like_new")
+        self.assertEqual(conditions["Ryzen 5 5600"], "good")
+        self.assertEqual(conditions["RX 6600 8GB"], "new")
+        self.assertTrue({"new", "like_new", "good"} <= set(conditions.values()))
 
     def test_a_demo_has_a_sold_flip_and_one_in_progress(self):
         self.assertTrue(self.demo().startswith("demo-"))

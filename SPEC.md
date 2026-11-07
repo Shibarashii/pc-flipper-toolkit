@@ -76,6 +76,7 @@ Part             (belongs to Build, deleted with it)
   name            text            e.g. "Ryzen 5 7600"
   category        cpu | gpu | motherboard | ram | storage | psu | case | cooler | other
   shop            text, blank     e.g. "Shopee - DynaQuest"
+  condition       new | like_new | good | fair, blank   (Facebook's labels; blank = not set)
   listed_price    decimal(10,2)   market price
   bought_for      decimal(10,2)   actual price paid; nullable only when the part is in a bundle
   bundle          Bundle, nullable   deleted with it; same build as the part
@@ -195,6 +196,8 @@ another user's build (400). A part, bundle or cost can't be moved to another bui
      - Computed in the frontend from the parts list. No data-model or API change.
    - Summary panel with all the totals from user story 5.
    - Parts table: add, edit and delete rows inline. The pencil turns a row into inputs with Save/Cancel (Enter saves, Esc cancels). The add row looks the same. On mobile it becomes stacked cards.
+     - A part's condition, when set, shows short and muted after its name ("Like new"); the
+       form sets it from a select ([part condition spec](docs/specs/part-condition.md)).
    - Bundles, inside the parts table: a bundle row (name, shop, listed total, its one bought-for
      price) with its parts indented under it. A bundled part's bought-for shows the typed amount
      or "—". When typed amounts don't cover the price, the bundle shows "₱X not assigned".

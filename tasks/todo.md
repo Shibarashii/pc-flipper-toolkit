@@ -962,3 +962,82 @@ as strings, so this works with today's integer API and with UUIDs.
   lists carried no integer ids. No 5xx in the browser session; Render's own deploy log
   wasn't checked.)
 - [x] All tests pass on `main` (CI on `c76675f`)
+
+## Phase 15: Part condition
+
+Spec: [docs/specs/part-condition.md](../docs/specs/part-condition.md). One migration, no new
+dependencies.
+
+### - [x] T38: Set and see a part's condition (field, API, form, table)
+
+**Description:**
+- `Part.Condition` (`new`, `like_new`, `good`, `fair`, with Facebook's labels) and
+  `Part.condition`, a `CharField` with `blank=True, db_default=""`; migration `0008` adds the
+  column with `DEFAULT ''`.
+- `condition` in `PartSerializer`, optional, with help text listing the values.
+- `CONDITIONS` and `PartCondition` in `api.ts`; `Part.condition: PartCondition | ""`.
+- `PartForm`: a Condition select after Category ("Not set", then the four labels); it's sent
+  on save and cleared after adding, like the other fields.
+- `PartItem`: the short label ("New", "Like new", "Good", "Fair") muted, right after the
+  name, on the phone card and the desktop row. Nothing when blank or missing.
+
+**Acceptance criteria:**
+- [x] Create without `condition` gives `""`; each value saves on create and `PATCH`; `""`
+  clears it; an unknown value is a 400 on `condition`.
+- [x] A raw insert that leaves out `condition` gets `""`.
+- [x] Picking a condition and saving shows its short label after the part's name; editing
+  shows the saved condition; "Not set" clears it.
+- [x] After adding a part, the form's condition is back to "Not set".
+- [x] A part without a condition (or from an API that doesn't send one) looks as it does today.
+- [x] Fits 375px without horizontal scrolling, light and dark, with a long name.
+- [x] "Used – Like New" shows in full in its select at 375px (found in review: beside
+  Category it was cut to "Used – Like N"; on phones Condition now has its own line)
+
+**Verification:**
+- [x] `python manage.py test`, `ruff check . && ruff format --check .`,
+  `python manage.py makemigrations --check`, `python manage.py spectacular --validate --fail-on-warn`
+- [x] `npm test`, `npm run lint`, `npx tsc -b`
+- [x] e2e: the flip spec picks a condition for one part and sees its label (locally 14/14;
+  CI runs on the PR)
+- [x] `migrate` then `migrate builds 0007` then `migrate` on local data: all 357 existing
+  parts are `""`, and it reverses cleanly
+- [x] Screenshots: the form and the table, desktop and 375px, light and dark, with a long
+  name (on a 1280px desktop the extra select moves Cancel/Save onto their own line, as the
+  row already wraps)
+
+**Dependencies:** None
+**Files:** `backend/builds/models.py`, a new `backend/builds/migrations/0008_*.py`, `backend/builds/serializers.py`, `backend/builds/tests.py`, `frontend/src/api.ts`, `frontend/src/components/PartRow.tsx`, `frontend/src/components/PartsTable.test.tsx`, `frontend/src/test/fixtures.ts`, `frontend/e2e/flip.spec.ts`, `SPEC.md`
+**Scope:** M
+
+### - [x] T39: Condition in the Copy listing post, and on the demo's parts
+
+**Description:**
+- `listingText` writes each part as `name` or `name (label)` with Facebook's full label,
+  then groups those strings as it does now, so repeated parts group only when name and
+  condition match.
+- The demo's sample parts get conditions: the bundle's parts from Facebook Marketplace are
+  used, the parts from shops are new.
+
+**Acceptance criteria:**
+- [x] `GPU: RX 6600 8GB (Used – Like New)`; no brackets for a part without a condition.
+- [x] Two "8GB DDR4" with the same condition give `2× 8GB DDR4 (New)`; with different ones,
+  `8GB DDR4 (New) + 8GB DDR4 (Used – Good)`.
+- [x] A build without conditions gives exactly today's post (the spec's example).
+- [x] A new demo's builds have both new and used parts.
+
+**Verification:**
+- [x] Vitest: `listing.test.ts` for each rule above
+- [x] The demo test checks the conditions; `python manage.py test`
+- [x] `npm test`, `npm run lint`, `npx tsc -b`
+- [x] Manual: a local demo's sold build copies a post with conditions (the bundle's three
+  parts "(Used – Good)", the other four "(New)")
+
+**Dependencies:** T38
+**Files:** `frontend/src/listing.ts`, `frontend/src/listing.test.ts`, `backend/builds/demo.py`, `backend/builds/tests.py`, `docs/specs/copy-listing.md` (its condition line points to the new spec)
+**Scope:** S
+
+### Checkpoint 13: Part condition
+- [ ] The spec's success criteria 1–4 pass on the live site: a condition set, changed and
+  cleared on a demo part shows in the table and the post; parts from before the deploy are
+  blank and their posts unchanged; no request failed during the deploy
+- [ ] All tests pass on `main`

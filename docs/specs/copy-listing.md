@@ -16,7 +16,8 @@ then copy it in one click and paste it into Marketplace.
 
 ### The post
 
-Plain text, built from what the app already knows. For the demo's sold build:
+Plain text, built from what the app already knows. For the demo's sold build, before parts
+had a condition:
 
 ```
 Ryzen 5 5600 + RX 6600
@@ -39,6 +40,8 @@ Price: ₱32,000
   - Several parts in one slot share its line. The same name twice becomes `2× name`; different
     names are joined with ` + `, e.g. `Storage: 1TB NVMe SSD + 2TB HDD`.
   - Parts in a bundle are listed like any other part; the bundle itself isn't mentioned.
+  - A part's condition, when set, follows its name in brackets: `RX 6600 8GB (Used – Like
+    New)`. Added later by [part condition](part-condition.md).
 - **Price:** after a blank line, `Price: ₱32,000`. Whole pesos have no centavos (₱32,000);
   otherwise they're shown (₱32,000.50). With no selling price, the price line and its blank
   line are left out.
@@ -58,7 +61,7 @@ Price: ₱32,000
 
 ### Out of scope (this version)
 
-- Each part's condition (waits for that backlog idea), tracking the sale, photos, posting to
+- Tracking the sale, photos, posting to
   Facebook directly, other marketplaces' formats, emojis.
 - Saving edits, templates, or a default pitch line.
 - Any API or data model change. The post is made from the build the page has already loaded.
@@ -132,7 +135,7 @@ frontend/src/
 
 - **Always:** make the post only from data the page has; leave out anything about what was
   paid, the profit, shops and notes.
-- **Ask first:** saving edits or templates; adding condition, photos, or other marketplaces;
+- **Ask first:** saving edits or templates; adding photos or other marketplaces;
   any API change.
 - **Never:** put costs, profit, shops or notes in the post; post to Facebook on the user's
   behalf.

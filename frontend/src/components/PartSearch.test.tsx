@@ -51,6 +51,7 @@ const PART: Part = {
   name: "RTX 3060",
   category: "gpu",
   shop: "Facebook Marketplace",
+  condition: "",
   listed_price: "15000.00",
   bought_for: "13500.00",
   bundle: null,

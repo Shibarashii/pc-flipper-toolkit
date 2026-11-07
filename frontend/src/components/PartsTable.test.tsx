@@ -84,11 +84,50 @@ test("adding a part posts it (without ₱ or separators) and refreshes", async (
     name: "Ryzen 5 7600",
     shop: "",
     category: "cpu",
+    condition: "",
     listed_price: "12500",
     bought_for: "10500.50",
     bundle: null,
   });
   expect((screen.getByLabelText("Part") as HTMLInputElement).value).toBe("");
+});
+
+test("a picked condition is sent, then cleared for the next part", async () => {
+  const fetchMock = vi
+    .fn()
+    .mockResolvedValue(Response.json({ id: "1" }, { status: 201 }));
+  vi.stubGlobal("fetch", fetchMock);
+  render(
+    <PartsTable
+      buildId="3"
+      parts={[]}
+      totals={EMPTY_TOTALS}
+      onChanged={() => {}}
+    />,
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Add part" }));
+  const condition = screen.getByLabelText("Condition") as HTMLSelectElement;
+  expect(condition.value).toBe("");
+  expect([...condition.options].map((o) => o.text)).toEqual([
+    "Not set",
+    "New",
+    "Used – Like New",
+    "Used – Good",
+    "Used – Fair",
+  ]);
+  const type = (label: string, value: string) =>
+    fireEvent.change(screen.getByLabelText(label), { target: { value } });
+  type("Part", "RX 6600 8GB");
+  type("Category", "gpu");
+  type("Condition", "like_new");
+  type("Listed price", "13000");
+  type("Bought for", "11000");
+  fireEvent.submit(screen.getByRole("form", { name: "New part" }));
+
+  await waitFor(() => expect(condition.value).toBe(""));
+  expect(JSON.parse(fetchMock.mock.calls[0][1].body).condition).toBe(
+    "like_new",
+  );
 });
 
 test("a server validation error is shown on its field", async () => {
@@ -129,6 +168,7 @@ const PARTS: Part[] = [
     name: "Ryzen 5 7600",
     category: "cpu",
     shop: "Shopee",
+    condition: "like_new",
     listed_price: "12500.00",
     bought_for: "10500.00",
     bundle: null,
@@ -139,6 +179,7 @@ const PARTS: Part[] = [
     name: "RX 7600",
     category: "gpu",
     shop: "",
+    condition: "",
     listed_price: "16500.00",
     bought_for: "14200.00",
     bundle: null,
@@ -171,6 +212,9 @@ test("editing a part patches it (prefilled, cleaned) and refreshes", async () =>
   expect(
     (screen.getByLabelText("Listed price") as HTMLInputElement).value,
   ).toBe("₱12,500.00");
+  expect((screen.getByLabelText("Condition") as HTMLSelectElement).value).toBe(
+    "like_new",
+  );
   fireEvent.change(screen.getByLabelText("Bought for"), {
     target: { value: "₱9,800" },
   });
@@ -184,11 +228,58 @@ test("editing a part patches it (prefilled, cleaned) and refreshes", async () =>
     name: "Ryzen 5 7600",
     shop: "Shopee",
     category: "cpu",
+    condition: "like_new",
     listed_price: "12500.00",
     bought_for: "9800",
     bundle: null,
   });
   expect(screen.queryByRole("form")).toBeNull();
+});
+
+test("Not set clears a part's condition", async () => {
+  const { fetchMock, onChanged } = renderParts(Response.json({ id: "7" }));
+
+  clickAction("Edit Ryzen 5 7600");
+  fireEvent.change(screen.getByLabelText("Condition"), {
+    target: { value: "" },
+  });
+  fireEvent.submit(screen.getByRole("form", { name: "Edit Ryzen 5 7600" }));
+
+  await waitFor(() => expect(onChanged).toHaveBeenCalled());
+  expect(JSON.parse(fetchMock.mock.calls[0][1].body).condition).toBe("");
+});
+
+test("a part's condition shows, short, after its name; a blank one shows nothing", () => {
+  renderParts(Response.json({}));
+
+  // A phone card and a desktop row each.
+  const tags = screen.getAllByText("Like new");
+  expect(tags).toHaveLength(2);
+  for (const tag of tags)
+    expect(tag.parentElement?.textContent).toBe("Ryzen 5 7600Like new");
+  for (const name of screen.getAllByText("RX 7600"))
+    expect(name.textContent).toBe("RX 7600");
+});
+
+test("a part from an API that doesn't send a condition shows and edits as blank", () => {
+  const old: Partial<Part> = { ...PARTS[1] };
+  delete old.condition;
+  vi.stubGlobal("fetch", vi.fn());
+  render(
+    <PartsTable
+      buildId="3"
+      parts={[old as Part]}
+      totals={EMPTY_TOTALS}
+      onChanged={() => {}}
+    />,
+  );
+
+  for (const name of screen.getAllByText("RX 7600"))
+    expect(name.textContent).toBe("RX 7600");
+  clickAction("Edit RX 7600");
+  expect((screen.getByLabelText("Condition") as HTMLSelectElement).value).toBe(
+    "",
+  );
 });
 
 test("Esc discards the edit and shows the saved values", () => {

@@ -14,6 +14,7 @@ const part = (
   name,
   category,
   shop: "",
+  condition: "",
   listed_price: "0.00",
   bought_for: null,
   bundle: null,
@@ -162,4 +163,49 @@ test("never shows what was paid, listed prices, shops, extra costs, profit, stat
     "listed",
   ])
     expect(text).not.toContain(secret);
+});
+
+test("a part's condition follows its name in brackets, with Facebook's label", () => {
+  const build = makeBuild({
+    name: "Mixed",
+    parts: [
+      part("cpu", "Ryzen 5 5600", { condition: "new" }),
+      part("gpu", "RX 6600 8GB", { condition: "like_new" }),
+      part("psu", "650W 80+ Bronze", { condition: "good" }),
+      part("case", "Old case", { condition: "fair" }),
+      part("storage", "1TB NVMe SSD"),
+    ],
+  });
+
+  expect(listingText(build)).toBe(
+    `Mixed
+
+CPU: Ryzen 5 5600 (New)
+Storage: 1TB NVMe SSD
+GPU: RX 6600 8GB (Used – Like New)
+PSU: 650W 80+ Bronze (Used – Good)
+Case: Old case (Used – Fair)`,
+  );
+});
+
+test("the same name groups as 2× only with the same condition", () => {
+  const build = makeBuild({
+    name: "RAM",
+    parts: [
+      part("ram", "8GB DDR4", { condition: "new" }),
+      part("ram", "8GB DDR4", { condition: "new" }),
+      part("storage", "8GB DDR4", { condition: "new" }),
+      part("storage", "8GB DDR4", { condition: "good" }),
+      part("other", "Fan"),
+      part("other", "Fan", { condition: "new" }),
+    ],
+  });
+
+  expect(listingText(build)).toBe(
+    `RAM
+
+RAM: 2× 8GB DDR4 (New)
+Storage: 8GB DDR4 (New) + 8GB DDR4 (Used – Good)
+Other: Fan + Fan (New)`,
+  );
 });
