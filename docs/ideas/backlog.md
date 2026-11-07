@@ -37,6 +37,13 @@ One condition for the whole build, for the Facebook listing's own Condition fiel
 worked out from its parts: a build is only as new as its oldest part. Not "refurbished",
 which means repaired or restored and tested. Waits for part condition.
 
+### Copy listing right after saving a part (added 2026-11-07)
+
+Found during Checkpoint 13: opening Copy listing within a moment of saving a part can show
+the part as it was, because the page refetches the build after the save returns. A real tap
+is usually slower than the refetch. Fix if it's ever seen: build the post from the saved
+part, like the header's price already does.
+
 ## Parked
 
 - **Rename "Listed price" to "Market price"** (2026-10-29). Open question: the UI label only,

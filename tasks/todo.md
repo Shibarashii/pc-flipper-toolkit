@@ -1037,7 +1037,12 @@ dependencies.
 **Scope:** S
 
 ### Checkpoint 13: Part condition
-- [ ] The spec's success criteria 1–4 pass on the live site: a condition set, changed and
+- [x] The spec's success criteria 1–4 pass on the live site: a condition set, changed and
   cleared on a demo part shows in the table and the post; parts from before the deploy are
   blank and their posts unchanged; no request failed during the deploy
-- [ ] All tests pass on `main`
+  (2026-11-07: on a fresh demo at 375px, "Used – Fair", then "Used – Like New", then "Not set"
+  on the RX 6600 saved as `fair`, `like_new` and `""`, and the table followed; the post read
+  `GPU: RX 6600 8GB (Used – Like New)`; with every condition cleared it was exactly the post
+  from before conditions. No sideways scrolling, no 5xx. The author's own parts from before
+  the deploy show no labels. Render's deploy log wasn't checked.)
+- [x] All tests pass on `main` (CI on the PR's head `443562d`, squashed as `ab36257`)
