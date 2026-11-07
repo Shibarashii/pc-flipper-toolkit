@@ -6,7 +6,7 @@ type Theme = "light" | "dark";
 // The saved choice (set in index.html before first paint), else the device's setting.
 // ponytail: reads the device setting once; changing it while a page is open (with no
 // saved choice) recolours the page but leaves this icon stale until reload.
-function currentTheme(): Theme {
+export function currentTheme(): Theme {
   const saved = document.documentElement.dataset.theme;
   if (saved === "light" || saved === "dark") return saved;
   return window.matchMedia("(prefers-color-scheme: dark)").matches

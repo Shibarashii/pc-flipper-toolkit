@@ -11,6 +11,7 @@ beforeEach(() => endSession());
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
+  vi.unstubAllEnvs();
 });
 
 /** Each call to fetch gets the next response (the last one repeats). The builds list's
@@ -308,4 +309,82 @@ test("a failed demo shows the same messages as log-in", async () => {
   expect((await screen.findByRole("alert")).textContent).toBe(
     "Too many attempts. Wait a minute and try again.",
   );
+});
+
+/** Google's script, as far as the app uses it: its button hands back an ID token. */
+function stubGoogle() {
+  let callback: (response: { credential: string }) => void = () => {};
+  const id = {
+    initialize: vi.fn((options: { callback: typeof callback }) => {
+      callback = options.callback;
+    }),
+    renderButton: vi.fn((parent: HTMLElement) => {
+      const button = document.createElement("button");
+      button.textContent = "Sign in with Google";
+      button.onclick = () => callback({ credential: "google-id-token" });
+      parent.append(button);
+    }),
+  };
+  vi.stubGlobal("google", { accounts: { id } });
+  return id;
+}
+
+test("without a Google client id there's no Google button", () => {
+  vi.stubEnv("VITE_GOOGLE_CLIENT_ID", "");
+  const google = stubGoogle();
+  renderAt("/login");
+
+  expect(screen.getByRole("button", { name: "Try the demo" })).toBeTruthy();
+  expect(google.renderButton).not.toHaveBeenCalled();
+  expect(
+    document.querySelector('script[src*="accounts.google.com"]'),
+  ).toBeNull();
+});
+
+test("Sign in with Google sends Google's token and logs in", async () => {
+  vi.stubEnv("VITE_GOOGLE_CLIENT_ID", "client.apps.googleusercontent.com");
+  const google = stubGoogle();
+  const fetchMock = stubFetch(
+    () => Response.json({ token: "g1", username: "carol" }, { status: 201 }),
+    () => Response.json([]),
+  );
+  renderAt("/signup");
+
+  fireEvent.click(
+    await screen.findByRole("button", { name: "Sign in with Google" }),
+  );
+
+  expect(await screen.findByRole("heading", { name: "Builds" })).toBeTruthy();
+  expect(google.initialize).toHaveBeenCalledWith(
+    expect.objectContaining({ client_id: "client.apps.googleusercontent.com" }),
+  );
+  expect(google.renderButton).toHaveBeenCalledWith(
+    expect.anything(),
+    expect.objectContaining({ locale: "en" }),
+  );
+  const { url, body } = requestTo(fetchMock, 0);
+  expect(url).toBe("/api/auth/google/");
+  expect(JSON.parse(body as string)).toEqual({ credential: "google-id-token" });
+  expect(getToken()).toBe("g1");
+});
+
+test("a refused Google sign-in shows the server's message", async () => {
+  vi.stubEnv("VITE_GOOGLE_CLIENT_ID", "client.apps.googleusercontent.com");
+  stubGoogle();
+  stubFetch(() =>
+    Response.json(
+      { credential: ["Google sign-in didn't work. Try again."] },
+      { status: 400 },
+    ),
+  );
+  renderAt("/login");
+
+  fireEvent.click(
+    await screen.findByRole("button", { name: "Sign in with Google" }),
+  );
+
+  expect((await screen.findByRole("alert")).textContent).toBe(
+    "Google sign-in didn't work. Try again.",
+  );
+  expect(getToken()).toBe("");
 });

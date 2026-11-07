@@ -58,6 +58,11 @@ npm run dev
 
 Open http://localhost:5173 and sign up.
 
+**Sign in with Google** is optional locally. Without a client id, there's no Google button.
+To try it, make an OAuth client as in [the spec's setup](docs/specs/google-sign-in.md#setup-outside-the-code-the-author-does-these)
+and put its id in `backend/.env` (`GOOGLE_CLIENT_ID`) and `frontend/.env`
+(`VITE_GOOGLE_CLIENT_ID`).
+
 ## Tests
 
 ```sh

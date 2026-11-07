@@ -148,9 +148,9 @@ class GoogleAccount(models.Model):
   - `frame-src https://accounts.google.com/gsi/`
   - `connect-src https://accounts.google.com/gsi/`
   - `style-src https://accounts.google.com/gsi/style`
-- **To verify while building:** GIS checks the page's origin, so it may need
-  `Referrer-Policy: strict-origin-when-cross-origin` (the browser default) instead of today's
-  `same-origin`. Change it only if Google's docs or a real test require it.
+- **Referrer-Policy:** `strict-origin-when-cross-origin` (the browser default) instead of
+  `same-origin`, as Google's setup guide recommends for loading its script. Other sites
+  still see only our origin, never a page's path (decided 2026-11-07 while building).
 
 ## Setup outside the code (the author does these)
 
@@ -161,8 +161,8 @@ class GoogleAccount(models.Model):
    - Publish it so any Google account can sign in, not only test users.
 2. **OAuth client:** Web application. Authorized JavaScript origins:
    - `https://pc-flipper-toolkit.vercel.app`
-   - `http://localhost:5173`
-   - `http://localhost:5199`
+   - `http://localhost`, `http://localhost:5173` and `http://localhost:5199` (Google asks for
+     plain `http://localhost` as well as each port)
 
    No redirect URIs; the pop-up flow doesn't use them.
 3. **Client id in the environments:**

@@ -168,6 +168,13 @@ export const logIn = (credentials: Credentials) =>
     body: JSON.stringify(credentials),
   });
 
+/** Signs in with the ID token from Google's button; the first time makes the account. */
+export const googleSignIn = (credential: string) =>
+  request<Session>("/auth/google/", {
+    method: "POST",
+    body: JSON.stringify({ credential }),
+  });
+
 /** A throwaway account with two sample builds, deleted after 24 hours. */
 export const tryDemo = () =>
   request<Session>("/auth/demo/", { method: "POST" });

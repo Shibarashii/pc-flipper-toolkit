@@ -1,5 +1,6 @@
 """Sign up, log in, log out, and who's logged in. Everything else needs the token."""
 
+from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
@@ -12,9 +13,11 @@ from rest_framework.response import Response
 from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 
+from . import google
 from .authentication import expired
 from .demo import PREFIX as DEMO_PREFIX
 from .demo import create_demo_user
+from .models import GoogleAccount
 
 User = get_user_model()
 
@@ -131,6 +134,60 @@ class LoginView(PublicAuthView):
                 {"non_field_errors": ["Wrong username or password."]}
             )
         return token_response(user)
+
+
+class GoogleCredentialSerializer(serializers.Serializer):
+    credential = serializers.CharField(
+        write_only=True,
+        help_text="The ID token Google's sign-in button gives the page.",
+    )
+
+
+def google_account(request) -> tuple[str, str]:
+    """The `sub` and email of the Google account in the request's credential, checked."""
+    if not settings.GOOGLE_CLIENT_ID:
+        raise serializers.ValidationError(
+            {"credential": ["Google sign-in isn't set up."]}
+        )
+    serializer = GoogleCredentialSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    try:
+        return google.verify(serializer.validated_data["credential"])
+    except google.InvalidToken:
+        raise serializers.ValidationError({"credential": [GOOGLE_FAILED]})
+
+
+GOOGLE_FAILED = "Google sign-in didn't work. Try again."
+
+
+class GoogleView(PublicAuthView):
+    @extend_schema(
+        summary="Sign in with Google",
+        description="Checks the ID token from Google's sign-in button. A Google account "
+        "connected to a user logs that user in (200); a new one creates an account named "
+        "after its email, with no password, and logs it in (201). A bad token is a 400 on "
+        "`credential`. Shares the sign-up/log-in rate limit.",
+        request=GoogleCredentialSerializer,
+        responses={200: TokenSerializer, 201: TokenSerializer},
+        tags=["auth"],
+    )
+    def post(self, request):
+        sub, email = google_account(request)
+        # A few tries: two first sign-ins at once can race for the same sub or username.
+        for _ in range(3):
+            account = (
+                GoogleAccount.objects.select_related("user").filter(sub=sub).first()
+            )
+            if account:
+                return token_response(account.user)
+            try:
+                with transaction.atomic():
+                    user = User.objects.create_user(google.username_for(email))
+                    GoogleAccount.objects.create(user=user, sub=sub, email=email)
+            except IntegrityError:
+                continue
+            return token_response(user, status.HTTP_201_CREATED)
+        raise serializers.ValidationError({"credential": [GOOGLE_FAILED]})
 
 
 class DemoView(PublicAuthView):

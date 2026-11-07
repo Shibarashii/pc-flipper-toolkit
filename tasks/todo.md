@@ -1072,28 +1072,33 @@ dependency (`google-auth`, approved 2026-11-07).
   - `vercel.json`'s CSP gets Google's GIS origins; `.env.example` gets the id.
 
 **Acceptance criteria:**
-- [ ] A new Google account gets an account named from its email, and signing in again opens
+- [x] A new Google account gets an account named from its email, and signing in again opens
   the same one.
-- [ ] Usernames: taken names are numbered, case-insensitively; symbols are dropped; a
+- [x] Usernames: taken names are numbered, case-insensitively; symbols are dropped; a
   `demo-` start becomes `user-demo-…`; an empty name becomes `user`.
-- [ ] A bad, expired or wrong-audience token is a 400 on `credential` and creates nothing;
+- [x] A bad, expired or wrong-audience token is a 400 on `credential` and creates nothing;
   with no `GOOGLE_CLIENT_ID` it's 400 "isn't set up".
-- [ ] Google sign-ins count toward the same 10-a-minute limit as log-in.
-- [ ] Demo cleanup never deletes a Google-only account.
-- [ ] Without `VITE_GOOGLE_CLIENT_ID`, the log-in and sign-up page looks exactly as today.
+- [x] Google sign-ins count toward the same 10-a-minute limit as log-in.
+- [x] Demo cleanup never deletes a Google-only account.
+- [x] Without `VITE_GOOGLE_CLIENT_ID`, the log-in and sign-up page looks exactly as today.
 - [ ] With it, on localhost, signing in with a real Google account lands on the builds list
   (Chromium, and an iPhone if possible).
 
 **Verification:**
-- [ ] Backend tests, with Google's verification mocked, plus one that runs `google-auth`'s
+- [x] Backend tests, with Google's verification mocked, plus one that runs `google-auth`'s
   real verification on a token signed by a test key (its key fetch patched)
-- [ ] `python manage.py test`, `ruff check . && ruff format --check .`,
+- [x] `python manage.py test`, `ruff check . && ruff format --check .`,
   `python manage.py makemigrations --check`, `python manage.py spectacular --validate --fail-on-warn`
-- [ ] Frontend tests with `window.google` stubbed (no id: no button; a credential signs in
+- [x] Frontend tests with `window.google` stubbed (no id: no button; a credential signs in
   and navigates; an API error shows); `npm test`, `npm run lint`, `npx tsc -b`; the CSP test
-- [ ] e2e unchanged and passing (no client id in CI)
-- [ ] Manual: a real Google sign-in on localhost with the author's client id; whether the
-  CSP or `Referrer-Policy` needed anything more is written down here
+- [x] e2e unchanged and passing (no client id in CI): locally 14/14
+- [ ] Manual: a real Google sign-in on localhost with the author's client id, and the button
+  reads "Continue with Google" (with a made-up id, Google draws a fallback in the location's
+  language, though the page asks for `hl=en`)
+- [x] Found while building: Google's setup guide recommends `Referrer-Policy:
+  strict-origin-when-cross-origin` (was `same-origin`), and the OAuth client needs plain
+  `http://localhost` as well as each port; both are in the spec. The button is pinned to
+  English (`locale: "en"`), since Google otherwise picked Tagalog/Cebuano from the location.
 
 **Dependencies:** the author's Google Cloud client (for the manual check only)
 **Files:** `backend/requirements.txt`, `backend/config/settings.py`, `backend/config/urls.py`, `backend/builds/models.py`, a new `backend/builds/migrations/0009_*.py`, a new `backend/builds/google.py`, `backend/builds/auth.py`, `backend/builds/tests.py`, a new `frontend/src/google.ts`, `frontend/src/api.ts`, `frontend/src/pages/Login.tsx` and its test, `frontend/vercel.json`, `frontend/.env.example`, `README.md`, `SPEC.md`

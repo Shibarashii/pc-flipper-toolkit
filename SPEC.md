@@ -126,6 +126,7 @@ a 404, and in a body it's a 400 under the field ([public ids spec](docs/specs/pu
 | POST | `/api/auth/logout/` | Delete the current token |
 | POST | `/api/auth/demo/` | Create a demo account with the sample builds → `{token, username}` (201) |
 | GET | `/api/auth/me/` | The logged-in user (`{username}`) |
+| POST | `/api/auth/google/` | Sign in with Google's ID token (`credential`) → `{token, username}`; 201 when it makes the account ([spec](docs/specs/google-sign-in.md)) |
 | GET, POST | `/api/builds/` | List builds (with totals) / create a build |
 | GET, PATCH, DELETE | `/api/builds/{id}/` | Build detail, including `parts`, `bundles`, `extra_costs` and `totals` |
 | POST | `/api/parts/` | Add a part (`build` id in the body) |
