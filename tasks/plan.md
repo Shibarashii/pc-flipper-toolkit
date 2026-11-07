@@ -185,7 +185,7 @@ the field. One migration (one column with a database default), no new dependenci
 order of deploy is safe: DRF ignores a `condition` the old API doesn't know, and the
 frontend treats a missing `condition` as blank.
 
-**Checkpoint 13:** the part condition spec's success criteria 1–4 pass on the live site.
+**Checkpoint 13 (done):** the part condition spec's success criteria 1–4 pass on the live site.
 
 ## Risks and Mitigations
 
