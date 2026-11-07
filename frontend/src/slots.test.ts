@@ -8,6 +8,7 @@ const part = (category: PartCategory, name: string = category): Part => ({
   name,
   category,
   shop: "",
+  condition: "",
   listed_price: "0.00",
   bought_for: "0.00",
   bundle: null,

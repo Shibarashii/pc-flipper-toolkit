@@ -14,6 +14,7 @@ const part = (
   name,
   category,
   shop: "",
+  condition: "",
   listed_price: "0.00",
   bought_for: null,
   bundle: null,

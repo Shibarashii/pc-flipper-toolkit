@@ -968,7 +968,7 @@ as strings, so this works with today's integer API and with UUIDs.
 Spec: [docs/specs/part-condition.md](../docs/specs/part-condition.md). One migration, no new
 dependencies.
 
-### - [ ] T38: Set and see a part's condition (field, API, form, table)
+### - [x] T38: Set and see a part's condition (field, API, form, table)
 
 **Description:**
 - `Part.Condition` (`new`, `like_new`, `good`, `fair`, with Facebook's labels) and
@@ -982,23 +982,26 @@ dependencies.
   name, on the phone card and the desktop row. Nothing when blank or missing.
 
 **Acceptance criteria:**
-- [ ] Create without `condition` gives `""`; each value saves on create and `PATCH`; `""`
+- [x] Create without `condition` gives `""`; each value saves on create and `PATCH`; `""`
   clears it; an unknown value is a 400 on `condition`.
-- [ ] A raw insert that leaves out `condition` gets `""`.
-- [ ] Picking a condition and saving shows its short label after the part's name; editing
+- [x] A raw insert that leaves out `condition` gets `""`.
+- [x] Picking a condition and saving shows its short label after the part's name; editing
   shows the saved condition; "Not set" clears it.
-- [ ] After adding a part, the form's condition is back to "Not set".
-- [ ] A part without a condition (or from an API that doesn't send one) looks as it does today.
-- [ ] Fits 375px without horizontal scrolling, light and dark, with a long name.
+- [x] After adding a part, the form's condition is back to "Not set".
+- [x] A part without a condition (or from an API that doesn't send one) looks as it does today.
+- [x] Fits 375px without horizontal scrolling, light and dark, with a long name.
 
 **Verification:**
-- [ ] `python manage.py test`, `ruff check . && ruff format --check .`,
+- [x] `python manage.py test`, `ruff check . && ruff format --check .`,
   `python manage.py makemigrations --check`, `python manage.py spectacular --validate --fail-on-warn`
-- [ ] `npm test`, `npm run lint`, `npx tsc -b`
-- [ ] e2e: the flip spec picks a condition for one part and sees its label (locally, then CI)
-- [ ] `migrate` then `migrate builds 0007` then `migrate` on local data: existing parts are
-  `""`, and it reverses cleanly
-- [ ] Screenshots: the form and the table, desktop and 375px
+- [x] `npm test`, `npm run lint`, `npx tsc -b`
+- [x] e2e: the flip spec picks a condition for one part and sees its label (locally 14/14;
+  CI runs on the PR)
+- [x] `migrate` then `migrate builds 0007` then `migrate` on local data: all 357 existing
+  parts are `""`, and it reverses cleanly
+- [x] Screenshots: the form and the table, desktop and 375px, light and dark, with a long
+  name (on a 1280px desktop the extra select moves Cancel/Save onto their own line, as the
+  row already wraps)
 
 **Dependencies:** None
 **Files:** `backend/builds/models.py`, a new `backend/builds/migrations/0008_*.py`, `backend/builds/serializers.py`, `backend/builds/tests.py`, `frontend/src/api.ts`, `frontend/src/components/PartRow.tsx`, `frontend/src/components/PartsTable.test.tsx`, `frontend/src/test/fixtures.ts`, `frontend/e2e/flip.spec.ts`, `SPEC.md`

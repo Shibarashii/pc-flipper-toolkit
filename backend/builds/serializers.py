@@ -176,11 +176,17 @@ class PartSerializer(ChildSerializer):
             "name",
             "category",
             "shop",
+            "condition",
             "listed_price",
             "bought_for",
         ]
         extra_kwargs = {
             "name": {"help_text": 'Part name, e.g. "Ryzen 5 7600".'},
+            "condition": {
+                "help_text": "`new`, `like_new`, `good` or `fair` (Facebook "
+                "Marketplace's New, Used – Like New, Used – Good, Used – Fair); "
+                '`""` when not set.'
+            },
             "shop": {"help_text": 'Where it was bought, e.g. "Shopee - DynaQuest".'},
             "listed_price": {"help_text": f"Market price. {MONEY_INPUT}"},
             "bought_for": {

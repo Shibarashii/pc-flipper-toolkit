@@ -124,6 +124,7 @@ test("a refetch that read the database before a header save doesn't undo it", as
     name: "Ryzen 5 7600",
     category: "cpu",
     shop: "",
+    condition: "",
     listed_price: "1.00",
     bought_for: "1.00",
     bundle: null,

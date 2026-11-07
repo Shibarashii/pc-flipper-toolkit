@@ -1,11 +1,13 @@
 import { useId, useRef, useState, type SubmitEvent } from "react";
 import {
   CATEGORIES,
+  CONDITIONS,
   createPart,
   type Bundle,
   updatePart,
   type Part,
   type PartCategory,
+  type PartCondition,
   type ShopProduct,
 } from "../api";
 import { formatMoney } from "../money";
@@ -18,9 +20,18 @@ const EMPTY = {
   name: "",
   shop: "",
   category: "",
+  condition: "",
   listed_price: "",
   bought_for: "",
   bundle: "",
+};
+
+/** The table's short form of each condition. */
+const CONDITION_TAGS: Record<PartCondition, string> = {
+  new: "New",
+  like_new: "Like new",
+  good: "Good",
+  fair: "Fair",
 };
 
 /** Prices are shown the way they're displayed elsewhere; cleanMoney undoes it on save. */
@@ -28,6 +39,8 @@ const fromPart = (p: Part) => ({
   name: p.name,
   shop: p.shop,
   category: p.category as string,
+  // An API from before conditions sends none.
+  condition: (p.condition ?? "") as string,
   listed_price: formatMoney(p.listed_price),
   bought_for: p.bought_for === null ? "" : formatMoney(p.bought_for),
   bundle: p.bundle ?? "",
@@ -108,6 +121,7 @@ export function PartForm({
       name: form.name.trim(),
       shop: form.shop.trim(),
       category: form.category as PartCategory,
+      condition: form.condition as PartCondition | "",
       listed_price: cleanMoney(form.listed_price),
       // Blank is null: allowed inside a bundle, and the server says so otherwise.
       bought_for: cleanMoney(form.bought_for) || null,
@@ -181,27 +195,50 @@ export function PartForm({
             )}
           </div>
           <div className={ROW}>
-            <Field
-              label="Category"
-              errors={errors.category}
-              className="sm:w-[140px]"
-            >
-              <Select
-                value={form.category}
-                onChange={(e) => set("category")(e.target.value)}
-                error={!!errors.category}
-                className={form.category ? "" : "text-faint"}
+            <div className="flex gap-3 sm:contents">
+              <Field
+                label="Category"
+                errors={errors.category}
+                className="flex-1 sm:w-[140px] sm:flex-none"
               >
-                <option value="" disabled>
-                  Category
-                </option>
-                {Object.entries(CATEGORIES).map(([value, label]) => (
-                  <option key={value} value={value} className="text-ink">
-                    {label}
+                <Select
+                  value={form.category}
+                  onChange={(e) => set("category")(e.target.value)}
+                  error={!!errors.category}
+                  className={form.category ? "" : "text-faint"}
+                >
+                  <option value="" disabled>
+                    Category
                   </option>
-                ))}
-              </Select>
-            </Field>
+                  {Object.entries(CATEGORIES).map(([value, label]) => (
+                    <option key={value} value={value} className="text-ink">
+                      {label}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+              <Field
+                label="Condition"
+                errors={errors.condition}
+                className="flex-1 sm:w-[160px] sm:flex-none"
+              >
+                <Select
+                  value={form.condition}
+                  onChange={(e) => set("condition")(e.target.value)}
+                  error={!!errors.condition}
+                  className={form.condition ? "" : "text-faint"}
+                >
+                  <option value="" className="text-ink">
+                    Not set
+                  </option>
+                  {Object.entries(CONDITIONS).map(([value, label]) => (
+                    <option key={value} value={value} className="text-ink">
+                      {label}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+            </div>
             <div className="flex gap-3 sm:contents">
               <Field
                 label="Listed price"
@@ -323,6 +360,17 @@ export function PartItem({
   onDelete: () => void;
 }) {
   const category = CATEGORIES[part.category];
+  const tag = part.condition && CONDITION_TAGS[part.condition];
+  const name = (
+    <p className="text-[15px] leading-[22px] font-medium">
+      <span>{part.name}</span>
+      {tag && (
+        <span className="ml-2 text-[13px] leading-[18px] font-normal whitespace-nowrap text-muted">
+          {tag}
+        </span>
+      )}
+    </p>
+  );
   const actions = (
     <RowActions
       name={part.name}
@@ -337,9 +385,7 @@ export function PartItem({
       <div className="flex flex-col gap-2 sm:hidden">
         <div className="flex items-start gap-2">
           <div className="min-w-0 flex-1">
-            <p className="text-[15px] leading-[22px] font-medium">
-              {part.name}
-            </p>
+            {name}
             <p className="text-[13px] leading-[18px] text-muted">
               {[category, part.shop].filter(Boolean).join(" · ")}
             </p>
@@ -367,7 +413,7 @@ export function PartItem({
       {/* Desktop row */}
       <div className="hidden items-center gap-4 sm:flex">
         <div className="min-w-0 flex-1">
-          <p className="text-[15px] leading-[22px] font-medium">{part.name}</p>
+          {name}
           {part.shop && (
             <p className="text-[13px] leading-[18px] text-muted">{part.shop}</p>
           )}

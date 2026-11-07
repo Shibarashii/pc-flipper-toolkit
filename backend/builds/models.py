@@ -162,11 +162,22 @@ class Part(models.Model):
         COOLER = "cooler"
         OTHER = "other"
 
+    class Condition(models.TextChoices):
+        # Facebook Marketplace's labels, in its order.
+        NEW = "new", "New"
+        LIKE_NEW = "like_new", "Used – Like New"
+        GOOD = "good", "Used – Good"
+        FAIR = "fair", "Used – Fair"
+
     public_id = public_id_field()
     build = models.ForeignKey(Build, on_delete=models.CASCADE, related_name="parts")
     name = models.CharField(max_length=200)
     category = models.CharField(max_length=12, choices=Category)
     shop = models.CharField(max_length=200, blank=True)
+    # Optional. The database default covers old code inserting during a deploy.
+    condition = models.CharField(
+        max_length=8, choices=Condition, blank=True, db_default=""
+    )
     listed_price = money_field()
     # Blank only inside a bundle, where it's an optional breakdown of the bundle's price.
     bought_for = money_field(null=True, blank=True)

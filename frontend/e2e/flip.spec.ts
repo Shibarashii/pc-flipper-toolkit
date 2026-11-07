@@ -14,7 +14,7 @@ async function fill(
   const f = page.getByRole("form", { name: form });
   for (const [label, value] of Object.entries(fields)) {
     // A <select> inside its <label> gets the options' text in the label too.
-    if (label === "Category")
+    if (label === "Category" || label === "Condition")
       await f
         .getByRole("combobox", { name: label })
         .selectOption({ label: value });
@@ -60,9 +60,17 @@ test("flip a PC: sign up, add parts and a bundle, price it, delete it", async ({
   await fill(page, "New part", {
     Part: "RTX 4060",
     Category: "GPU",
+    Condition: "Used – Like New",
     "Listed price": "18000",
     "Bought for": "16000",
   });
+  // The table shows a part's condition, short, after its name.
+  await expect(
+    page
+      .getByRole("region", { name: "Parts" })
+      .getByText("Like new", { exact: true })
+      .filter({ visible: true }),
+  ).toBeVisible();
 
   // A bundle's price counts once; its parts' own amounts are optional.
   await page.getByRole("button", { name: "Add bundle" }).click();

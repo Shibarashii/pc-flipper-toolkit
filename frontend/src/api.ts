@@ -49,12 +49,24 @@ export const CATEGORIES = {
 
 export type PartCategory = keyof typeof CATEGORIES;
 
+/** Facebook Marketplace's condition labels, in its order (docs/specs/part-condition.md). */
+export const CONDITIONS = {
+  new: "New",
+  like_new: "Used – Like New",
+  good: "Used – Good",
+  fair: "Used – Fair",
+} as const;
+
+export type PartCondition = keyof typeof CONDITIONS;
+
 export type Part = {
   id: string;
   build: string;
   name: string;
   category: PartCategory;
   shop: string;
+  /** "" when not set. */
+  condition: PartCondition | "";
   listed_price: string;
   /** null only for a part in a bundle whose share wasn't typed in. */
   bought_for: string | null;
