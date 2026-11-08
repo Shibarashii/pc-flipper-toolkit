@@ -1046,3 +1046,129 @@ dependencies.
   from before conditions. No sideways scrolling, no 5xx. The author's own parts from before
   the deploy show no labels. Render's deploy log wasn't checked.)
 - [x] All tests pass on `main` (CI on the PR's head `443562d`, squashed as `ab36257`)
+
+## Phase 16: Google sign-in
+
+Spec: [docs/specs/google-sign-in.md](../docs/specs/google-sign-in.md). One new table, one new
+dependency (`google-auth`, approved 2026-11-07).
+
+### - [x] T40: Sign in with Google (new and returning users)
+
+**Description:**
+- `google-auth` (with `requests`) pinned in `requirements.txt`; `GOOGLE_CLIENT_ID` from the
+  environment in `settings.py`.
+- `GoogleAccount` (user one-to-one, unique `sub`, email, connected_at) and migration `0009`.
+- `builds/google.py`: `verify(credential)` returns `sub` and `email` via
+  `id_token.verify_oauth2_token` with our client id, or raises; `username_for(email)` makes
+  the username (allowed characters, numbered when taken, never `demo-`, `user` when empty).
+- `GoogleView` at `POST /api/auth/google/`, under the `auth` rate limit:
+  - A known `sub` logs that user in (200).
+  - A new one creates a user with no usable password plus its `GoogleAccount` (201).
+  - Both answer like log-in.
+- Frontend:
+  - `src/google.ts` loads Google's script once and renders its button.
+  - `Login.tsx` shows the button under the form when `VITE_GOOGLE_CLIENT_ID` is set, posts
+    the credential, saves the session and goes where a log-in goes.
+  - `vercel.json`'s CSP gets Google's GIS origins; `.env.example` gets the id.
+
+**Acceptance criteria:**
+- [x] A new Google account gets an account named from its email, and signing in again opens
+  the same one.
+- [x] Usernames: taken names are numbered, case-insensitively; symbols are dropped; a
+  `demo-` start becomes `user-demo-…`; an empty name becomes `user`.
+- [x] A bad, expired or wrong-audience token is a 400 on `credential` and creates nothing;
+  with no `GOOGLE_CLIENT_ID` it's 400 "isn't set up".
+- [x] Google sign-ins count toward the same 10-a-minute limit as log-in.
+- [x] Demo cleanup never deletes a Google-only account.
+- [x] Without `VITE_GOOGLE_CLIENT_ID`, the log-in and sign-up page looks exactly as today.
+- [x] With it, on localhost, signing in with a real Google account lands on the builds list
+  (2026-11-08, the author's browser: a new account `seanrei.ethan23`; logging out and in
+  with Google again opened the same one. On the iPhone Google refuses localhost's network
+  address, as it should: checked live instead.)
+
+**Verification:**
+- [x] Backend tests, with Google's verification mocked, plus one that runs `google-auth`'s
+  real verification on a token signed by a test key (its key fetch patched)
+- [x] `python manage.py test`, `ruff check . && ruff format --check .`,
+  `python manage.py makemigrations --check`, `python manage.py spectacular --validate --fail-on-warn`
+- [x] Frontend tests with `window.google` stubbed (no id: no button; a credential signs in
+  and navigates; an API error shows); `npm test`, `npm run lint`, `npx tsc -b`; the CSP test
+- [x] e2e unchanged and passing (no client id in CI): locally 14/14
+- [x] Manual: a real Google sign-in on localhost with the author's client id, and the button
+  reads "Continue with Google". Found by the author: the script's stand-in button flashed in
+  Tagalog first (fixed: the script loads with `?hl=en`), and in dark mode the frame had a
+  white backdrop (fixed: its container is `color-scheme: light`)
+- [x] Found while building: Google's setup guide recommends `Referrer-Policy:
+  strict-origin-when-cross-origin` (was `same-origin`), and the OAuth client needs plain
+  `http://localhost` as well as each port; both are in the spec. The button is pinned to
+  English (`locale: "en"`), since Google otherwise picked Tagalog/Cebuano from the location.
+
+**Dependencies:** the author's Google Cloud client (for the manual check only)
+**Files:** `backend/requirements.txt`, `backend/config/settings.py`, `backend/config/urls.py`, `backend/builds/models.py`, a new `backend/builds/migrations/0009_*.py`, a new `backend/builds/google.py`, `backend/builds/auth.py`, `backend/builds/tests.py`, a new `frontend/src/google.ts`, `frontend/src/api.ts`, `frontend/src/pages/Login.tsx` and its test, `frontend/vercel.json`, `frontend/.env.example`, `README.md`, `SPEC.md`
+**Scope:** L (about 15 files, but one path: button to token to session)
+
+### - [ ] T41: The Account page: connect and disconnect Google
+
+**Description:**
+- `GET /api/auth/me/` adds `google` (`{email}` or `null`), `has_password` and `is_demo`.
+- `GoogleConnectView` at `/api/auth/google/connect/`:
+  - `POST` links a verified `sub` to the current user, refusing one connected elsewhere, a
+    second Google account, and demo users.
+  - `DELETE` unlinks it, refusing an account without a password.
+- `/account` (`Account.tsx`):
+  - Shows the username and a Google row: Google's button to connect, or "Connected as …"
+    with Disconnect.
+  - Disconnect is only offered with a password.
+  - A demo user sees "Sign up for your own account first".
+- The header's username links to `/account`.
+
+**Acceptance criteria:**
+- [ ] A password account connects Google, then a Google sign-in opens that same account.
+- [ ] A `sub` connected to another user, a second Google account, and a demo user are each
+  refused with the spec's message, shown on the page.
+- [ ] Disconnect works with a password, and is refused (and not offered) without one.
+- [ ] The username in the header opens Account; Account fits 375px, light and dark.
+
+**Verification:**
+- [ ] Backend tests for each connect and disconnect case and the new `me` fields
+- [ ] Frontend tests for each Account state and error; the header link
+- [ ] All the commands from T40; e2e unchanged and passing
+- [ ] Manual on localhost with a real Google account: connect, log out, sign in with Google
+  (same builds), disconnect
+- [ ] Screenshots: desktop and 375px, light and dark
+
+**Dependencies:** T40
+**Files:** `backend/builds/auth.py`, `backend/config/urls.py`, `backend/builds/tests.py`, `frontend/src/api.ts`, a new `frontend/src/pages/Account.tsx` and its test, `frontend/src/App.tsx`, `SPEC.md`
+**Scope:** M
+
+### - [ ] T42: Privacy page, and publishing the Google app
+
+**Description:**
+- A `/privacy` page anyone can open, logged in or not: what the app stores (the username,
+  the Google account's email and id, the builds), that nothing is shared or sold, and how to
+  ask for an account to be deleted.
+- A "Privacy" link in the log-in page's footer.
+- Then the author publishes the Google app: the live site as the homepage URL, `/privacy` as
+  the privacy policy URL, verifying the domain if Google asks.
+
+**Acceptance criteria:**
+- [ ] `/privacy` opens logged out and logged in, and from the log-in page's link.
+- [ ] It fits 375px, light and dark, and follows the brand guidelines.
+- [ ] (author) The Google app is published, so any Google account can sign in.
+
+**Verification:**
+- [ ] Frontend tests for the page and the link
+- [ ] All the commands from T40; e2e unchanged and passing
+- [ ] Screenshots: desktop and 375px, light and dark
+
+**Dependencies:** none (publishing needs it live)
+**Files:** a new `frontend/src/pages/Privacy.tsx` and its test, `frontend/src/App.tsx`, `frontend/src/pages/Login.tsx`
+**Scope:** S
+
+### Checkpoint 14: Google sign-in
+- [ ] The Google app is published (T42)
+- [ ] Render has `GOOGLE_CLIENT_ID`; Vercel has `VITE_GOOGLE_CLIENT_ID` and was redeployed
+- [ ] The spec's success criteria 1–5 pass on the live site: a new Google sign-in, connecting
+  a password account and signing in with Google to its builds, disconnecting, a second
+  account refused, and password log-in, sign-up and the demo unchanged
+- [ ] All tests pass on `main`

@@ -74,11 +74,13 @@ command.
 
 - The user may already have Django's `runserver` on port 8000 serving the working tree. Reuse
   it; don't kill it.
-- On the author's desktop, port 5173 belongs to another project. Run a second Vite server
-  on **5199** (`npm run dev -- --port 5199 --strictPort`) and stop it afterwards by its pid
-  (`ss -ltnp | grep ':5199'`).
-- For e2e against 5199, use a temporary `frontend/.pw-local.config.ts` (base URL 5199,
-  reusing the server on 8000) and delete it afterwards.
+- Check what's on port 5173 before starting Vite (`ss -ltnp | grep ':5173'`, then
+  `readlink /proc/<pid>/cwd`). If it's this project's `frontend/`, use it. If another project
+  holds it, run a second Vite server on **5199** (`npm run dev -- --port 5199 --strictPort`),
+  stop it afterwards by its pid, and for e2e use a temporary `frontend/.pw-local.config.ts`
+  (base URL 5199, reusing the server on 8000), deleted afterwards.
+- A local `frontend/.env` may hold real values (like `VITE_GOOGLE_CLIENT_ID`); tests must not
+  depend on it.
 - Sign-up, log-in and "Try the demo" share a limit of 10 a minute, so many e2e runs or demos
   in a row can fail with 429.
 - In zsh, don't name a variable `path`: it's tied to `PATH`.

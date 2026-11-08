@@ -1,8 +1,16 @@
 import { useState, type SubmitEvent } from "react";
 import { Link, useLocation } from "react-router";
-import { ApiError, logIn, signUp, tryDemo, type FieldErrors } from "../api";
+import {
+  ApiError,
+  googleSignIn,
+  logIn,
+  signUp,
+  tryDemo,
+  type FieldErrors,
+} from "../api";
 import { saveSession, useAuth, type Session } from "../auth";
 import { Field } from "../components/form";
+import { GoogleButton, googleClientId } from "../google";
 import { buttonPrimary, buttonSecondary, input } from "../ui";
 
 const MODES = {
@@ -26,7 +34,9 @@ const MODES = {
 function generalError(err: unknown, errors: FieldErrors): string {
   if (err instanceof ApiError && err.status === 429)
     return "Too many attempts. Wait a minute and try again.";
-  if (errors.non_field_errors) return errors.non_field_errors.join(" ");
+  // Google sign-in's errors have no field on this page to sit under.
+  const general = errors.non_field_errors ?? errors.credential;
+  if (general) return general.join(" ");
   if (Object.keys(errors).length > 0) return "";
   if (err instanceof ApiError) return "Something went wrong. Try again.";
   return "Couldn’t reach the server. Check your connection and try again.";
@@ -123,7 +133,17 @@ export function Login({ mode }: { mode: keyof typeof MODES }) {
         </button>
       </form>
 
-      <div className="mt-6 border-t border-line pt-6">
+      <div className="mt-6 flex flex-col gap-3 border-t border-line pt-6">
+        {googleClientId() && (
+          <GoogleButton
+            onCredential={(credential) => start(() => googleSignIn(credential))}
+            onError={() =>
+              setError(
+                "Couldn’t load Google sign-in. Check your connection, or use your username and password.",
+              )
+            }
+          />
+        )}
         <button
           type="button"
           onClick={() => start(tryDemo)}
@@ -132,7 +152,7 @@ export function Login({ mode }: { mode: keyof typeof MODES }) {
         >
           Try the demo
         </button>
-        <p className="mt-2 text-[13px] leading-[18px] text-muted">
+        <p className="-mt-1 text-[13px] leading-[18px] text-muted">
           A sample account with two builds to change freely. It’s deleted after
           24 hours.
         </p>

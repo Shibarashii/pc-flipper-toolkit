@@ -187,6 +187,32 @@ frontend treats a missing `condition` as blank.
 
 **Checkpoint 13 (done):** the part condition spec's success criteria 1–4 pass on the live site.
 
+### Phase 16: Google sign-in ([docs/specs/google-sign-in.md](../docs/specs/google-sign-in.md))
+- [x] T40: Sign in with Google (new and returning users)
+- [ ] T41: The Account page: connect and disconnect Google
+- [ ] T42: Privacy page, and publishing the Google app
+
+```
+(author) Google Cloud client ─┐
+T40 sign in with Google ──────┴── T41 Account page: connect / disconnect
+T42 privacy page ──── (author) publish the Google app
+```
+T40 is the whole path from Google's button to a logged-in builds list, and it brings the
+`GoogleAccount` table. T41 adds the second way into that table (linking an existing account)
+and the page around it. Each task ships on its own. Without a client id set, neither shows a
+Google button and the API says "isn't set up", so merging before Render and Vercel have the
+id is safe. The only new dependency is `google-auth` (with `requests`), added in T40 once
+approved. T42 (added 2026-11-08) is a static page Google needs before the app can leave
+Testing; it doesn't depend on T41, but both come before Checkpoint 14.
+
+**Before T40's manual check:** the author creates the Google Cloud consent screen and the
+OAuth client (the spec's "Setup outside the code"), and puts the client id in both `.env`
+files.
+
+**Checkpoint 14:** the Google sign-in spec's success criteria 1–5 pass on the live site, with
+the client id set on Render and Vercel (Vercel builds it in, so it needs a redeploy after
+setting it).
+
 ## Risks and Mitigations
 
 | Risk | Impact | Mitigation |
@@ -218,6 +244,12 @@ frontend treats a missing `condition` as blank.
 | Old code inserts during the deploy and fails on `condition` | Med | The column has a database default (`''`); a test inserts without it (T38) |
 | The condition label crowds a long name on a phone | Low | It wraps with the name, no new column; checked at 375px (T38) |
 | Condition changes the post for builds that have none | Med (posts people already copy) | A test: a build without conditions gives exactly today's post (T39) |
+| A forged or someone else's ID token signs someone in | High | Every token goes through `google-auth`'s verification with our client id as the audience; one test runs that real verification on a token signed by a test key, the rest mock it (T40) |
+| Tests mock Google, so the real flow breaks only live (CSP, referrer, origins) | Med | The manual check on localhost with a real client id before the PR, and Checkpoint 14 on the live site (T40, T41) |
+| A Google sign-in takes over the wrong account | High | Users are found by `sub` only, never by email; connecting needs the user's own token (T40, T41) |
+| Someone locks themselves out by disconnecting Google | Med | Disconnect is refused without a usable password (T41) |
+| Demo cleanup deletes a Google-only account (no password, like a demo) | High | Google usernames never start with `demo-`; a test with an old Google-only account (T40) |
+| Two Google sign-ins pick the same new username at once | Low | Catch the unique-name error and try the next number, as sign-up already does (T40) |
 
 ## Open Questions
 

@@ -241,3 +241,18 @@ class ShopProduct(models.Model):
 
     def __str__(self) -> str:
         return f"{self.shop}: {self.title}"
+
+
+class GoogleAccount(models.Model):
+    """A Google account connected to a user (docs/specs/google-sign-in.md)."""
+
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="google"
+    )
+    # Google's permanent id for the account: who it is. Emails can change.
+    sub = models.CharField(max_length=255, unique=True)
+    email = models.EmailField()  # shown only
+    connected_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self) -> str:
+        return self.email

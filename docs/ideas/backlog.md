@@ -37,6 +37,12 @@ One condition for the whole build, for the Facebook listing's own Condition fiel
 worked out from its parts: a build is only as new as its oldest part. Not "refurbished",
 which means repaired or restored and tested. Waits for part condition.
 
+### Account page: profile and currency (added 2026-11-07)
+
+After Google sign-in adds the Account page ([spec](../specs/google-sign-in.md)): edit the
+profile (e.g. change the username) and choose the currency. Currency is the bigger one: the
+whole app formats ₱ today (`money.ts`, the post, the summary). To brainstorm.
+
 ### Copy listing right after saving a part (added 2026-11-07)
 
 Found during Checkpoint 13: opening Copy listing within a moment of saving a part can show
