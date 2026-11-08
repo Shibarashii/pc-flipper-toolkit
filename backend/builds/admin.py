@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.http import HttpResponse
 from rest_framework.throttling import SimpleRateThrottle
 
-from .models import Build, Bundle, ExtraCost, Part, ShopProduct
+from .models import Build, Bundle, ExtraCost, GoogleAccount, Part, ShopProduct
 
 
 class PartInline(admin.TabularInline):
@@ -75,6 +75,13 @@ class ExtraCostAdmin(admin.ModelAdmin):
     list_display = ["label", "amount", "build"]
     search_fields = ["label"]
     list_select_related = ["build"]
+
+
+@admin.register(GoogleAccount)
+class GoogleAccountAdmin(admin.ModelAdmin):
+    list_display = ["user", "email", "connected_at"]
+    search_fields = ["user__username", "email"]
+    list_select_related = ["user"]
 
 
 class AdminLoginThrottle(SimpleRateThrottle):

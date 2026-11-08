@@ -22,6 +22,7 @@ from .models import GoogleAccount
 User = get_user_model()
 
 TAKEN = "That username is taken."
+GOOGLE_FAILED = "Google sign-in didn't work. Try again."
 
 
 class CredentialsSerializer(serializers.Serializer):
@@ -155,9 +156,6 @@ def google_account(request) -> tuple[str, str]:
         return google.verify(serializer.validated_data["credential"])
     except google.InvalidToken:
         raise serializers.ValidationError({"credential": [GOOGLE_FAILED]})
-
-
-GOOGLE_FAILED = "Google sign-in didn't work. Try again."
 
 
 class GoogleView(PublicAuthView):

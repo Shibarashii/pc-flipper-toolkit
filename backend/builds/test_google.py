@@ -97,6 +97,29 @@ class GoogleSignInTests(APITestCase):
             codes = [self.sign_in().status_code for _ in range(6)]
         self.assertEqual(codes, [201, 200, 200, 200, 200, 429])
 
+    def test_a_username_taken_meanwhile_is_retried(self):
+        User.objects.create_user("carol")
+        with (
+            signs_in_as(),
+            mock.patch.object(google, "username_for", side_effect=["carol", "carol2"]),
+        ):
+            res = self.sign_in()
+        self.assertEqual(res.status_code, 201, res.content)
+        self.assertEqual(res.json()["username"], "carol2")
+
+    def test_three_lost_races_is_400_and_creates_nothing_more(self):
+        User.objects.create_user("carol")
+        with (
+            signs_in_as(),
+            mock.patch.object(google, "username_for", return_value="carol"),
+        ):
+            res = self.sign_in()
+        self.assertEqual(res.status_code, 400)
+        self.assertEqual(
+            res.json()["credential"], ["Google sign-in didn't work. Try again."]
+        )
+        self.assertFalse(GoogleAccount.objects.exists())
+
     def test_demo_cleanup_never_deletes_a_google_only_account(self):
         with signs_in_as(email="demo-tricky@gmail.com"):
             res = self.sign_in()
@@ -190,6 +213,11 @@ class RealVerificationTests(TestCase):
         self.assertEqual(
             google.verify(self.token()), ("1234567890", "seanrei.ethan23@gmail.com")
         )
+
+    @override_settings(GOOGLE_CLIENT_ID="")
+    def test_never_verifies_without_a_client_id(self):
+        with self.assertRaises(google.InvalidToken):
+            google.verify(self.token(aud=""))
 
     def test_bad_tokens_are_refused(self):
         now = int(time.time())

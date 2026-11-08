@@ -29,7 +29,8 @@ def verify(credential: str) -> tuple[str, str]:
     """The Google account's `sub` (who it is) and email, from an ID token signed by Google
     for our client id. Raises InvalidToken otherwise."""
     # An empty audience would skip the audience check: never verify without one.
-    assert settings.GOOGLE_CLIENT_ID
+    if not settings.GOOGLE_CLIENT_ID:
+        raise InvalidToken("GOOGLE_CLIENT_ID isn't set")
     try:
         claims = id_token.verify_oauth2_token(
             credential, REQUEST, settings.GOOGLE_CLIENT_ID
