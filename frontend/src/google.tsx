@@ -37,7 +37,8 @@ async function gis(): Promise<Gis> {
     window.google ??
     (await (script ??= new Promise<Gis>((resolve, reject) => {
       const tag = document.createElement("script");
-      tag.src = "https://accounts.google.com/gsi/client";
+      // hl: the stand-in button the script draws before its real one is in English too.
+      tag.src = "https://accounts.google.com/gsi/client?hl=en";
       tag.async = true;
       tag.onload = () =>
         window.google ? resolve(window.google) : reject(new Error("no gis"));
@@ -97,6 +98,8 @@ export function GoogleButton({
     };
   }, []);
 
-  // Google's button is 40px high: keep the room while it loads.
-  return <div ref={parent} className="min-h-10" />;
+  // Google's button is 40px high: keep the room while it loads. Its frame is a light page;
+  // inside our dark theme the browser would paint it an opaque white background, unless
+  // the frame's container is light too.
+  return <div ref={parent} className="min-h-10 [color-scheme:light]" />;
 }

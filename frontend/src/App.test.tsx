@@ -6,7 +6,11 @@ import App from "./App";
 import { endSession, getToken, saveSession } from "./auth";
 import { EMPTY_SUMMARY, makeBuild } from "./test/fixtures";
 
-beforeEach(() => endSession());
+beforeEach(() => {
+  endSession();
+  // Whatever a local frontend/.env says: only the Google tests turn Google sign-in on.
+  vi.stubEnv("VITE_GOOGLE_CLIENT_ID", "");
+});
 
 afterEach(() => {
   cleanup();
