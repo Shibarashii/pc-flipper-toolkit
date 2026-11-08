@@ -151,6 +151,14 @@ class GoogleAccount(models.Model):
 - **Referrer-Policy:** `strict-origin-when-cross-origin` (the browser default) instead of
   `same-origin`, as Google's setup guide recommends for loading its script. Other sites
   still see only our origin, never a page's path (decided 2026-11-07 while building).
+- **Inline styles stay blocked** (decided 2026-11-08 in review): Google's script also adds a
+  `<style>` tag and `style` attributes for the stand-in it shows while its button's iframe
+  loads. `style-src` blocks them, so the console shows 3 CSP errors and the stand-in is
+  unstyled for a moment; the real button (the iframe) is unaffected. Allowing them would
+  need `'unsafe-inline'` for every style on the site, which isn't worth it.
+- **Privacy page (`/privacy`)**, linked from the log-in page's footer: what the app stores
+  (the username, the Google account's email and id, the builds) and that nothing is shared
+  or sold. Google needs its URL to publish the app (added 2026-11-08, T42).
 
 ## Setup outside the code (the author does these)
 
@@ -158,7 +166,9 @@ class GoogleAccount(models.Model):
    - Make an OAuth consent screen: External, the app's name, support email, scopes `openid`,
      `email` and `profile` only. These aren't sensitive scopes, so Google doesn't need to
      review the app.
-   - Publish it so any Google account can sign in, not only test users.
+   - Publish it so any Google account can sign in, not only test users. Publishing needs a
+     homepage URL (the live site) and a privacy policy URL (its `/privacy` page), and Google
+     may ask to verify the domain.
 2. **OAuth client:** Web application. Authorized JavaScript origins:
    - `https://pc-flipper-toolkit.vercel.app`
    - `http://localhost`, `http://localhost:5173` and `http://localhost:5199` (Google asks for

@@ -190,17 +190,20 @@ frontend treats a missing `condition` as blank.
 ### Phase 16: Google sign-in ([docs/specs/google-sign-in.md](../docs/specs/google-sign-in.md))
 - [x] T40: Sign in with Google (new and returning users)
 - [ ] T41: The Account page: connect and disconnect Google
+- [ ] T42: Privacy page, and publishing the Google app
 
 ```
 (author) Google Cloud client ─┐
 T40 sign in with Google ──────┴── T41 Account page: connect / disconnect
+T42 privacy page ──── (author) publish the Google app
 ```
 T40 is the whole path from Google's button to a logged-in builds list, and it brings the
 `GoogleAccount` table. T41 adds the second way into that table (linking an existing account)
 and the page around it. Each task ships on its own. Without a client id set, neither shows a
 Google button and the API says "isn't set up", so merging before Render and Vercel have the
 id is safe. The only new dependency is `google-auth` (with `requests`), added in T40 once
-approved.
+approved. T42 (added 2026-11-08) is a static page Google needs before the app can leave
+Testing; it doesn't depend on T41, but both come before Checkpoint 14.
 
 **Before T40's manual check:** the author creates the Google Cloud consent screen and the
 OAuth client (the spec's "Setup outside the code"), and puts the client id in both `.env`
