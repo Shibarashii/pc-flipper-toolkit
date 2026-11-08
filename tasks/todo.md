@@ -1052,7 +1052,7 @@ dependencies.
 Spec: [docs/specs/google-sign-in.md](../docs/specs/google-sign-in.md). One new table, one new
 dependency (`google-auth`, approved 2026-11-07).
 
-### - [ ] T40: Sign in with Google (new and returning users)
+### - [x] T40: Sign in with Google (new and returning users)
 
 **Description:**
 - `google-auth` (with `requests`) pinned in `requirements.txt`; `GOOGLE_CLIENT_ID` from the
@@ -1081,8 +1081,10 @@ dependency (`google-auth`, approved 2026-11-07).
 - [x] Google sign-ins count toward the same 10-a-minute limit as log-in.
 - [x] Demo cleanup never deletes a Google-only account.
 - [x] Without `VITE_GOOGLE_CLIENT_ID`, the log-in and sign-up page looks exactly as today.
-- [ ] With it, on localhost, signing in with a real Google account lands on the builds list
-  (Chromium, and an iPhone if possible).
+- [x] With it, on localhost, signing in with a real Google account lands on the builds list
+  (2026-11-08, the author's browser: a new account `seanrei.ethan23`; logging out and in
+  with Google again opened the same one. On the iPhone Google refuses localhost's network
+  address, as it should: checked live instead.)
 
 **Verification:**
 - [x] Backend tests, with Google's verification mocked, plus one that runs `google-auth`'s
@@ -1092,9 +1094,10 @@ dependency (`google-auth`, approved 2026-11-07).
 - [x] Frontend tests with `window.google` stubbed (no id: no button; a credential signs in
   and navigates; an API error shows); `npm test`, `npm run lint`, `npx tsc -b`; the CSP test
 - [x] e2e unchanged and passing (no client id in CI): locally 14/14
-- [ ] Manual: a real Google sign-in on localhost with the author's client id, and the button
-  reads "Continue with Google" (with a made-up id, Google draws a fallback in the location's
-  language, though the page asks for `hl=en`)
+- [x] Manual: a real Google sign-in on localhost with the author's client id, and the button
+  reads "Continue with Google". Found by the author: the script's stand-in button flashed in
+  Tagalog first (fixed: the script loads with `?hl=en`), and in dark mode the frame had a
+  white backdrop (fixed: its container is `color-scheme: light`)
 - [x] Found while building: Google's setup guide recommends `Referrer-Policy:
   strict-origin-when-cross-origin` (was `same-origin`), and the OAuth client needs plain
   `http://localhost` as well as each port; both are in the spec. The button is pinned to

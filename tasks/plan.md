@@ -188,7 +188,7 @@ frontend treats a missing `condition` as blank.
 **Checkpoint 13 (done):** the part condition spec's success criteria 1–4 pass on the live site.
 
 ### Phase 16: Google sign-in ([docs/specs/google-sign-in.md](../docs/specs/google-sign-in.md))
-- [ ] T40: Sign in with Google (new and returning users)
+- [x] T40: Sign in with Google (new and returning users)
 - [ ] T41: The Account page: connect and disconnect Google
 
 ```
