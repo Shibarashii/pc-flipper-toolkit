@@ -564,9 +564,11 @@ function expectFooter() {
   expect(
     footer.getByRole("link", { name: "Privacy" }).getAttribute("href"),
   ).toBe("/privacy");
-  expect(
-    footer.getByRole("link", { name: "GitHub" }).getAttribute("href"),
-  ).toBe(REPO);
+  const github = footer.getByRole("link", { name: "GitHub" });
+  expect(github.getAttribute("href")).toBe(REPO);
+  // GitHub's logo, named for screen readers, with no word on screen.
+  expect(github.textContent).toBe("");
+  expect(github.querySelector("svg")).toBeTruthy();
 }
 
 test("logged out, the footer has the © line, Privacy and GitHub", () => {

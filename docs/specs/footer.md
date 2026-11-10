@@ -7,7 +7,7 @@ truth for everything else. Intent agreed in conversation on 2026-11-10.
 
 - **What:** a quiet footer at the bottom of every page, logged in or out:
   - "© 2026 Seanrei Valdeabella" on the left;
-  - "Privacy · GitHub" on the right: the privacy page, and the public repo;
+  - "Privacy · " and GitHub's logo on the right: the privacy page, and the public repo;
   - the two stacked on phones.
 - **Why:**
   - The [privacy page](google-sign-in.md) is only linked from the bottom of the log-in page, so
@@ -39,6 +39,8 @@ truth for everything else. Intent agreed in conversation on 2026-11-10.
   - Small muted text (13/18, `muted`), like the header's username.
   - From 640px: "© 2026 Seanrei Valdeabella" on the left, the links on the right. Below:
     stacked, left-aligned, the links first.
+  - **GitHub** is GitHub's mark (16px, in a 24px target), named "GitHub" for screen readers,
+    with no word on screen (changed 2026-11-10 at the author's request).
   - **Privacy** is a router link to `/privacy`. **GitHub** links to
     `https://github.com/Shibarashii/pc-flipper-toolkit` in the same tab, like any link.
   - The links are muted, ink on hover, with the brand's focus ring, separated by a `·`.

@@ -16,7 +16,9 @@ Figma: [PC Flipper Toolkit — v1 Screens](https://www.figma.com/design/Wp4dGW94
 ## Name & Logo
 
 - **Wordmark:** `PC Flipper Toolkit` in Newsreader Medium 20, ink color. Never recolor it or set it in the sans.
-- **Mark:** a serif `P` on a 4px-radius forest square (`accent` / `on-accent`). Used as the favicon and app icon.
+- **Mark:** a graphics card cut out of a green circle, the card in negative space
+  (`frontend/public/logo.png`, 256×256). Used as the favicon (changed 2026-11-10 from a serif
+  `P` on a forest square).
 
 ## Color
 
