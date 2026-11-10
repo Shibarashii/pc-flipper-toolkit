@@ -13,6 +13,7 @@ import { ThemeToggle } from "./components/ThemeToggle";
 import { BuildDetail } from "./pages/BuildDetail";
 import { BuildsList } from "./pages/BuildsList";
 import { Login } from "./pages/Login";
+import { Privacy } from "./pages/Privacy";
 import { buttonSecondary, link } from "./ui";
 
 export default function App() {
@@ -76,6 +77,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<BuildsList />} />
           <Route path="/builds/:id" element={<BuildDetail />} />
+          <Route path="/privacy" element={<Privacy />} />
           {/* Where you land right after logging in or signing up. */}
           <Route path="/login" element={<Navigate to={from} replace />} />
           <Route path="/signup" element={<Navigate to={from} replace />} />
@@ -84,6 +86,7 @@ export default function App() {
       ) : (
         <Routes>
           <Route path="/login" element={<Login key="login" mode="login" />} />
+          <Route path="/privacy" element={<Privacy />} />
           <Route
             path="/signup"
             element={<Login key="signup" mode="signup" />}

@@ -176,7 +176,7 @@ another user's build (400). A part, bundle or cost can't be moved to another bui
 
 ## Screens
 
-0. **Log in** (`/login`) and **Sign up** (`/signup`): username and password, linking to each other. Logged out, every other page redirects here; logging in goes to the builds list.
+0. **Log in** (`/login`) and **Sign up** (`/signup`): username and password, linking to each other. Logged out, every other page redirects here; logging in goes to the builds list. The footer links to **Privacy** (`/privacy`), the one page that opens logged in or out.
    - The header shows the username and "Log out" when logged in.
    - Both pages have a **"Try the demo"** button that creates a demo account and goes to the
      builds list. A demo account sees a banner under the header: it's a demo, deleted after 24
@@ -270,7 +270,7 @@ pc-flipper-toolkit/
 │   └── src/
 │       ├── api.ts         fetch helpers and TS types matching the API
 │       ├── money.ts       ₱ formatting
-│       ├── pages/         BuildsList.tsx, BuildDetail.tsx, Login.tsx
+│       ├── pages/         BuildsList.tsx, BuildDetail.tsx, Login.tsx, Privacy.tsx
 │       └── components/    PartsTable.tsx, ExtraCosts.tsx, Summary.tsx, ...
 ├── docs/ideas/            Idea one-pagers, and backlog.md: rough ideas and parked decisions
 ├── docs/intent/           Confirmed statements of intent (the app, e2e tests, demo account)

@@ -1152,14 +1152,14 @@ dependency (`google-auth`, approved 2026-11-07).
   the privacy policy URL, verifying the domain if Google asks.
 
 **Acceptance criteria:**
-- [ ] `/privacy` opens logged out and logged in, and from the log-in page's link.
-- [ ] It fits 375px, light and dark, and follows the brand guidelines.
+- [x] `/privacy` opens logged out and logged in, and from the log-in page's link.
+- [x] It fits 375px, light and dark, and follows the brand guidelines.
 - [ ] (author) The Google app is published, so any Google account can sign in.
 
 **Verification:**
-- [ ] Frontend tests for the page and the link
-- [ ] All the commands from T40; e2e unchanged and passing
-- [ ] Screenshots: desktop and 375px, light and dark
+- [x] Frontend tests for the page and the link
+- [x] All the commands from T40; e2e unchanged and passing
+- [x] Screenshots: desktop and 375px, light and dark
 
 **Dependencies:** none (publishing needs it live)
 **Files:** a new `frontend/src/pages/Privacy.tsx` and its test, `frontend/src/App.tsx`, `frontend/src/pages/Login.tsx`

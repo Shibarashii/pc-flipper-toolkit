@@ -392,3 +392,25 @@ test("a refused Google sign-in shows the server's message", async () => {
   );
   expect(getToken()).toBe("");
 });
+
+test("the privacy page opens from the log-in page, logged out", () => {
+  const fetchMock = stubFetch();
+  renderAt("/login");
+  fireEvent.click(screen.getByRole("link", { name: "Privacy" }));
+
+  expect(screen.getByRole("heading", { name: "Privacy" })).toBeTruthy();
+  expect(
+    screen.getByRole("heading", { name: "Deleting your account" }),
+  ).toBeTruthy();
+  expect(screen.getByRole("link", { name: /@/ }).getAttribute("href")).toMatch(
+    /^mailto:.+@.+/,
+  );
+  expect(fetchMock).not.toHaveBeenCalled();
+});
+
+test("the privacy page opens logged in too", () => {
+  saveSession({ token: "abc", username: "carol" });
+  stubFetch();
+  renderAt("/privacy");
+  expect(screen.getByRole("heading", { name: "Privacy" })).toBeTruthy();
+});
