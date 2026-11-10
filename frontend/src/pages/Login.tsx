@@ -168,6 +168,12 @@ export function Login({ mode }: { mode: keyof typeof MODES }) {
           {other.link}
         </Link>
       </p>
+
+      <p className="mt-10 text-[13px] leading-[18px]">
+        <Link to="/privacy" className="text-muted hover:underline">
+          Privacy
+        </Link>
+      </p>
     </main>
   );
 }
