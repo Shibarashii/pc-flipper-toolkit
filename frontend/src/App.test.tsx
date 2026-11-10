@@ -582,7 +582,7 @@ function expectFooter() {
   }
 }
 
-test("logged out, the footer has the © line, Privacy and GitHub", () => {
+test("logged out, the footer has the © line, Privacy, GitHub and LinkedIn", () => {
   stubFetch();
   renderAt("/login");
   expectFooter();
