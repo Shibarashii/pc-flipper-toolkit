@@ -234,3 +234,118 @@ class RealVerificationTests(TestCase):
         ]:
             with self.subTest(why), self.assertRaises(google.InvalidToken):
                 google.verify(credential)
+
+
+CONNECT = "/api/auth/google/connect/"
+
+
+@override_settings(GOOGLE_CLIENT_ID=CLIENT_ID)
+class ConnectTests(APITestCase):
+    """The Account page: connect and disconnect Google on an account you're logged into."""
+
+    def setUp(self):
+        cache.clear()
+        self.carol = User.objects.create_user("carol", password="x-Long-enough-1")
+        self.client.force_authenticate(self.carol)
+
+    def connect(self):
+        return self.client.post(CONNECT, {"credential": "a-token"}, format="json")
+
+    def me(self):
+        return self.client.get("/api/auth/me/").json()
+
+    def test_me_says_whats_connected_and_how_you_can_get_in(self):
+        self.assertEqual(
+            self.me(),
+            {
+                "username": "carol",
+                "google": None,
+                "has_password": True,
+                "is_demo": False,
+            },
+        )
+
+    def test_connecting_then_google_sign_in_opens_this_account(self):
+        with signs_in_as(sub="777", email="c@gmail.com"):
+            res = self.connect()
+        self.assertEqual(res.status_code, 200, res.content)
+        self.assertEqual(res.json(), {"google": {"email": "c@gmail.com"}})
+        self.assertEqual(self.me()["google"], {"email": "c@gmail.com"})
+
+        self.client.force_authenticate(None)
+        with signs_in_as(sub="777", email="c@gmail.com"):
+            res = self.client.post(SIGN_IN, {"credential": "t"}, format="json")
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.json()["username"], "carol")
+
+    def test_a_google_account_connected_elsewhere_is_refused(self):
+        dave = User.objects.create_user("dave")
+        GoogleAccount.objects.create(user=dave, sub="777", email="d@gmail.com")
+        with signs_in_as(sub="777"):
+            res = self.connect()
+        self.assertEqual(res.status_code, 400)
+        self.assertEqual(
+            res.json()["non_field_errors"],
+            ["This Google account is connected to another account."],
+        )
+        self.assertEqual(dave.google.sub, "777")
+        self.assertIsNone(self.me()["google"])
+
+    def test_a_second_google_account_is_refused(self):
+        GoogleAccount.objects.create(user=self.carol, sub="1", email="c@gmail.com")
+        with signs_in_as(sub="2") as verify:
+            res = self.connect()
+        self.assertEqual(res.status_code, 400)
+        self.assertEqual(res.json()["non_field_errors"], ["Disconnect Google first."])
+        verify.assert_not_called()
+
+    def test_a_demo_cant_connect(self):
+        demo = User.objects.create_user("demo-abc")  # no usable password
+        self.client.force_authenticate(demo)
+        self.assertTrue(self.me()["is_demo"])
+        self.assertFalse(self.me()["has_password"])
+        with signs_in_as() as verify:
+            res = self.connect()
+        self.assertEqual(res.status_code, 400)
+        self.assertEqual(
+            res.json()["non_field_errors"],
+            ["Demo accounts can't connect Google. Sign up for your own account first."],
+        )
+        verify.assert_not_called()
+        self.assertFalse(GoogleAccount.objects.exists())
+
+    def test_a_bad_token_is_400_on_credential(self):
+        with mock.patch.object(google, "verify", side_effect=google.InvalidToken):
+            res = self.connect()
+        self.assertEqual(res.status_code, 400)
+        self.assertEqual(
+            res.json()["credential"], ["Google sign-in didn't work. Try again."]
+        )
+
+    def test_disconnecting_with_a_password(self):
+        GoogleAccount.objects.create(user=self.carol, sub="1", email="c@gmail.com")
+        self.assertEqual(self.client.delete(CONNECT).status_code, 204)
+        self.assertFalse(GoogleAccount.objects.exists())
+        self.assertIsNone(self.me()["google"])
+
+    def test_disconnecting_without_a_password_is_refused(self):
+        self.carol.set_unusable_password()
+        self.carol.save()
+        GoogleAccount.objects.create(user=self.carol, sub="1", email="c@gmail.com")
+        res = self.client.delete(CONNECT)
+        self.assertEqual(res.status_code, 400)
+        self.assertEqual(
+            res.json()["non_field_errors"],
+            ["Set up a password first; it's the only other way in."],
+        )
+        self.assertTrue(GoogleAccount.objects.exists())
+
+    def test_disconnecting_with_nothing_connected_is_400(self):
+        res = self.client.delete(CONNECT)
+        self.assertEqual(res.status_code, 400)
+        self.assertIn("non_field_errors", res.json())
+
+    def test_logged_out_its_401(self):
+        self.client.force_authenticate(None)
+        self.assertEqual(self.connect().status_code, 401)
+        self.assertEqual(self.client.delete(CONNECT).status_code, 401)

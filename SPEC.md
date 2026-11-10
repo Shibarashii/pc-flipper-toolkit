@@ -125,8 +125,10 @@ a 404, and in a body it's a 400 under the field ([public ids spec](docs/specs/pu
 | POST | `/api/auth/login/` | Log in → `{token, username}` |
 | POST | `/api/auth/logout/` | Delete the current token |
 | POST | `/api/auth/demo/` | Create a demo account with the sample builds → `{token, username}` (201) |
-| GET | `/api/auth/me/` | The logged-in user (`{username}`) |
+| GET | `/api/auth/me/` | The logged-in user: `{username, google, has_password, is_demo}`, where `google` is `{email}` or `null` |
 | POST | `/api/auth/google/` | Sign in with Google's ID token (`credential`) → `{token, username}`; 201 when it makes the account ([spec](docs/specs/google-sign-in.md)) |
+| POST | `/api/auth/google/connect/` | Connect the Google account in `credential` to the logged-in user → `{google: {email}}`; 400 for a demo, a second one, or one connected elsewhere |
+| DELETE | `/api/auth/google/connect/` | Disconnect it (204); 400 without a password, the only other way in |
 | GET, POST | `/api/builds/` | List builds (with totals) / create a build |
 | GET, PATCH, DELETE | `/api/builds/{id}/` | Build detail, including `parts`, `bundles`, `extra_costs` and `totals` |
 | POST | `/api/parts/` | Add a part (`build` id in the body) |
@@ -177,7 +179,7 @@ another user's build (400). A part, bundle or cost can't be moved to another bui
 ## Screens
 
 0. **Log in** (`/login`) and **Sign up** (`/signup`): username and password, linking to each other. Logged out, every other page redirects here; logging in goes to the builds list. The footer links to **Privacy** (`/privacy`), the one page that opens logged in or out.
-   - The header shows the username and "Log out" when logged in.
+   - The header shows the username and "Log out" when logged in. The username (an icon on phones) opens **Account** (`/account`): connect Google to sign in with it too, or disconnect it when the account has a password ([spec](docs/specs/google-sign-in.md)).
    - Both pages have a **"Try the demo"** button that creates a demo account and goes to the
      builds list. A demo account sees a banner under the header: it's a demo, deleted after 24
      hours, ending in a "Sign up for your own account" link that ends the demo and opens sign-up
@@ -270,7 +272,7 @@ pc-flipper-toolkit/
 │   └── src/
 │       ├── api.ts         fetch helpers and TS types matching the API
 │       ├── money.ts       ₱ formatting
-│       ├── pages/         BuildsList.tsx, BuildDetail.tsx, Login.tsx, Privacy.tsx
+│       ├── pages/         BuildsList.tsx, BuildDetail.tsx, Login.tsx, Account.tsx, Privacy.tsx
 │       └── components/    PartsTable.tsx, ExtraCosts.tsx, Summary.tsx, ...
 ├── docs/ideas/            Idea one-pagers, and backlog.md: rough ideas and parked decisions
 ├── docs/intent/           Confirmed statements of intent (the app, e2e tests, demo account)

@@ -860,7 +860,7 @@ class AuthTests(APITestCase):
         self.assertEqual(res.status_code, 201)
         self.assertEqual(res.json()["username"], "carol")
         self.client.credentials(HTTP_AUTHORIZATION=f"Token {res.json()['token']}")
-        self.assertEqual(self.client.get("/api/auth/me/").json(), {"username": "carol"})
+        self.assertEqual(self.client.get("/api/auth/me/").json()["username"], "carol")
         self.assertEqual(self.client.get("/api/builds/").json(), [])
 
         self.assertEqual(self.post("/api/auth/logout/").status_code, 204)

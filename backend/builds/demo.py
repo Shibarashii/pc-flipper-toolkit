@@ -21,12 +21,12 @@ PREFIX = "demo-"
 LIFETIME = timedelta(hours=24)
 
 
+def is_demo(user) -> bool:
+    return user.username.startswith(PREFIX) and not user.has_usable_password()
+
+
 def is_expired_demo(user) -> bool:
-    return (
-        user.username.startswith(PREFIX)
-        and not user.has_usable_password()
-        and user.date_joined < timezone.now() - LIFETIME
-    )
+    return is_demo(user) and user.date_joined < timezone.now() - LIFETIME
 
 
 def delete_expired_demos() -> None:
