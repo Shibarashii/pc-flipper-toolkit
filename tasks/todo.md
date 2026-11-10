@@ -1141,7 +1141,7 @@ dependency (`google-auth`, approved 2026-11-07).
 **Files:** `backend/builds/auth.py`, `backend/config/urls.py`, `backend/builds/tests.py`, `frontend/src/api.ts`, a new `frontend/src/pages/Account.tsx` and its test, `frontend/src/App.tsx`, `SPEC.md`
 **Scope:** M
 
-### - [ ] T42: Privacy page, and publishing the Google app
+### - [x] T42: Privacy page, and publishing the Google app
 
 **Description:**
 - A `/privacy` page anyone can open, logged in or not: what the app stores (the username,
@@ -1154,7 +1154,7 @@ dependency (`google-auth`, approved 2026-11-07).
 **Acceptance criteria:**
 - [x] `/privacy` opens logged out and logged in, and from the log-in page's link.
 - [x] It fits 375px, light and dark, and follows the brand guidelines.
-- [ ] (author) The Google app is published, so any Google account can sign in.
+- [x] (author) The Google app is published, so any Google account can sign in.
 
 **Verification:**
 - [x] Frontend tests for the page and the link
@@ -1166,7 +1166,7 @@ dependency (`google-auth`, approved 2026-11-07).
 **Scope:** S
 
 ### Checkpoint 14: Google sign-in
-- [ ] The Google app is published (T42)
+- [x] The Google app is published (T42)
 - [ ] Render has `GOOGLE_CLIENT_ID`; Vercel has `VITE_GOOGLE_CLIENT_ID` and was redeployed
 - [ ] The spec's success criteria 1–5 pass on the live site: a new Google sign-in, connecting
   a password account and signing in with Google to its builds, disconnecting, a second
