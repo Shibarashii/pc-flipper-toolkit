@@ -153,7 +153,9 @@ function Footer() {
         <NavLink to="/privacy" className={footerLink}>
           Privacy
         </NavLink>
-        <span aria-hidden> · </span>
+        <span aria-hidden className="mx-2">
+          ·
+        </span>
         <a
           href="https://github.com/Shibarashii/pc-flipper-toolkit"
           className={footerLink}
