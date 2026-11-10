@@ -1107,7 +1107,7 @@ dependency (`google-auth`, approved 2026-11-07).
 **Files:** `backend/requirements.txt`, `backend/config/settings.py`, `backend/config/urls.py`, `backend/builds/models.py`, a new `backend/builds/migrations/0009_*.py`, a new `backend/builds/google.py`, `backend/builds/auth.py`, `backend/builds/tests.py`, a new `frontend/src/google.ts`, `frontend/src/api.ts`, `frontend/src/pages/Login.tsx` and its test, `frontend/vercel.json`, `frontend/.env.example`, `README.md`, `SPEC.md`
 **Scope:** L (about 15 files, but one path: button to token to session)
 
-### - [ ] T41: The Account page: connect and disconnect Google
+### - [x] T41: The Account page: connect and disconnect Google
 
 **Description:**
 - `GET /api/auth/me/` adds `google` (`{email}` or `null`), `has_password` and `is_demo`.
@@ -1133,7 +1133,7 @@ dependency (`google-auth`, approved 2026-11-07).
 - [x] Backend tests for each connect and disconnect case and the new `me` fields
 - [x] Frontend tests for each Account state and error; the header link
 - [x] All the commands from T40; e2e unchanged and passing
-- [ ] Manual on localhost with a real Google account: connect, log out, sign in with Google
+- [x] Manual on localhost with a real Google account: connect, log out, sign in with Google
   (same builds), disconnect
 - [x] Screenshots: desktop and 375px, light and dark
 

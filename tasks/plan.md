@@ -189,7 +189,7 @@ frontend treats a missing `condition` as blank.
 
 ### Phase 16: Google sign-in ([docs/specs/google-sign-in.md](../docs/specs/google-sign-in.md))
 - [x] T40: Sign in with Google (new and returning users)
-- [ ] T41: The Account page: connect and disconnect Google
+- [x] T41: The Account page: connect and disconnect Google
 - [x] T42: Privacy page, and publishing the Google app
 
 ```
