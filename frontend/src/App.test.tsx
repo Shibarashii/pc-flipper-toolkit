@@ -557,6 +557,7 @@ test("Account says so when it can't load", async () => {
 });
 
 const REPO = "https://github.com/Shibarashii/pc-flipper-toolkit";
+const LINKEDIN = "https://www.linkedin.com/in/seanrei-valdeabella/";
 
 function expectFooter() {
   const footer = within(screen.getByRole("contentinfo"));
@@ -564,12 +565,24 @@ function expectFooter() {
   expect(
     footer.getByRole("link", { name: "Privacy" }).getAttribute("href"),
   ).toBe("/privacy");
-  expect(
-    footer.getByRole("link", { name: "GitHub" }).getAttribute("href"),
-  ).toBe(REPO);
+  // GitHub's and LinkedIn's logos, named for screen readers, with no word on screen.
+  for (const [name, href] of [
+    ["GitHub", REPO],
+    ["LinkedIn", LINKEDIN],
+  ]) {
+    // They leave the app, so they open in a new tab, and say so.
+    const icon = footer.getByRole("link", {
+      name: `${name} (opens in a new tab)`,
+    });
+    expect(icon.getAttribute("href")).toBe(href);
+    expect(icon.getAttribute("target")).toBe("_blank");
+    expect(icon.getAttribute("rel")).toBe("noreferrer");
+    expect(icon.textContent).toBe("");
+    expect(icon.querySelector("svg")).toBeTruthy();
+  }
 }
 
-test("logged out, the footer has the © line, Privacy and GitHub", () => {
+test("logged out, the footer has the © line, Privacy, GitHub and LinkedIn", () => {
   stubFetch();
   renderAt("/login");
   expectFooter();

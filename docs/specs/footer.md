@@ -7,7 +7,8 @@ truth for everything else. Intent agreed in conversation on 2026-11-10.
 
 - **What:** a quiet footer at the bottom of every page, logged in or out:
   - "© 2026 Seanrei Valdeabella" on the left;
-  - "Privacy · GitHub" on the right: the privacy page, and the public repo;
+  - "Privacy · " then GitHub's and LinkedIn's logos on the right: the privacy page, the public
+    repo and the author's profile;
   - the two stacked on phones.
 - **Why:**
   - The [privacy page](google-sign-in.md) is only linked from the bottom of the log-in page, so
@@ -17,7 +18,7 @@ truth for everything else. Intent agreed in conversation on 2026-11-10.
 
 ### User stories
 
-1. On any page, at the bottom, I see who made the app, and links to Privacy and GitHub.
+1. On any page, at the bottom, I see who made the app, and links to Privacy, GitHub and LinkedIn.
 2. On a short page (Log in, Account, Privacy, an empty builds list), the footer sits at the
    bottom of the window, not halfway up under the content.
 3. On a long page (a build with many parts), the footer comes after the content, and I only
@@ -26,7 +27,7 @@ truth for everything else. Intent agreed in conversation on 2026-11-10.
 ### Out of scope
 
 - A multi-column footer, Terms of service, a contact email (the privacy page has it), social
-  links, a version number.
+  links beyond GitHub and LinkedIn, a version number.
 - A footer fixed to the screen while scrolling.
 
 ## Frontend
@@ -39,8 +40,13 @@ truth for everything else. Intent agreed in conversation on 2026-11-10.
   - Small muted text (13/18, `muted`), like the header's username.
   - From 640px: "© 2026 Seanrei Valdeabella" on the left, the links on the right. Below:
     stacked, left-aligned, the links first.
+  - **GitHub** and **LinkedIn** are their marks (16px, in a 24px target), named for screen
+    readers, with no word on screen (changed 2026-11-10 at the author's request).
   - **Privacy** is a router link to `/privacy`. **GitHub** links to
-    `https://github.com/Shibarashii/pc-flipper-toolkit` in the same tab, like any link.
+    `https://github.com/Shibarashii/pc-flipper-toolkit`, **LinkedIn** to
+    `https://www.linkedin.com/in/seanrei-valdeabella/`. Both leave the app, so they open in a
+    new tab (`rel="noreferrer"`), and their names say "(opens in a new tab)" (changed
+    2026-11-10 at the author's request).
   - The links are muted, ink on hover, with the brand's focus ring, separated by a `·`.
   - The year is fixed (2026, the year in the MIT licence), not today's year.
 - **Log-in page:** its own "Privacy" link goes; the footer replaces it.
@@ -66,7 +72,7 @@ docs/brand-guidelines.md Components: Footer
 
 - **Frontend (unit):**
   - Logged out (log-in page) and logged in (builds list): the footer shows the © line, a
-    Privacy link to `/privacy` and a GitHub link to the repo.
+    Privacy link to `/privacy`, and GitHub and LinkedIn links that open in a new tab.
   - The existing "privacy page opens from the log-in page" test now uses the footer's link;
     there is exactly one Privacy link on the page.
 - **E2E:** jsdom can't lay out a page, so the flip test, on its sign-up page, checks that the
@@ -84,8 +90,8 @@ docs/brand-guidelines.md Components: Footer
 
 ## Success Criteria
 
-1. Every page, logged in or out, shows the footer with "© 2026 Seanrei Valdeabella", Privacy
-   and GitHub.
+1. Every page, logged in or out, shows the footer with "© 2026 Seanrei Valdeabella", Privacy,
+   GitHub and LinkedIn.
 2. On short pages it sits at the bottom of the window; on long ones it comes after the
    content; it never covers anything.
 3. It fits at 375px (stacked) and desktop (one line), light and dark.
@@ -95,4 +101,5 @@ docs/brand-guidelines.md Components: Footer
 ## Open Questions
 
 None. Decided 2026-11-10: © with the author's name, Privacy and GitHub, stacked on phones, at
-the bottom of the window on short pages, never fixed.
+the bottom of the window on short pages, never fixed. Later the same day: GitHub and
+LinkedIn as logos, opening in a new tab.
