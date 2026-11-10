@@ -213,6 +213,19 @@ files.
 the client id set on Render and Vercel (Vercel builds it in, so it needs a redeploy after
 setting it).
 
+### Phase 17: Footer ([docs/specs/footer.md](../docs/specs/footer.md))
+- [ ] T43: A footer on every page, at the bottom of the window on short pages
+
+```
+T43 footer (layout + Footer + Login's link goes) ── Checkpoint 15
+```
+One task: the footer is a few lines, and it only makes sense with the layout that holds it at
+the bottom, so they ship together. Frontend only; no API, data or dependency change. It also
+makes Privacy reachable when logged in, which T42 left out.
+
+**Checkpoint 15:** the footer spec's success criteria 1–4 pass on the live site, at desktop
+and on the author's phone.
+
 ## Risks and Mitigations
 
 | Risk | Impact | Mitigation |
@@ -250,6 +263,7 @@ setting it).
 | Someone locks themselves out by disconnecting Google | Med | Disconnect is refused without a usable password (T41) |
 | Demo cleanup deletes a Google-only account (no password, like a demo) | High | Google usernames never start with `demo-`; a test with an old Google-only account (T40) |
 | Two Google sign-ins pick the same new username at once | Low | Catch the unique-name error and try the next number, as sign-up already does (T40) |
+| A page that sets its own height breaks the column, leaving a gap or a scrollbar under the footer | Low | Only the wrapper sets a height (`min-h-dvh`); the flip e2e test checks the footer touches the window's bottom at desktop and 375px (T43) |
 
 ## Open Questions
 
