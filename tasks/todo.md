@@ -1172,3 +1172,44 @@ dependency (`google-auth`, approved 2026-11-07).
   a password account and signing in with Google to its builds, disconnecting, a second
   account refused, and password log-in, sign-up and the demo unchanged (checked by the author, including on an iPhone, 2026-11-10)
 - [x] All tests pass on `main`
+
+## Phase 17: Footer
+
+Spec: [docs/specs/footer.md](../docs/specs/footer.md). Frontend only.
+
+### - [x] T43: A footer on every page, at the bottom of the window on short pages
+
+**Description:**
+- `App.tsx`: the header, demo banner, page and footer in a column at least as tall as the
+  window (`min-h-dvh`); the page part grows.
+- `Footer` in `App.tsx`: a hairline above; "© 2026 Seanrei Valdeabella" left, "Privacy ·
+  GitHub" right from 640px, stacked (links first) below; small, muted, focus rings; the same
+  side padding as the header.
+- `Login.tsx`: its own Privacy link goes.
+- `SPEC.md` (Screens) and `docs/brand-guidelines.md` (Components) mention the footer.
+
+**Acceptance criteria:**
+- [x] Every page, logged in or out, shows the footer with the © line, Privacy (`/privacy`) and
+  GitHub (the repo).
+- [x] On short pages it sits at the bottom of the window; on long pages after the content;
+  it's never fixed.
+- [x] The log-in page has exactly one Privacy link, in the footer.
+- [x] It fits at 375px (stacked) and desktop (one line), light and dark.
+
+**Verification:**
+- [x] Frontend tests: the footer logged out and logged in, with both links; the privacy test
+  uses the footer's link
+- [x] The flip e2e test checks the footer's bottom is the window's bottom on the sign-up page
+  (desktop and 375px)
+- [x] `npm test`, `npm run lint`, `npx tsc -b`, `npx prettier --check src`, `npx playwright test`
+- [x] Screenshots: Log in, a builds list and a long build page; desktop and 375px; light and
+  dark
+
+**Dependencies:** none
+**Files:** `frontend/src/App.tsx`, `frontend/src/pages/Login.tsx`, `frontend/src/App.test.tsx`, `frontend/e2e/flip.spec.ts`, `SPEC.md`, `docs/brand-guidelines.md`
+**Scope:** S
+
+### Checkpoint 15: Footer
+- [ ] The footer spec's success criteria 1–4 pass on the live site, at desktop and on the
+  author's phone
+- [ ] All tests pass on `main`

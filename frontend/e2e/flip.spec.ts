@@ -30,16 +30,33 @@ async function fill(
   ).toBeVisible();
 }
 
+/**
+ * The footer ends where the page ends, and the page is at least as tall as the window: on a
+ * short page it sits at the bottom of the window, on a long one after the content.
+ */
+async function expectFooterAtTheEnd(page: Page) {
+  // Boxes are measured from the window's top, so the page's own box starts at -scroll.
+  const footer = await page.getByRole("contentinfo").boundingBox();
+  const html = await page.locator("html").boundingBox();
+  expect(footer && html).toBeTruthy();
+  expect(Math.round(footer!.y + footer!.height - html!.y)).toBe(
+    Math.round(html!.height),
+  );
+  expect(html!.height).toBeGreaterThanOrEqual(page.viewportSize()!.height);
+}
+
 test("flip a PC: sign up, add parts and a bundle, price it, delete it", async ({
   page,
 }, testInfo) => {
   // A fresh user each run, so runs never share data.
   const username = `e2e-${testInfo.project.name}-${Date.now()}`;
   await page.goto("/signup");
+  await expectFooterAtTheEnd(page);
   await page.getByLabel("Username").fill(username);
   await page.getByLabel("Password").fill("correct-horse-battery-staple");
   await page.getByRole("button", { name: "Create account" }).click();
   await expect(page.getByText("No builds yet")).toBeVisible();
+  await expectFooterAtTheEnd(page);
 
   await page.getByRole("button", { name: "New build" }).click();
   await page.getByLabel("Name").fill("Ryzen 5 7600 + RTX 4060");

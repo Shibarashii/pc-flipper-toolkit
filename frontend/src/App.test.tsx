@@ -1,4 +1,10 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { getBuild } from "./api";
@@ -402,6 +408,10 @@ test("the privacy page opens from the log-in page, logged out", () => {
   expect(
     screen.getByRole("heading", { name: "Deleting your account" }),
   ).toBeTruthy();
+  // The footer's link says it's the page you're on.
+  expect(
+    screen.getByRole("link", { name: "Privacy" }).getAttribute("aria-current"),
+  ).toBe("page");
   expect(screen.getByRole("link", { name: /@/ }).getAttribute("href")).toMatch(
     /^mailto:.+@.+/,
   );
@@ -544,4 +554,33 @@ test("Account says so when it can't load", async () => {
   expect((await screen.findByRole("alert")).textContent).toContain(
     "Couldn’t load your account",
   );
+});
+
+const REPO = "https://github.com/Shibarashii/pc-flipper-toolkit";
+
+function expectFooter() {
+  const footer = within(screen.getByRole("contentinfo"));
+  expect(footer.getByText("© 2026 Seanrei Valdeabella")).toBeTruthy();
+  expect(
+    footer.getByRole("link", { name: "Privacy" }).getAttribute("href"),
+  ).toBe("/privacy");
+  expect(
+    footer.getByRole("link", { name: "GitHub" }).getAttribute("href"),
+  ).toBe(REPO);
+}
+
+test("logged out, the footer has the © line, Privacy and GitHub", () => {
+  stubFetch();
+  renderAt("/login");
+  expectFooter();
+  // The footer's is the log-in page's only Privacy link.
+  expect(screen.getAllByRole("link", { name: "Privacy" })).toHaveLength(1);
+});
+
+test("logged in, the footer is there too, so Privacy is reachable", async () => {
+  saveSession({ token: "abc", username: "carol" });
+  stubFetch(() => Response.json([]));
+  renderAt("/");
+  await screen.findByRole("heading", { name: "Builds" });
+  expectFooter();
 });

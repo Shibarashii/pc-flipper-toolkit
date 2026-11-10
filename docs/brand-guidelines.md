@@ -71,6 +71,8 @@ Add `tabular-nums` to every element that shows money.
 Button (primary / secondary / danger), Status tag (outlined, 1px border in the status color), Field
 (input / select), IconButton (edit / delete, needs `aria-label`), ProfitHero, BuildRow / BuildCard,
 PartRow / PartCard, CostRow, SummaryItem. Parts and builds become stacked cards below 640px.
+Footer: one line under a `line` hairline, `small` in `muted`, links ink on hover; stacked
+(links first) below 640px.
 
 ## Signature
 
