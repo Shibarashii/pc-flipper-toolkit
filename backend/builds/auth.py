@@ -203,6 +203,9 @@ class GoogleView(PublicAuthView):
                 GoogleAccount.objects.select_related("user").filter(sub=sub).first()
             )
             if account:
+                # Password log-in refuses inactive users too (Django's authenticate).
+                if not account.user.is_active:
+                    break
                 if account.email != email:  # shown on Account; Google's can change
                     account.email = email
                     account.save(update_fields=["email"])

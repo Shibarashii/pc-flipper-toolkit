@@ -1,6 +1,7 @@
 """Sign in with Google: check Google's ID token, and pick a new account's username
 (docs/specs/google-sign-in.md)."""
 
+import functools
 import re
 
 from django.conf import settings
@@ -14,8 +15,9 @@ from .demo import PREFIX as DEMO_PREFIX
 User = get_user_model()
 
 # ponytail: fetches Google's public keys on every sign-in. Cache them (they rotate about
-# daily) if sign-ins ever get frequent.
-REQUEST = Request()
+# daily) if sign-ins ever get frequent. Gives up after 10 seconds (the default is 120), so a
+# hung Google can't hold a server worker.
+REQUEST = functools.partial(Request(), timeout=10)
 
 NOT_ALLOWED = re.compile(r"[^A-Za-z0-9@.+_-]")
 LONGEST = 140  # leaves room for a number within the 150-character limit
