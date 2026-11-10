@@ -214,7 +214,7 @@ the client id set on Render and Vercel (Vercel builds it in, so it needs a redep
 setting it).
 
 ### Phase 17: Footer ([docs/specs/footer.md](../docs/specs/footer.md))
-- [ ] T43: A footer on every page, at the bottom of the window on short pages
+- [x] T43: A footer on every page, at the bottom of the window on short pages
 
 ```
 T43 footer (layout + Footer + Login's link goes) ── Checkpoint 15

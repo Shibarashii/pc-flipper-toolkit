@@ -1177,7 +1177,7 @@ dependency (`google-auth`, approved 2026-11-07).
 
 Spec: [docs/specs/footer.md](../docs/specs/footer.md). Frontend only.
 
-### - [ ] T43: A footer on every page, at the bottom of the window on short pages
+### - [x] T43: A footer on every page, at the bottom of the window on short pages
 
 **Description:**
 - `App.tsx`: the header, demo banner, page and footer in a column at least as tall as the
@@ -1189,20 +1189,20 @@ Spec: [docs/specs/footer.md](../docs/specs/footer.md). Frontend only.
 - `SPEC.md` (Screens) and `docs/brand-guidelines.md` (Components) mention the footer.
 
 **Acceptance criteria:**
-- [ ] Every page, logged in or out, shows the footer with the © line, Privacy (`/privacy`) and
+- [x] Every page, logged in or out, shows the footer with the © line, Privacy (`/privacy`) and
   GitHub (the repo).
-- [ ] On short pages it sits at the bottom of the window; on long pages after the content;
+- [x] On short pages it sits at the bottom of the window; on long pages after the content;
   it's never fixed.
-- [ ] The log-in page has exactly one Privacy link, in the footer.
-- [ ] It fits at 375px (stacked) and desktop (one line), light and dark.
+- [x] The log-in page has exactly one Privacy link, in the footer.
+- [x] It fits at 375px (stacked) and desktop (one line), light and dark.
 
 **Verification:**
-- [ ] Frontend tests: the footer logged out and logged in, with both links; the privacy test
+- [x] Frontend tests: the footer logged out and logged in, with both links; the privacy test
   uses the footer's link
-- [ ] The flip e2e test checks the footer's bottom is the window's bottom on the sign-up page
+- [x] The flip e2e test checks the footer's bottom is the window's bottom on the sign-up page
   (desktop and 375px)
-- [ ] `npm test`, `npm run lint`, `npx tsc -b`, `npx prettier --check src`, `npx playwright test`
-- [ ] Screenshots: Log in, a builds list and a long build page; desktop and 375px; light and
+- [x] `npm test`, `npm run lint`, `npx tsc -b`, `npx prettier --check src`, `npx playwright test`
+- [x] Screenshots: Log in, a builds list and a long build page; desktop and 375px; light and
   dark
 
 **Dependencies:** none

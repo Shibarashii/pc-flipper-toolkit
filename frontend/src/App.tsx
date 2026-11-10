@@ -41,7 +41,8 @@ export default function App() {
   }
 
   return (
-    <>
+    // A column at least as tall as the window: on short pages the footer sits at the bottom.
+    <div className="flex min-h-dvh flex-col">
       <header className="flex items-center justify-between gap-4 border-b border-line px-4 py-3 sm:px-10">
         <Link to="/" className="font-serif text-xl leading-7 font-medium">
           PC Flipper Toolkit
@@ -98,41 +99,67 @@ export default function App() {
           </button>
         </p>
       )}
-      {session ? (
-        <Routes>
-          <Route path="/" element={<BuildsList />} />
-          <Route path="/builds/:id" element={<BuildDetail />} />
-          <Route path="/privacy" element={<Privacy />} />
-          <Route path="/account" element={<Account />} />
-          {/* Where you land right after logging in or signing up. */}
-          <Route path="/login" element={<Navigate to={from} replace />} />
-          <Route path="/signup" element={<Navigate to={from} replace />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      ) : (
-        <Routes>
-          <Route path="/login" element={<Login key="login" mode="login" />} />
-          <Route path="/privacy" element={<Privacy />} />
-          <Route
-            path="/signup"
-            element={<Login key="signup" mode="signup" />}
-          />
-          <Route
-            path="*"
-            element={
-              <Navigate
-                to="/login"
-                replace
-                state={
-                  hadSession
-                    ? undefined
-                    : { from: location.pathname + location.search }
-                }
-              />
-            }
-          />
-        </Routes>
-      )}
-    </>
+      <div className="flex-1">
+        {session ? (
+          <Routes>
+            <Route path="/" element={<BuildsList />} />
+            <Route path="/builds/:id" element={<BuildDetail />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/account" element={<Account />} />
+            {/* Where you land right after logging in or signing up. */}
+            <Route path="/login" element={<Navigate to={from} replace />} />
+            <Route path="/signup" element={<Navigate to={from} replace />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        ) : (
+          <Routes>
+            <Route path="/login" element={<Login key="login" mode="login" />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route
+              path="/signup"
+              element={<Login key="signup" mode="signup" />}
+            />
+            <Route
+              path="*"
+              element={
+                <Navigate
+                  to="/login"
+                  replace
+                  state={
+                    hadSession
+                      ? undefined
+                      : { from: location.pathname + location.search }
+                  }
+                />
+              }
+            />
+          </Routes>
+        )}
+      </div>
+      <Footer />
+    </div>
+  );
+}
+
+const footerLink = `rounded hover:text-ink ${focusRing}`;
+
+/** On every page: who made it, and the links that aren't part of the app itself. */
+function Footer() {
+  return (
+    <footer className="flex flex-col gap-1 border-t border-line px-4 py-4 text-[13px] leading-[18px] text-muted sm:flex-row-reverse sm:justify-between sm:px-10">
+      <p>
+        <Link to="/privacy" className={footerLink}>
+          Privacy
+        </Link>
+        {" · "}
+        <a
+          href="https://github.com/Shibarashii/pc-flipper-toolkit"
+          className={footerLink}
+        >
+          GitHub
+        </a>
+      </p>
+      <p>© 2026 Seanrei Valdeabella</p>
+    </footer>
   );
 }
