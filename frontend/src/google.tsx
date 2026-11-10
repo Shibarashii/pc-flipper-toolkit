@@ -100,6 +100,12 @@ export function GoogleButton({
 
   // Google's button is 40px high: keep the room while it loads. Its frame is a light page;
   // inside our dark theme the browser would paint it an opaque white background, unless
-  // the frame's container is light too.
-  return <div ref={parent} className="min-h-10 [color-scheme:light]" />;
+  // the frame's container is light too. While the frame loads, Google also draws a stand-in
+  // next to it whose styles our CSP blocks (a full-width logo): only the frame is shown.
+  return (
+    <div
+      ref={parent}
+      className="min-h-10 [color-scheme:light] [&>div>:not(iframe)]:hidden"
+    />
+  );
 }

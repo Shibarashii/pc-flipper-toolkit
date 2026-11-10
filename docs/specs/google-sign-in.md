@@ -153,9 +153,10 @@ class GoogleAccount(models.Model):
   still see only our origin, never a page's path (decided 2026-11-07 while building).
 - **Inline styles stay blocked** (decided 2026-11-08 in review): Google's script also adds a
   `<style>` tag and `style` attributes for the stand-in it shows while its button's iframe
-  loads. `style-src` blocks them, so the console shows 3 CSP errors and the stand-in is
-  unstyled for a moment; the real button (the iframe) is unaffected. Allowing them would
-  need `'unsafe-inline'` for every style on the site, which isn't worth it.
+  loads. `style-src` blocks them, so the console shows 3 CSP errors. Unstyled, the stand-in
+  is a full-width Google logo (found live, 2026-11-10), so the button's container hides
+  everything but the iframe; the room for the button stays empty until it loads. Allowing
+  the styles would need `'unsafe-inline'` for every style on the site, which isn't worth it.
 - **Privacy page (`/privacy`)**, linked from the log-in page's footer: what the app stores
   (the username, the Google account's email and id, the builds) and that nothing is shared
   or sold. Google needs its URL to publish the app (added 2026-11-08, T42).
