@@ -16,13 +16,14 @@ from rest_framework.views import APIView
 from . import google
 from .authentication import expired
 from .demo import PREFIX as DEMO_PREFIX
-from .demo import create_demo_user
+from .demo import create_demo_user, is_demo
 from .models import GoogleAccount
 
 User = get_user_model()
 
 TAKEN = "That username is taken."
 GOOGLE_FAILED = "Google sign-in didn't work. Try again."
+CONNECTED_ELSEWHERE = "This Google account is connected to another account."
 
 
 class CredentialsSerializer(serializers.Serializer):
@@ -59,6 +60,31 @@ class SignupSerializer(CredentialsSerializer):
 
 class UserSerializer(serializers.Serializer):
     username = serializers.CharField(read_only=True)
+
+
+class ConnectedGoogleSerializer(serializers.Serializer):
+    email = serializers.EmailField(read_only=True)
+
+
+class ConnectSerializer(serializers.Serializer):
+    google = ConnectedGoogleSerializer(read_only=True)
+
+
+class MeSerializer(UserSerializer):
+    google = ConnectedGoogleSerializer(
+        read_only=True,
+        allow_null=True,
+        help_text="The connected Google account, if any.",
+    )
+    has_password = serializers.BooleanField(
+        read_only=True, help_text="False for Google-only and demo accounts."
+    )
+    is_demo = serializers.BooleanField(read_only=True)
+
+
+def connected_google(user) -> dict | None:
+    account = GoogleAccount.objects.filter(user=user).first()
+    return {"email": account.email} if account else None
 
 
 class TokenSerializer(UserSerializer):
@@ -177,6 +203,9 @@ class GoogleView(PublicAuthView):
                 GoogleAccount.objects.select_related("user").filter(sub=sub).first()
             )
             if account:
+                if account.email != email:  # shown on Account; Google's can change
+                    account.email = email
+                    account.save(update_fields=["email"])
                 return token_response(account.user)
             try:
                 with transaction.atomic():
@@ -218,8 +247,72 @@ class LogoutView(APIView):
 class MeView(APIView):
     @extend_schema(
         summary="Who's logged in",
-        responses={200: UserSerializer},
+        responses={200: MeSerializer},
         tags=["auth"],
     )
     def get(self, request):
-        return Response({"username": request.user.username})
+        user = request.user
+        return Response(
+            {
+                "username": user.username,
+                "google": connected_google(user),
+                "has_password": user.has_usable_password(),
+                "is_demo": is_demo(user),
+            }
+        )
+
+
+def refuse(message: str):
+    raise serializers.ValidationError({"non_field_errors": [message]})
+
+
+class GoogleConnectView(APIView):
+    """The Account page: link the logged-in user to a Google account, or unlink it."""
+
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "auth"
+
+    @extend_schema(
+        summary="Connect Google",
+        description="Links the Google account in the ID token to the logged-in user, so "
+        "signing in with Google opens this account. Refused (400) for a demo, an account "
+        "that already has one, and a Google account connected to someone else.",
+        request=GoogleCredentialSerializer,
+        responses={200: ConnectSerializer},
+        tags=["auth"],
+    )
+    def post(self, request):
+        user = request.user
+        if is_demo(user):
+            refuse(
+                "Demo accounts can't connect Google. Sign up for your own account first."
+            )
+        if GoogleAccount.objects.filter(user=user).exists():
+            refuse("Disconnect Google first.")
+        sub, email = google_account(request)
+        try:
+            with transaction.atomic():
+                GoogleAccount.objects.create(user=user, sub=sub, email=email)
+        except IntegrityError:
+            # Taken: by another user, or by this one meanwhile (a second request).
+            account = GoogleAccount.objects.filter(sub=sub).first()
+            if account and account.user_id == user.pk:
+                return Response({"google": {"email": account.email}})
+            refuse(CONNECTED_ELSEWHERE if account else "Disconnect Google first.")
+        return Response({"google": {"email": email}})
+
+    @extend_schema(
+        summary="Disconnect Google",
+        description="Unlinks the Google account. Refused (400) without a password, the "
+        "only other way in, or when none is connected.",
+        request=None,
+        responses={204: None},
+        tags=["auth"],
+    )
+    def delete(self, request):
+        user = request.user
+        if not user.has_usable_password():
+            refuse("Set up a password first; it's the only other way in.")
+        if not GoogleAccount.objects.filter(user=user).delete()[0]:
+            refuse("No Google account is connected.")
+        return Response(status=status.HTTP_204_NO_CONTENT)

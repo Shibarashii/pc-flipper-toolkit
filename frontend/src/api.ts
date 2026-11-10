@@ -138,6 +138,18 @@ export class ApiError extends Error {
   }
 }
 
+/** What went wrong, for anything that isn't a message under a field. */
+export function generalError(err: unknown, errors: FieldErrors): string {
+  if (err instanceof ApiError && err.status === 429)
+    return "Too many attempts. Wait a minute and try again.";
+  // Google's errors (on `credential`) have no field on the page to sit under.
+  const general = errors.non_field_errors ?? errors.credential;
+  if (general) return general.join(" ");
+  if (Object.keys(errors).length > 0) return "";
+  if (err instanceof ApiError) return "Something went wrong. Try again.";
+  return "Couldn’t reach the server. Check your connection and try again.";
+}
+
 const BASE = `${import.meta.env.VITE_API_URL ?? ""}/api`;
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -174,6 +186,26 @@ export const googleSignIn = (credential: string) =>
     method: "POST",
     body: JSON.stringify({ credential }),
   });
+
+/** Who's logged in, and how they can get in (the Account page). */
+export type Me = {
+  username: string;
+  google: { email: string } | null;
+  has_password: boolean;
+  is_demo: boolean;
+};
+
+export const getMe = () => request<Me>("/auth/me/");
+
+/** Links the Google account in the ID token to this account. */
+export const connectGoogle = (credential: string) =>
+  request<Pick<Me, "google">>("/auth/google/connect/", {
+    method: "POST",
+    body: JSON.stringify({ credential }),
+  });
+
+export const disconnectGoogle = () =>
+  request<null>("/auth/google/connect/", { method: "DELETE" });
 
 /** A throwaway account with two sample builds, deleted after 24 hours. */
 export const tryDemo = () =>

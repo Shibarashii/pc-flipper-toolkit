@@ -2,6 +2,7 @@ import { useState, type SubmitEvent } from "react";
 import { Link, useLocation } from "react-router";
 import {
   ApiError,
+  generalError,
   googleSignIn,
   logIn,
   signUp,
@@ -29,18 +30,6 @@ const MODES = {
     other: { text: "Already have an account?", link: "Log in", to: "/login" },
   },
 } as const;
-
-/** What went wrong, for anything that isn't a message under a field. */
-function generalError(err: unknown, errors: FieldErrors): string {
-  if (err instanceof ApiError && err.status === 429)
-    return "Too many attempts. Wait a minute and try again.";
-  // Google sign-in's errors have no field on this page to sit under.
-  const general = errors.non_field_errors ?? errors.credential;
-  if (general) return general.join(" ");
-  if (Object.keys(errors).length > 0) return "";
-  if (err instanceof ApiError) return "Something went wrong. Try again.";
-  return "Couldn’t reach the server. Check your connection and try again.";
-}
 
 /** Log in (`/login`) or sign up (`/signup`). Logged out, every other page sends you here. */
 export function Login({ mode }: { mode: keyof typeof MODES }) {

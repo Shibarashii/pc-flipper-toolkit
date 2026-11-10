@@ -414,3 +414,134 @@ test("the privacy page opens logged in too", () => {
   renderAt("/privacy");
   expect(screen.getByRole("heading", { name: "Privacy" })).toBeTruthy();
 });
+
+/** GET /auth/me/ for the Account page. */
+const me =
+  (fields: object = {}) =>
+  () =>
+    Response.json({
+      username: "carol",
+      google: null,
+      has_password: true,
+      is_demo: false,
+      ...fields,
+    });
+
+test("the username in the header opens Account, which connects Google", async () => {
+  vi.stubEnv("VITE_GOOGLE_CLIENT_ID", "client.apps.googleusercontent.com");
+  stubGoogle();
+  saveSession({ token: "abc", username: "carol" });
+  const fetchMock = stubFetch(
+    () => Response.json([]),
+    me(),
+    () => Response.json({ google: { email: "c@gmail.com" } }),
+  );
+  renderAt("/");
+  await screen.findByRole("heading", { name: "Builds" });
+
+  fireEvent.click(screen.getAllByRole("link", { name: /carol|Account/ })[0]);
+  expect(await screen.findByRole("heading", { name: "Account" })).toBeTruthy();
+  expect(await screen.findByText("Not connected")).toBeTruthy();
+
+  fireEvent.click(
+    await screen.findByRole("button", { name: "Sign in with Google" }),
+  );
+  expect(await screen.findByText("c@gmail.com")).toBeTruthy();
+  expect(screen.queryByText("Not connected")).toBeNull();
+  const { url, body } = requestTo(fetchMock, 2);
+  expect(url).toBe("/api/auth/google/connect/");
+  expect(JSON.parse(body as string)).toEqual({ credential: "google-id-token" });
+});
+
+test("the header's username and Account icon both open Account", () => {
+  saveSession({ token: "abc", username: "carol" });
+  stubFetch(me());
+  renderAt("/account");
+  const links = screen.getAllByRole("link", { name: /carol|Account/ });
+  expect(links.map((a) => a.getAttribute("href"))).toEqual([
+    "/account",
+    "/account",
+  ]);
+  expect(screen.getByRole("link", { name: "Account" })).toBeTruthy();
+});
+
+test("Disconnect unlinks Google when there's a password", async () => {
+  vi.stubEnv("VITE_GOOGLE_CLIENT_ID", "client.apps.googleusercontent.com");
+  stubGoogle();
+  saveSession({ token: "abc", username: "carol" });
+  const fetchMock = stubFetch(
+    me({ google: { email: "c@gmail.com" } }),
+    () => new Response(null, { status: 204 }),
+  );
+  renderAt("/account");
+
+  fireEvent.click(await screen.findByRole("button", { name: "Disconnect" }));
+  expect(await screen.findByText("Not connected")).toBeTruthy();
+  expect(
+    await screen.findByRole("button", { name: "Sign in with Google" }),
+  ).toBeTruthy();
+  const [url, init] = fetchMock.mock.calls[1];
+  expect(url).toBe("/api/auth/google/connect/");
+  expect(init?.method).toBe("DELETE");
+});
+
+test("a Google-only account isn't offered Disconnect", async () => {
+  saveSession({ token: "abc", username: "carol" });
+  stubFetch(me({ google: { email: "c@gmail.com" }, has_password: false }));
+  renderAt("/account");
+
+  expect(await screen.findByText("c@gmail.com")).toBeTruthy();
+  expect(screen.queryByRole("button", { name: "Disconnect" })).toBeNull();
+  expect(
+    screen.getByText(/signs in only with Google, so it stays connected/),
+  ).toBeTruthy();
+});
+
+test("a demo is told to sign up first, with no Google button", async () => {
+  vi.stubEnv("VITE_GOOGLE_CLIENT_ID", "client.apps.googleusercontent.com");
+  const google = stubGoogle();
+  saveSession({ token: "d1", username: "demo-abc" });
+  stubFetch(me({ username: "demo-abc", has_password: false, is_demo: true }));
+  renderAt("/account");
+
+  expect(
+    await screen.findByText(
+      "Demo accounts can’t connect Google. Sign up for your own account first.",
+    ),
+  ).toBeTruthy();
+  expect(google.renderButton).not.toHaveBeenCalled();
+});
+
+test("a refused connect shows the server's message", async () => {
+  vi.stubEnv("VITE_GOOGLE_CLIENT_ID", "client.apps.googleusercontent.com");
+  stubGoogle();
+  saveSession({ token: "abc", username: "carol" });
+  stubFetch(me(), () =>
+    Response.json(
+      {
+        non_field_errors: [
+          "This Google account is connected to another account.",
+        ],
+      },
+      { status: 400 },
+    ),
+  );
+  renderAt("/account");
+
+  fireEvent.click(
+    await screen.findByRole("button", { name: "Sign in with Google" }),
+  );
+  expect((await screen.findByRole("alert")).textContent).toBe(
+    "This Google account is connected to another account.",
+  );
+  expect(screen.getByText("Not connected")).toBeTruthy();
+});
+
+test("Account says so when it can't load", async () => {
+  saveSession({ token: "abc", username: "carol" });
+  stubFetch(() => Response.json({}, { status: 500 }));
+  renderAt("/account");
+  expect((await screen.findByRole("alert")).textContent).toContain(
+    "Couldn’t load your account",
+  );
+});

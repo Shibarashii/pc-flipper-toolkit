@@ -12,9 +12,10 @@ import { endSession, isDemo, useAuth } from "./auth";
 import { ThemeToggle } from "./components/ThemeToggle";
 import { BuildDetail } from "./pages/BuildDetail";
 import { BuildsList } from "./pages/BuildsList";
+import { Account } from "./pages/Account";
 import { Login } from "./pages/Login";
 import { Privacy } from "./pages/Privacy";
-import { buttonSecondary, link } from "./ui";
+import { buttonSecondary, focusRing, iconButton, link } from "./ui";
 
 export default function App() {
   const { session } = useAuth();
@@ -45,13 +46,37 @@ export default function App() {
         <Link to="/" className="font-serif text-xl leading-7 font-medium">
           PC Flipper Toolkit
         </Link>
-        <div className="flex min-w-0 items-center gap-4">
+        <div className="flex min-w-0 items-center gap-2 sm:gap-4">
           <ThemeToggle />
           {session && (
             <>
-              <span className="hidden truncate text-[13px] font-medium text-muted sm:block">
+              {/* Opens Account: the username from 640px, an icon on phones. */}
+              <Link
+                to="/account"
+                className={`hidden truncate text-[13px] font-medium text-muted hover:text-ink sm:block ${focusRing}`}
+              >
                 {session.username}
-              </span>
+              </Link>
+              <Link
+                to="/account"
+                aria-label="Account"
+                title="Account"
+                className={`shrink-0 text-muted hover:text-ink sm:hidden ${iconButton}`}
+              >
+                <svg
+                  aria-hidden
+                  width="16"
+                  height="16"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <circle cx="8" cy="5.5" r="2.75" />
+                  <path d="M2.75 14a5.25 5.25 0 0 1 10.5 0" />
+                </svg>
+              </Link>
               <button
                 type="button"
                 onClick={logOutEverywhere}
@@ -78,6 +103,7 @@ export default function App() {
           <Route path="/" element={<BuildsList />} />
           <Route path="/builds/:id" element={<BuildDetail />} />
           <Route path="/privacy" element={<Privacy />} />
+          <Route path="/account" element={<Account />} />
           {/* Where you land right after logging in or signing up. */}
           <Route path="/login" element={<Navigate to={from} replace />} />
           <Route path="/signup" element={<Navigate to={from} replace />} />
