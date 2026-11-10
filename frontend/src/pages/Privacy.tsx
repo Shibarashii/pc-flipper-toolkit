@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { focusRing } from "../ui";
 
 const CONTACT = "pcflippertoolkit@gmail.com";
 
@@ -20,7 +21,7 @@ export function Privacy() {
         Privacy
       </h1>
       <p className="mt-1.5 text-[13px] leading-[18px] text-muted">
-        Last updated 8 November 2026
+        Last updated 10 November 2026
       </p>
 
       <Section title="What the app keeps">
@@ -46,7 +47,7 @@ export function Privacy() {
         <p>
           Nobody. Nothing is sold or shared, and there are no ads or trackers.
         </p>
-        <p className="text-muted">
+        <p>
           The site runs on Vercel, the server on Render and the database on
           Neon, which store it on the app’s behalf and, like any website, keep
           short-lived request logs such as IP addresses. The fonts load from
@@ -55,7 +56,10 @@ export function Privacy() {
       </Section>
 
       <Section title="Demo accounts">
-        <p>A demo account and its builds are deleted after 24 hours.</p>
+        <p>
+          A demo account stops working after 24 hours, and it and its builds are
+          deleted soon after.
+        </p>
       </Section>
 
       <Section title="Deleting your account">
@@ -63,7 +67,7 @@ export function Privacy() {
           Email{" "}
           <a
             href={`mailto:${CONTACT}`}
-            className="font-medium text-accent hover:underline"
+            className={`rounded font-medium text-accent hover:underline ${focusRing}`}
           >
             {CONTACT}
           </a>{" "}

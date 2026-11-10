@@ -1,6 +1,6 @@
 // Shared class strings for the brand's Button and Field components (docs/brand-guidelines.md).
 
-const focusRing =
+export const focusRing =
   "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent";
 
 const button = `rounded px-3.5 py-2 text-[14px] leading-5 font-medium disabled:opacity-45 ${focusRing}`;

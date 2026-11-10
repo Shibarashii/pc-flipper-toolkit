@@ -11,7 +11,7 @@ import {
 import { saveSession, useAuth, type Session } from "../auth";
 import { Field } from "../components/form";
 import { GoogleButton, googleClientId } from "../google";
-import { buttonPrimary, buttonSecondary, input } from "../ui";
+import { buttonPrimary, buttonSecondary, focusRing, input } from "../ui";
 
 const MODES = {
   login: {
@@ -163,14 +163,17 @@ export function Login({ mode }: { mode: keyof typeof MODES }) {
         <Link
           to={other.to}
           state={{ from }}
-          className="font-medium text-accent hover:underline"
+          className={`rounded font-medium text-accent hover:underline ${focusRing}`}
         >
           {other.link}
         </Link>
       </p>
 
       <p className="mt-10 text-[13px] leading-[18px]">
-        <Link to="/privacy" className="text-muted hover:underline">
+        <Link
+          to="/privacy"
+          className={`rounded text-muted hover:underline ${focusRing}`}
+        >
           Privacy
         </Link>
       </p>
