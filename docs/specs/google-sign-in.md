@@ -134,7 +134,8 @@ class GoogleAccount(models.Model):
 - **Script:** Google's script loads only on the log-in/sign-up page and on Account. It's
   loaded when needed, not in `index.html`.
 - **Log-in and sign-up page:**
-  - Google's button sits under the form, beside "Try the demo", divided by an "or" line.
+  - Google's button sits under the form, above "Try the demo", after a hairline (an "or"
+    line was planned; the hairline was kept after the live check, 2026-11-10).
   - Errors show where the form's errors show.
   - After sign-in it goes where a password log-in goes (the `from` address, or the list).
 - **Header:** the username becomes a link to `/account`.

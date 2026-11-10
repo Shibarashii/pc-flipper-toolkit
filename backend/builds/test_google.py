@@ -6,6 +6,7 @@ from datetime import timedelta
 from types import SimpleNamespace
 from unittest import mock
 
+import requests
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from django.contrib.auth.models import User
@@ -120,6 +121,18 @@ class GoogleSignInTests(APITestCase):
             res.json()["credential"], ["Google sign-in didn't work. Try again."]
         )
         self.assertFalse(GoogleAccount.objects.exists())
+
+    def test_a_deactivated_user_cant_sign_in_with_google(self):
+        carol = User.objects.create_user("carol", password="x-Long-enough-1")
+        GoogleAccount.objects.create(user=carol, sub="777", email="c@gmail.com")
+        User.objects.filter(pk=carol.pk).update(is_active=False)
+        with signs_in_as(sub="777"):
+            res = self.sign_in()
+        self.assertEqual(res.status_code, 400)
+        self.assertEqual(
+            res.json()["credential"], ["Google sign-in didn't work. Try again."]
+        )
+        self.assertFalse(Token.objects.filter(user=carol).exists())
 
     def test_demo_cleanup_never_deletes_a_google_only_account(self):
         with signs_in_as(email="demo-tricky@gmail.com"):
@@ -364,3 +377,17 @@ class ConnectTests(APITestCase):
         self.client.force_authenticate(None)
         self.assertEqual(self.connect().status_code, 401)
         self.assertEqual(self.client.delete(CONNECT).status_code, 401)
+
+
+@override_settings(GOOGLE_CLIENT_ID=CLIENT_ID)
+class GoogleUnreachableTests(TestCase):
+    def test_a_hung_key_fetch_gives_up_after_10_seconds(self):
+        session = google.REQUEST.func.session
+        with (
+            mock.patch.object(
+                session, "request", side_effect=requests.exceptions.Timeout
+            ) as fetch,
+            self.assertRaises(google.InvalidToken),
+        ):
+            google.verify("a.b.c")
+        self.assertEqual(fetch.call_args.kwargs["timeout"], 10)
