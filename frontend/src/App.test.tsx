@@ -557,6 +557,7 @@ test("Account says so when it can't load", async () => {
 });
 
 const REPO = "https://github.com/Shibarashii/pc-flipper-toolkit";
+const LINKEDIN = "https://www.linkedin.com/in/seanrei-valdeabella/";
 
 function expectFooter() {
   const footer = within(screen.getByRole("contentinfo"));
@@ -564,11 +565,16 @@ function expectFooter() {
   expect(
     footer.getByRole("link", { name: "Privacy" }).getAttribute("href"),
   ).toBe("/privacy");
-  const github = footer.getByRole("link", { name: "GitHub" });
-  expect(github.getAttribute("href")).toBe(REPO);
-  // GitHub's logo, named for screen readers, with no word on screen.
-  expect(github.textContent).toBe("");
-  expect(github.querySelector("svg")).toBeTruthy();
+  // GitHub's and LinkedIn's logos, named for screen readers, with no word on screen.
+  for (const [name, href] of [
+    ["GitHub", REPO],
+    ["LinkedIn", LINKEDIN],
+  ]) {
+    const icon = footer.getByRole("link", { name });
+    expect(icon.getAttribute("href")).toBe(href);
+    expect(icon.textContent).toBe("");
+    expect(icon.querySelector("svg")).toBeTruthy();
+  }
 }
 
 test("logged out, the footer has the © line, Privacy and GitHub", () => {

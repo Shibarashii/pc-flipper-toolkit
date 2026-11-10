@@ -7,7 +7,8 @@ truth for everything else. Intent agreed in conversation on 2026-11-10.
 
 - **What:** a quiet footer at the bottom of every page, logged in or out:
   - "© 2026 Seanrei Valdeabella" on the left;
-  - "Privacy · " and GitHub's logo on the right: the privacy page, and the public repo;
+  - "Privacy · " then GitHub's and LinkedIn's logos on the right: the privacy page, the public
+    repo and the author's profile;
   - the two stacked on phones.
 - **Why:**
   - The [privacy page](google-sign-in.md) is only linked from the bottom of the log-in page, so
@@ -26,7 +27,7 @@ truth for everything else. Intent agreed in conversation on 2026-11-10.
 ### Out of scope
 
 - A multi-column footer, Terms of service, a contact email (the privacy page has it), social
-  links, a version number.
+  links beyond GitHub and LinkedIn, a version number.
 - A footer fixed to the screen while scrolling.
 
 ## Frontend
@@ -39,10 +40,11 @@ truth for everything else. Intent agreed in conversation on 2026-11-10.
   - Small muted text (13/18, `muted`), like the header's username.
   - From 640px: "© 2026 Seanrei Valdeabella" on the left, the links on the right. Below:
     stacked, left-aligned, the links first.
-  - **GitHub** is GitHub's mark (16px, in a 24px target), named "GitHub" for screen readers,
-    with no word on screen (changed 2026-11-10 at the author's request).
+  - **GitHub** and **LinkedIn** are their marks (16px, in a 24px target), named for screen
+    readers, with no word on screen (changed 2026-11-10 at the author's request).
   - **Privacy** is a router link to `/privacy`. **GitHub** links to
-    `https://github.com/Shibarashii/pc-flipper-toolkit` in the same tab, like any link.
+    `https://github.com/Shibarashii/pc-flipper-toolkit`, **LinkedIn** to
+    `https://www.linkedin.com/in/seanrei-valdeabella/`, in the same tab, like any link.
   - The links are muted, ink on hover, with the brand's focus ring, separated by a `·`.
   - The year is fixed (2026, the year in the MIT licence), not today's year.
 - **Log-in page:** its own "Privacy" link goes; the footer replaces it.
