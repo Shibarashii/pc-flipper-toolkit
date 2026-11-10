@@ -1165,10 +1165,10 @@ dependency (`google-auth`, approved 2026-11-07).
 **Files:** a new `frontend/src/pages/Privacy.tsx` and its test, `frontend/src/App.tsx`, `frontend/src/pages/Login.tsx`
 **Scope:** S
 
-### Checkpoint 14: Google sign-in
+### Checkpoint 14: Google sign-in (done)
 - [x] The Google app is published (T42)
-- [ ] Render has `GOOGLE_CLIENT_ID`; Vercel has `VITE_GOOGLE_CLIENT_ID` and was redeployed
-- [ ] The spec's success criteria 1–5 pass on the live site: a new Google sign-in, connecting
+- [x] Render has `GOOGLE_CLIENT_ID`; Vercel has `VITE_GOOGLE_CLIENT_ID` and was redeployed
+- [x] The spec's success criteria 1–5 pass on the live site: a new Google sign-in, connecting
   a password account and signing in with Google to its builds, disconnecting, a second
-  account refused, and password log-in, sign-up and the demo unchanged
-- [ ] All tests pass on `main`
+  account refused, and password log-in, sign-up and the demo unchanged (checked by the author, including on an iPhone, 2026-11-10)
+- [x] All tests pass on `main`

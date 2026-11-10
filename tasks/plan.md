@@ -209,7 +209,7 @@ Testing; it doesn't depend on T41, but both come before Checkpoint 14.
 OAuth client (the spec's "Setup outside the code"), and puts the client id in both `.env`
 files.
 
-**Checkpoint 14:** the Google sign-in spec's success criteria 1–5 pass on the live site, with
+**Checkpoint 14 (done):** the Google sign-in spec's success criteria 1–5 pass on the live site, with
 the client id set on Render and Vercel (Vercel builds it in, so it needs a redeploy after
 setting it).
 
