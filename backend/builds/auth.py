@@ -203,6 +203,9 @@ class GoogleView(PublicAuthView):
                 GoogleAccount.objects.select_related("user").filter(sub=sub).first()
             )
             if account:
+                if account.email != email:  # shown on Account; Google's can change
+                    account.email = email
+                    account.save(update_fields=["email"])
                 return token_response(account.user)
             try:
                 with transaction.atomic():
@@ -287,13 +290,15 @@ class GoogleConnectView(APIView):
         if GoogleAccount.objects.filter(user=user).exists():
             refuse("Disconnect Google first.")
         sub, email = google_account(request)
-        if GoogleAccount.objects.filter(sub=sub).exists():
-            refuse(CONNECTED_ELSEWHERE)
         try:
             with transaction.atomic():
                 GoogleAccount.objects.create(user=user, sub=sub, email=email)
-        except IntegrityError:  # connected meanwhile, here or elsewhere
-            refuse(CONNECTED_ELSEWHERE)
+        except IntegrityError:
+            # Taken: by another user, or by this one meanwhile (a second request).
+            account = GoogleAccount.objects.filter(sub=sub).first()
+            if account and account.user_id == user.pk:
+                return Response({"google": {"email": account.email}})
+            refuse(CONNECTED_ELSEWHERE if account else "Disconnect Google first.")
         return Response({"google": {"email": email}})
 
     @extend_schema(

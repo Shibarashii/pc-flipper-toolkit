@@ -453,7 +453,7 @@ test("the username in the header opens Account, which connects Google", async ()
   expect(JSON.parse(body as string)).toEqual({ credential: "google-id-token" });
 });
 
-test("on phones the header's Account link is an icon with a name", () => {
+test("the header's username and Account icon both open Account", () => {
   saveSession({ token: "abc", username: "carol" });
   stubFetch(me());
   renderAt("/account");

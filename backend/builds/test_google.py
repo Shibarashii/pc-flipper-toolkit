@@ -55,6 +55,7 @@ class GoogleSignInTests(APITestCase):
         self.assertEqual(res.status_code, 200)
         self.assertEqual(res.json()["username"], "seanrei.ethan23")
         self.assertEqual(User.objects.count(), 1)
+        self.assertEqual(GoogleAccount.objects.get().email, "renamed@gmail.com")
 
     def test_a_connected_password_account_is_who_you_sign_in_as(self):
         carol = User.objects.create_user("carol", password="x-Long-enough-1")
@@ -290,6 +291,20 @@ class ConnectTests(APITestCase):
         )
         self.assertEqual(dave.google.sub, "777")
         self.assertIsNone(self.me()["google"])
+
+    def test_connecting_twice_at_once_is_fine(self):
+        def first_request_saves_meanwhile(credential):
+            GoogleAccount.objects.create(
+                user=self.carol, sub="777", email="c@gmail.com"
+            )
+            return "777", "c@gmail.com"
+
+        with mock.patch.object(
+            google, "verify", side_effect=first_request_saves_meanwhile
+        ):
+            res = self.connect()
+        self.assertEqual(res.status_code, 200, res.content)
+        self.assertEqual(res.json(), {"google": {"email": "c@gmail.com"}})
 
     def test_a_second_google_account_is_refused(self):
         GoogleAccount.objects.create(user=self.carol, sub="1", email="c@gmail.com")
