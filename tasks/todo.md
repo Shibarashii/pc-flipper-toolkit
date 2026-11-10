@@ -1209,7 +1209,8 @@ Spec: [docs/specs/footer.md](../docs/specs/footer.md). Frontend only.
 **Files:** `frontend/src/App.tsx`, `frontend/src/pages/Login.tsx`, `frontend/src/App.test.tsx`, `frontend/e2e/flip.spec.ts`, `SPEC.md`, `docs/brand-guidelines.md`
 **Scope:** S
 
-### Checkpoint 15: Footer
-- [ ] The footer spec's success criteria 1–4 pass on the live site, at desktop and on the
-  author's phone
-- [ ] All tests pass on `main`
+### Checkpoint 15: Footer (done)
+- [x] The footer spec's success criteria 1–4 pass on the live site, at desktop and on the
+  author's phone (checked by the author, 2026-11-10, with the new favicon and the GitHub and
+  LinkedIn logos from #71)
+- [x] All tests pass on `main` (CI on 330581b)
