@@ -2,6 +2,7 @@ import { useState } from "react";
 import {
   Link,
   Navigate,
+  NavLink,
   Route,
   Routes,
   useLocation,
@@ -146,12 +147,13 @@ const footerLink = `rounded hover:text-ink ${focusRing}`;
 /** On every page: who made it, and the links that aren't part of the app itself. */
 function Footer() {
   return (
-    <footer className="flex flex-col gap-1 border-t border-line px-4 py-4 text-[13px] leading-[18px] text-muted sm:flex-row-reverse sm:justify-between sm:px-10">
+    <footer className="flex flex-col-reverse gap-1 border-t border-line px-4 py-4 text-[13px] leading-[18px] text-muted sm:flex-row sm:justify-between sm:px-10">
+      <p>© 2026 Seanrei Valdeabella</p>
       <p>
-        <Link to="/privacy" className={footerLink}>
+        <NavLink to="/privacy" className={footerLink}>
           Privacy
-        </Link>
-        {" · "}
+        </NavLink>
+        <span aria-hidden> · </span>
         <a
           href="https://github.com/Shibarashii/pc-flipper-toolkit"
           className={footerLink}
@@ -159,7 +161,6 @@ function Footer() {
           GitHub
         </a>
       </p>
-      <p>© 2026 Seanrei Valdeabella</p>
     </footer>
   );
 }

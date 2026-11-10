@@ -408,6 +408,10 @@ test("the privacy page opens from the log-in page, logged out", () => {
   expect(
     screen.getByRole("heading", { name: "Deleting your account" }),
   ).toBeTruthy();
+  // The footer's link says it's the page you're on.
+  expect(
+    screen.getByRole("link", { name: "Privacy" }).getAttribute("aria-current"),
+  ).toBe("page");
   expect(screen.getByRole("link", { name: /@/ }).getAttribute("href")).toMatch(
     /^mailto:.+@.+/,
   );
