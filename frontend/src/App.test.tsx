@@ -570,8 +570,13 @@ function expectFooter() {
     ["GitHub", REPO],
     ["LinkedIn", LINKEDIN],
   ]) {
-    const icon = footer.getByRole("link", { name });
+    // They leave the app, so they open in a new tab, and say so.
+    const icon = footer.getByRole("link", {
+      name: `${name} (opens in a new tab)`,
+    });
     expect(icon.getAttribute("href")).toBe(href);
+    expect(icon.getAttribute("target")).toBe("_blank");
+    expect(icon.getAttribute("rel")).toBe("noreferrer");
     expect(icon.textContent).toBe("");
     expect(icon.querySelector("svg")).toBeTruthy();
   }

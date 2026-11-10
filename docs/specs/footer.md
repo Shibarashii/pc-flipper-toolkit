@@ -44,7 +44,9 @@ truth for everything else. Intent agreed in conversation on 2026-11-10.
     readers, with no word on screen (changed 2026-11-10 at the author's request).
   - **Privacy** is a router link to `/privacy`. **GitHub** links to
     `https://github.com/Shibarashii/pc-flipper-toolkit`, **LinkedIn** to
-    `https://www.linkedin.com/in/seanrei-valdeabella/`, in the same tab, like any link.
+    `https://www.linkedin.com/in/seanrei-valdeabella/`. Both leave the app, so they open in a
+    new tab (`rel="noreferrer"`), and their names say "(opens in a new tab)" (changed
+    2026-11-10 at the author's request).
   - The links are muted, ink on hover, with the brand's focus ring, separated by a `·`.
   - The year is fixed (2026, the year in the MIT licence), not today's year.
 - **Log-in page:** its own "Privacy" link goes; the footer replaces it.

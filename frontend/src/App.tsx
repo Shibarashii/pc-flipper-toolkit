@@ -144,7 +144,10 @@ export default function App() {
 
 const footerLink = `rounded hover:text-ink ${focusRing}`;
 
-/** A 16px logo in a 24px target, named for screen readers. */
+/**
+ * A 16px logo in a 24px target, named for screen readers. It leaves the app, so it opens
+ * in a new tab (and says so); `noreferrer` also implies `noopener`.
+ */
 function IconLink({
   name,
   href,
@@ -157,7 +160,9 @@ function IconLink({
   return (
     <a
       href={href}
-      aria-label={name}
+      target="_blank"
+      rel="noreferrer"
+      aria-label={`${name} (opens in a new tab)`}
       title={name}
       className={`-my-1 inline-flex size-6 items-center justify-center ${footerLink}`}
     >
