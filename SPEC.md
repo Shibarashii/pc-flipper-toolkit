@@ -180,7 +180,8 @@ another user's build (400). A part, bundle or cost can't be moved to another bui
 
 0. **Log in** (`/login`) and **Sign up** (`/signup`): username and password, linking to each other. Logged out, every other page redirects here; logging in goes to the builds list. **Privacy** (`/privacy`) is the one page that opens logged in or out.
    - Every page ends with a **footer** ([spec](docs/specs/footer.md)): "© 2026 Seanrei Valdeabella" and links to Privacy, the GitHub repo and the author's LinkedIn; at the bottom of the window on short pages, after the content on long ones.
-   - The header shows the username and "Log out" when logged in. The username (an icon on phones) opens **Account** (`/account`): connect Google to sign in with it too, or disconnect it when the account has a password ([spec](docs/specs/google-sign-in.md)).
+   - The header shows the username and "Log out" when logged in. Below 375px wide it shows
+     the logo instead of the name, so it fits a 320px phone without scrolling sideways. The username (an icon on phones) opens **Account** (`/account`): connect Google to sign in with it too, or disconnect it when the account has a password ([spec](docs/specs/google-sign-in.md)).
    - Both pages have a **"Try the demo"** button that creates a demo account and goes to the
      builds list. A demo account sees a banner under the header: it's a demo, deleted after 24
      hours, ending in a "Sign up for your own account" link that ends the demo and opens sign-up

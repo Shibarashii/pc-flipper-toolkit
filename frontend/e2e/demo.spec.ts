@@ -12,6 +12,18 @@ test("try the demo: sample builds, then sign up instead", async ({ page }) => {
   const build = (name: string) =>
     page.getByRole("link", { name }).filter({ visible: true });
   await expect(build("i5-12400F + RTX 3060")).toBeVisible();
+
+  // The smallest phones: the header (with "Exit demo", its longest button) fits a 320px
+  // window, so the page doesn't scroll sideways.
+  const size = page.viewportSize()!;
+  await page.setViewportSize({ width: 320, height: size.height });
+  expect(
+    await page.evaluate(
+      "document.documentElement.scrollWidth - document.documentElement.clientWidth",
+    ),
+  ).toBe(0);
+  await page.setViewportSize(size);
+
   await build("Ryzen 5 5600 + RX 6600").click();
 
   const summary = page.getByRole("region", { name: "Summary", exact: true });
