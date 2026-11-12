@@ -1255,7 +1255,7 @@ Spec: [docs/specs/row-inset.md](../docs/specs/row-inset.md). Frontend only.
 **Files:** `frontend/src/components/BuildChecklist.tsx`, `Summary.tsx`, `PartsTable.tsx`, `PartRow.tsx`, `BundleRow.tsx`, `ExtraCosts.tsx`, `PriceLookup.tsx`, `frontend/src/pages/BuildsList.tsx`, `docs/brand-guidelines.md`
 **Scope:** S (one class per row)
 
-### Checkpoint 16: Row inset
-- [ ] The row-inset spec's success criteria 1–5 pass on the live site, at desktop and on the
-  author's phone
-- [ ] All tests pass on `main`
+### Checkpoint 16: Row inset (done)
+- [x] The row-inset spec's success criteria 1–5 pass on the live site, at desktop and on the
+  author's phone (checked by the author, 2026-11-12)
+- [x] All tests pass on `main` (CI on 519b8c7)
