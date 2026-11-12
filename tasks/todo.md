@@ -1296,7 +1296,10 @@ Spec: [docs/specs/share-card.md](../docs/specs/share-card.md). Frontend only.
 **Files:** `frontend/index.html`, `frontend/public/og-image.png`, `frontend/public/robots.txt`, `frontend/src/csp.test.ts`, `docs/specs/share-card.md`
 **Scope:** S
 
-### Checkpoint 17: Share card
-- [ ] The share-card spec's success criteria 1–5 pass on the live site: Facebook's Sharing
-  Debugger, LinkedIn's Post Inspector, a paste in Messenger (by the author)
-- [ ] All tests pass on `main`
+### Checkpoint 17: Share card (done)
+- [x] The share-card spec's success criteria 1, 2, 4 and 5 pass on the live site; criterion 3
+  couldn't be seen (by the author, 2026-11-12). Facebook's Sharing Debugger and LinkedIn's
+  Post Inspector show the card. Messenger (web) shows links as their bare domain in that
+  chat (ours and a GitHub link), so criterion 3 depends on Messenger; Meta's crawlers get
+  the page with every tag (checked with their user agents)
+- [x] All tests pass on `main` (CI on 6fc80f0)
