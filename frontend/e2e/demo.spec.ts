@@ -2,6 +2,10 @@ import { expect, test } from "@playwright/test";
 
 test("try the demo: sample builds, then sign up instead", async ({ page }) => {
   await page.goto("/login");
+  // Logged out, the header has room for the name at every width, and it's the only place
+  // the log-in page shows it.
+  const home = page.getByRole("link", { name: "PC Flipper Toolkit" });
+  await expect(home.getByText("PC Flipper Toolkit")).toBeVisible();
   await page.getByRole("button", { name: "Try the demo" }).click();
 
   await expect(
@@ -13,8 +17,8 @@ test("try the demo: sample builds, then sign up instead", async ({ page }) => {
     page.getByRole("link", { name }).filter({ visible: true });
   await expect(build("i5-12400F + RTX 3060")).toBeVisible();
 
-  // The header's home link: the logo always, the name beside it where it fits (410px+).
-  const home = page.getByRole("link", { name: "PC Flipper Toolkit" });
+  // Logged in, the home link shows the logo always, the name beside it where it fits
+  // (410px+).
   await expect(home.locator("img")).toBeVisible();
   await expect(home.getByText("PC Flipper Toolkit")).toBeVisible({
     visible: page.viewportSize()!.width >= 410,
