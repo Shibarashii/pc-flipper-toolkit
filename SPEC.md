@@ -269,7 +269,7 @@ pc-flipper-toolkit/
 │   ├── config/            Django project: settings.py, urls.py
 │   └── builds/            The one Django app: models, serializers, views, tests.py;
 │                          auth.py (accounts), authentication.py (token checks), demo.py (sample builds),
-│                          prices.py + test_prices.py (price lookup)
+│                          prices.py + test_prices.py (price lookup), google.py + test_google.py (Google sign-in)
 ├── frontend/
 │   ├── vite.config.ts     Includes the /api dev proxy
 │   ├── e2e/               Playwright: the main flow, trying the demo, and the price lookup
@@ -278,9 +278,11 @@ pc-flipper-toolkit/
 │       ├── money.ts       ₱ formatting
 │       ├── pages/         BuildsList.tsx, BuildDetail.tsx, Login.tsx, Account.tsx, Privacy.tsx
 │       └── components/    PartsTable.tsx, ExtraCosts.tsx, Summary.tsx, ...
+├── docs/brand-guidelines.md  The look: warm paper and ink, green accent, hairlines
 ├── docs/ideas/            Idea one-pagers, and backlog.md: rough ideas and parked decisions
 ├── docs/intent/           Confirmed statements of intent (the app, e2e tests, demo account)
-├── docs/specs/            Specs for later features built on this one (price lookup)
+├── docs/specs/            Specs for later features built on this one (price lookup, Google sign-in, public ids, …)
+├── tasks/                 plan.md and todo.md: every phase, with acceptance criteria and checkpoints
 ├── SPEC.md
 ├── CLAUDE.md              How Claude Code works on this repo: workflow, rules, local ports
 └── README.md              Screenshot, live links, how to run
