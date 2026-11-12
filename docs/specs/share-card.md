@@ -125,9 +125,9 @@ frontend/src/csp.test.ts     + one test that the tags and the image are there
 1. Facebook's Sharing Debugger shows the large card for the home page with the title, the
    line and the image, and no missing-property warnings other than `fb:app_id`.
 2. LinkedIn's Post Inspector shows the same title, line and image.
-3. A link pasted in Messenger shows the card. (2026-11-12: Messenger on the web shows every
-   link as its bare domain in the author's chat, GitHub's too, so this depends on Messenger,
-   not the site.)
+3. A link pasted in Messenger shows the card. (2026-11-12: Messenger on the web shows links
+   as their bare domain in the author's chat, ours and a GitHub link, so this depends on
+   Messenger, not the site.)
 4. `robots.txt` and `og-image.png` are served on the live site (200), and the home page's
    HTML has the tags.
 5. All tests pass (frontend, e2e).
