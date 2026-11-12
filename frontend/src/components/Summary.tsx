@@ -34,12 +34,16 @@ export function Summary({
   const heroColor = profitColor(profit);
 
   const hero = formatSignedMoney(profit);
-  // ponytail: length-based step-down; "+₱3,700.00" (10 chars) is the widest that
-  // fits the 320px column at 60px. Measure the text if profits outgrow 48px too.
+  // The figure can't wrap, so it shrinks with its box (cqi: 1% of the box's width), up to
+  // 60px. Measured in Newsreader: "+₱4,200.00" (10 characters) is 5.23 times its font
+  // size wide, and each extra character adds 0.6.
+  // ponytail: 13+ characters (₱1,000,000) overflow by a few percent; add a step if seen.
   const heroSize =
-    hero.length > 10
-      ? "text-[48px] leading-[64px]"
-      : "text-[60px] leading-[64px]";
+    hero.length <= 10
+      ? "text-[length:min(60px,18.5cqi)]"
+      : hero.length === 11
+        ? "text-[length:min(60px,16.5cqi)]"
+        : "text-[length:min(60px,15cqi)]";
 
   // Selling above market makes below_market negative; say "Above market" instead.
   const aboveMarket = below_market !== null && Number(below_market) < 0;
@@ -58,12 +62,12 @@ export function Summary({
         Summary
       </h2>
 
-      <div className="border-t border-line-strong pt-4 pb-5">
+      <div className="@container border-t border-line-strong px-3 pt-4 pb-5">
         <p className="text-[13px] leading-[18px] font-medium text-muted">
           Profit
         </p>
         <p
-          className={`font-serif font-medium tracking-[-0.01em] whitespace-nowrap tabular-nums ${heroSize} ${heroColor}`}
+          className={`font-serif leading-[64px] font-medium tracking-[-0.01em] whitespace-nowrap tabular-nums ${heroSize} ${heroColor}`}
         >
           {hero}
         </p>
@@ -77,7 +81,7 @@ export function Summary({
       </div>
 
       <div className="flex flex-col gap-2.5 border-t border-line pt-4">
-        <dl className="flex flex-col gap-2.5">
+        <dl className="flex flex-col gap-2.5 px-3">
           <Item label="Listed total" value={formatMoney(totals.listed_total)} />
           <Item label="Parts cost" value={formatMoney(totals.parts_cost)} />
           <Item label="Extra costs" value={formatMoney(totals.extra_costs)} />
@@ -87,7 +91,7 @@ export function Summary({
             strong
           />
         </dl>
-        <dl className="flex flex-col gap-2.5 border-t border-line pt-2.5">
+        <dl className="flex flex-col gap-2.5 border-t border-line px-3 pt-2.5">
           <Item label="Selling price" value={formatMoney(sellingPrice)} />
           <Item
             label={aboveMarket ? "Above market" : "Below market"}

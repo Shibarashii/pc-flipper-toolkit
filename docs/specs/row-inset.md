@@ -27,6 +27,16 @@ else. Asked for by the author on 2026-11-12, from a screenshot of a build page.
 Already right, unchanged: the builds list table (desktop), the part search pop-up (`px-3`),
 the header, the demo banner and the footer (page padding).
 
+The empty states under those lines ("No parts yet", "No extra costs yet") get the same
+inset, so they line up with the rows they stand in for.
+
+**The Profit figure** in the Summary can't wrap, and the inset takes 24px from its 320px
+column, where a 10-character figure ("+₱4,200.00") at 60px was 314px wide. So it now sizes
+itself to its box instead of by a fixed step: `min(60px, N cqi)` (`cqi` is 1% of the box's
+width), with N from the figure's length, measured in Newsreader. That also stops it pushing
+the build page wider than a 320px screen, which it did before (added 2026-11-12, found while
+building).
+
 ### What stays flush
 
 - **Section headings and their top lines** ("Build", "Parts", "Summary", "Extra costs",

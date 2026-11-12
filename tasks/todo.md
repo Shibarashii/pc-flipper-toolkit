@@ -1219,7 +1219,7 @@ Spec: [docs/specs/footer.md](../docs/specs/footer.md). Frontend only.
 
 Spec: [docs/specs/row-inset.md](../docs/specs/row-inset.md). Frontend only.
 
-### - [ ] T44: Every hairline row insets its content 12px from both ends
+### - [x] T44: Every hairline row insets its content 12px from both ends
 
 **Description:**
 - `px-3` on the rows of: the build checklist (`BuildChecklist.tsx`); the Summary's Profit
@@ -1230,18 +1230,24 @@ Spec: [docs/specs/row-inset.md](../docs/specs/row-inset.md). Frontend only.
 - Edit boxes keep the full row width; headings, the progress bar, heading buttons and the
   builds summary's stat strip stay flush.
 - `docs/brand-guidelines.md`: rows inset 12px from their hairlines; headings flush.
+- Found while building: the Summary's Profit figure (no wrap) no longer fit its narrower box,
+  so it sizes itself to the box (`min(60px, N cqi)`, N by its length) instead of 60/48px by
+  length. The empty states under the lines get the inset too.
 
 **Acceptance criteria:**
-- [ ] No row text touches either end of its hairlines, at 1280px and 375px
-- [ ] Headings, the progress bar and the heading buttons haven't moved
-- [ ] The Parts column heads, rows and Total row still line up
-- [ ] An open edit box still spans the row's full width
-- [ ] Nothing wraps newly or scrolls sideways at 375px and 320px
+- [x] No row text touches either end of its hairlines, at 1280px and 375px
+- [x] Headings, the progress bar and the heading buttons haven't moved
+- [x] The Parts column heads, rows and Total row still line up
+- [x] An open edit box still spans the row's full width
+- [x] Nothing wraps newly or scrolls sideways at 375px; at 320px the build page now fits
+  (before, the Profit figure pushed it wider and cut off "Add" and the delete icons), so
+  "Add bundle" and long part names wrap there instead. Every page still scrolls 11px
+  sideways at 320px, as before; that's not from the rows
 
 **Verification:**
-- [ ] `npm test`, `npm run lint`, `npx tsc -b`, `npx prettier --check src`, `npx playwright test`
-  (unchanged tests, all passing)
-- [ ] Screenshots before and after: a build page with parts, a bundle, an extra cost and a
+- [x] `npm test` (153), `npm run lint`, `npx tsc -b`, `npx prettier --check src`,
+  `npx playwright test` (14), unchanged tests, all passing
+- [x] Screenshots before and after: a build page with parts, a bundle, an extra cost and a
   selling price; a part being edited with prices found; the builds list. 1280px and 375px,
   light and dark; 320px for the wrap check
 

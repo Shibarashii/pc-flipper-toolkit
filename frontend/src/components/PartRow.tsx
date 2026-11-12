@@ -379,7 +379,7 @@ export function PartItem({
     />
   );
   return (
-    <li className="border-b border-line py-3.5 sm:py-3">
+    <li className="border-b border-line px-3 py-3.5 sm:py-3">
       {/* Mobile card */}
       <div className="flex flex-col gap-2 sm:hidden">
         <div className="flex items-start gap-2">

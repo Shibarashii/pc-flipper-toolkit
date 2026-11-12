@@ -227,7 +227,7 @@ makes Privacy reachable when logged in, which T42 left out.
 and on the author's phone.
 
 ### Phase 18: Row inset ([docs/specs/row-inset.md](../docs/specs/row-inset.md))
-- [ ] T44: Every hairline row insets its content 12px from both ends
+- [x] T44: Every hairline row insets its content 12px from both ends
 
 ```
 T44 row inset (build page rows + builds list cards + brand rule) ── Checkpoint 16
