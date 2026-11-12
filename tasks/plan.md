@@ -240,6 +240,20 @@ are the check.
 **Checkpoint 16:** the row-inset spec's success criteria 1–5 pass on the live site, at
 desktop and on the author's phone.
 
+### Phase 19: Share card ([docs/specs/share-card.md](../docs/specs/share-card.md))
+- [x] T45: A shared link shows a card; search shows the name and line
+
+```
+T45 share card (index.html tags + og-image.png + robots.txt + one test) ── Checkpoint 17
+```
+One task: the tags point to the image, so neither works without the other, and `robots.txt`
+is two lines. Frontend only; no code, API, data or dependency change. The image is a fresh
+screenshot of a local demo account's builds list at a 1200×630 viewport. Previews are made by
+the platforms' crawlers, so the real check is on the live site.
+
+**Checkpoint 17:** the share-card spec's success criteria 1–5 pass on the live site, checked
+by the author in Facebook's Sharing Debugger, LinkedIn's Post Inspector and Messenger.
+
 ## Risks and Mitigations
 
 | Risk | Impact | Mitigation |

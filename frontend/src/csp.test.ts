@@ -35,3 +35,31 @@ test("the CSP lets Google's sign-in button load", () => {
   );
   expect(header("Referrer-Policy")).toBe("strict-origin-when-cross-origin");
 });
+
+// A shared link's card and the search snippet (docs/specs/share-card.md). Link previewers
+// don't run JavaScript, so the tags must be in index.html itself, with absolute URLs.
+test("index.html has the share card's tags and its 1200×630 image", () => {
+  const html = readFileSync("index.html", "utf8");
+  const meta = (attr: string, name: string): string =>
+    html.match(
+      new RegExp(`<meta\\s+${attr}="${name}"\\s+content="([^"]*)"`),
+    )?.[1] ?? "";
+  const site = "https://pc-flipper-toolkit.vercel.app/";
+  const line = meta("name", "description");
+  expect(line.length).toBeGreaterThan(0);
+  expect(line.length).toBeLessThan(155);
+  expect(line).toMatch(/Try the demo, no sign-up needed\.$/);
+  expect(meta("property", "og:description")).toBe(line);
+  expect(meta("property", "og:title")).toBe("PC Flipper Toolkit");
+  expect(meta("property", "og:type")).toBe("website");
+  expect(meta("property", "og:url")).toBe(site);
+  expect(html).toContain(`<link rel="canonical" href="${site}" />`);
+  expect(meta("property", "og:image")).toBe(`${site}og-image.png`);
+  expect(meta("property", "og:image:alt")).not.toBe("");
+  // A PNG's width and height are big-endian at bytes 16 and 20.
+  const png = readFileSync("public/og-image.png");
+  expect([png.readUInt32BE(16), png.readUInt32BE(20)]).toEqual([1200, 630]);
+  expect(meta("property", "og:image:width")).toBe("1200");
+  expect(meta("property", "og:image:height")).toBe("630");
+  expect(png.length).toBeLessThan(1024 * 1024);
+});
