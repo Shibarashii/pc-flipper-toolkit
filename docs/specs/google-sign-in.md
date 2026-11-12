@@ -171,6 +171,10 @@ class GoogleAccount(models.Model):
    - Publish it so any Google account can sign in, not only test users. Publishing needs a
      homepage URL (the live site) and a privacy policy URL (its `/privacy` page), and Google
      may ask to verify the domain.
+   - Showing the app's logo on Google's sign-in screen needs brand verification, which needs
+     the site's ownership proved in Google Search Console (a URL-prefix property for the live
+     site). The proof is `frontend/public/google0717eefd8353a321.html`; Google checks it
+     again from time to time, so it must stay (added 2026-11-12).
 2. **OAuth client:** Web application. Authorized JavaScript origins:
    - `https://pc-flipper-toolkit.vercel.app`
    - `http://localhost`, `http://localhost:5173` and `http://localhost:5199` (Google asks for
