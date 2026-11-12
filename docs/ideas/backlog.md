@@ -31,12 +31,6 @@ brainstorm.
 
 Moved to [docs/specs/part-condition.md](../specs/part-condition.md).
 
-### A build's condition (added 2026-11-07)
-
-One condition for the whole build, for the Facebook listing's own Condition field. Likely
-worked out from its parts: a build is only as new as its oldest part. Not "refurbished",
-which means repaired or restored and tested. Waits for part condition.
-
 ### Account page: profile and currency (added 2026-11-07)
 
 After Google sign-in adds the Account page ([spec](../specs/google-sign-in.md)): edit the
@@ -52,6 +46,13 @@ part, like the header's price already does.
 
 ## Parked
 
+- **A build's condition** (added 2026-11-07, parked 2026-11-12). One condition for the whole
+  build, for Facebook's Condition field, or a "Refurbished" tag. Not needed: with mixed parts,
+  Facebook's Condition is the worst part's, which the seller can tell at a glance, and the
+  Copy listing post already shows each part's condition. "Refurbished" is the seller's claim,
+  not something the parts say, and it fits in the build's name ("Refurbished i5-12400F +
+  RTX 3060"), the post's first line. Revisit if Facebook's Condition is picked wrong, or
+  "Refurbished" gets typed into names often.
 - **Rename "Listed price" to "Market price"** (2026-10-29). Open question: the UI label only,
   or also the API's `listed_price` field (a data model and API change)?
 - **Shopee prices** (2026-10-29), through Shopee's affiliate API once the author is approved.
