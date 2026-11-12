@@ -18,8 +18,9 @@ Figma: [PC Flipper Toolkit — v1 Screens](https://www.figma.com/design/Wp4dGW94
 - **Wordmark:** `PC Flipper Toolkit` in Newsreader Medium 20, ink color. Never recolor it or set it in the sans.
 - **Mark:** a graphics card cut out of a green circle, the card in negative space
   (`frontend/public/logo.png`, 256×256). Used as the favicon (changed 2026-11-10 from a serif
-  `P` on a forest square), and at 28px in place of the wordmark in the header on windows
-  narrower than 375px, where the wordmark beside "Exit demo" doesn't fit (2026-11-12).
+  `P` on a forest square), and at 28px before the wordmark in the header, the two one link
+  home. Below 410px the wordmark doesn't fit beside "Exit demo", so the mark shows alone
+  (2026-11-12).
 
 ## Color
 

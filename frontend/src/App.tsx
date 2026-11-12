@@ -45,14 +45,15 @@ export default function App() {
     // A column at least as tall as the window: on short pages the footer sits at the bottom.
     <div className="flex min-h-dvh flex-col">
       <header className="flex items-center justify-between gap-4 border-b border-line px-4 py-3 sm:px-10">
-        {/* The name needs ~375px beside "Exit demo"; narrower phones get the logo. */}
+        {/* The logo, then the name: one link home. Beside "Exit demo" the name needs a
+            ~408px window, so narrower phones show the logo alone (named for screen readers). */}
         <Link
           to="/"
           aria-label="PC Flipper Toolkit"
-          className={`shrink-0 rounded font-serif text-xl leading-7 font-medium ${focusRing}`}
+          className={`flex shrink-0 items-center gap-2 rounded font-serif text-xl leading-7 font-medium ${focusRing}`}
         >
-          <img src="/logo.png" alt="" className="size-7 min-[375px]:hidden" />
-          <span className="hidden min-[375px]:inline">PC Flipper Toolkit</span>
+          <img src="/logo.png" alt="" className="size-7" />
+          <span className="hidden min-[410px]:inline">PC Flipper Toolkit</span>
         </Link>
         <div className="flex min-w-0 items-center gap-2 sm:gap-4">
           <ThemeToggle />

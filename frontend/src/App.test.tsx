@@ -582,6 +582,17 @@ function expectFooter() {
   }
 }
 
+test("the header's home link is the logo, then the name, in one link", () => {
+  stubFetch();
+  renderAt("/login");
+  const home = screen.getByRole("link", { name: "PC Flipper Toolkit" });
+  expect(home.getAttribute("href")).toBe("/");
+  const [logo, name] = home.children;
+  expect(logo.getAttribute("src")).toBe("/logo.png");
+  expect(logo.getAttribute("alt")).toBe("");
+  expect(name.textContent).toBe("PC Flipper Toolkit");
+});
+
 test("logged out, the footer has the © line, Privacy, GitHub and LinkedIn", () => {
   stubFetch();
   renderAt("/login");

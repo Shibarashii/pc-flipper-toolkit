@@ -13,6 +13,13 @@ test("try the demo: sample builds, then sign up instead", async ({ page }) => {
     page.getByRole("link", { name }).filter({ visible: true });
   await expect(build("i5-12400F + RTX 3060")).toBeVisible();
 
+  // The header's home link: the logo always, the name beside it where it fits (410px+).
+  const home = page.getByRole("link", { name: "PC Flipper Toolkit" });
+  await expect(home.locator("img")).toBeVisible();
+  await expect(home.getByText("PC Flipper Toolkit")).toBeVisible({
+    visible: page.viewportSize()!.width >= 410,
+  });
+
   // The smallest phones: the header (with "Exit demo", its longest button) fits a 320px
   // window, so the page doesn't scroll sideways.
   const size = page.viewportSize()!;
