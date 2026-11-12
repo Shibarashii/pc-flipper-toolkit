@@ -1277,6 +1277,8 @@ Spec: [docs/specs/share-card.md](../docs/specs/share-card.md). Frontend only.
 - `frontend/src/csp.test.ts`: one test, written first, that the tags are in `index.html`,
   `og:image` is the absolute URL of `/og-image.png`, and the PNG exists at 1200×630 (read
   from its header).
+- Found while building: the image is 48 KB; the demo banner and a `demo-…` username show,
+  as the spec allows.
 
 **Acceptance criteria:**
 - [x] `npm run build` puts `og-image.png` and `robots.txt` in `dist/`, and `dist/index.html`
@@ -1289,9 +1291,6 @@ Spec: [docs/specs/share-card.md](../docs/specs/share-card.md). Frontend only.
   `npm run build`, `npx playwright test` (14), all passing
 - [x] The new test failed before the tags and image existed (no description)
 - [x] Look at `og-image.png` at full size and as a ~500px-wide card
-
-- Found while building: the image is 48 KB; the demo banner and a `demo-…` username show,
-  as the spec allows.
 
 **Dependencies:** none
 **Files:** `frontend/index.html`, `frontend/public/og-image.png`, `frontend/public/robots.txt`, `frontend/src/csp.test.ts`, `docs/specs/share-card.md`
