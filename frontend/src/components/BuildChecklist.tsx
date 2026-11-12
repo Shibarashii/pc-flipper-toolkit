@@ -105,7 +105,7 @@ export function BuildChecklist({
           {slots.map((slot) => (
             <li
               key={slot.category}
-              className="flex items-center gap-3 border-b border-line py-2"
+              className="flex items-center gap-3 border-b border-line px-3 py-2"
             >
               <span className="flex size-4 shrink-0 items-center justify-center">
                 <img

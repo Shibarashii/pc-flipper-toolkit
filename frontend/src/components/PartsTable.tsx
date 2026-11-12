@@ -144,7 +144,7 @@ export function PartsTable({
 
       <div className="flex flex-col border-t border-line-strong">
         {!any && !adding && bundleForm === null && (
-          <div className="py-6">
+          <div className="px-3 py-6">
             <p className="text-[15px] leading-[22px] font-medium">
               No parts yet
             </p>
@@ -159,7 +159,7 @@ export function PartsTable({
           <>
             <div
               aria-hidden
-              className="hidden gap-4 border-b border-line-strong py-2 text-[13px] leading-[18px] font-medium text-muted sm:flex"
+              className="hidden gap-4 border-b border-line-strong px-3 py-2 text-[13px] leading-[18px] font-medium text-muted sm:flex"
             >
               <span className="flex-1">Part</span>
               <span className="w-[100px]">Category</span>
@@ -226,7 +226,7 @@ export function PartsTable({
         )}
 
         {any && (
-          <div className="hidden gap-4 border-t border-line-strong py-3 text-[15px] leading-[22px] font-medium tabular-nums sm:flex">
+          <div className="hidden gap-4 border-t border-line-strong px-3 py-3 text-[15px] leading-[22px] font-medium tabular-nums sm:flex">
             <span className="flex-1">Total</span>
             <span className="w-[100px]" />
             <span className="w-[110px] text-right text-muted">

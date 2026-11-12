@@ -148,7 +148,10 @@ export function BuildsList() {
           {/* Mobile cards */}
           <ul className="mt-6 border-t border-line-strong sm:hidden">
             {builds.map((b) => (
-              <li key={b.id} className="relative border-b border-line py-4">
+              <li
+                key={b.id}
+                className="relative border-b border-line px-3 py-4"
+              >
                 <div className="flex items-center gap-3">
                   <Link
                     to={`/builds/${b.id}`}
@@ -188,7 +191,7 @@ function ListSkeleton() {
       className="mt-6 border-t border-line-strong sm:mt-8"
     >
       {[0, 1, 2].map((i) => (
-        <div key={i} className="border-b border-line py-4 sm:px-3">
+        <div key={i} className="border-b border-line px-3 py-4">
           <div className="hidden items-center gap-4 sm:flex">
             <Bone className="h-4 w-6" />
             <Bone className="h-5 w-56" />

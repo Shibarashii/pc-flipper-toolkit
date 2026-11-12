@@ -167,7 +167,7 @@ function Results({
       {results.length > 0 && (
         <ul className="mt-2 divide-y divide-line border-y border-line">
           {results.map((product) => (
-            <li key={product.url} className="flex items-start gap-3 py-2">
+            <li key={product.url} className="flex items-start gap-3 px-3 py-2">
               <button
                 type="button"
                 onClick={() => onPick(product)}

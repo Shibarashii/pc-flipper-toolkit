@@ -71,7 +71,7 @@ export function ExtraCosts({
 
       <div className="border-t border-line-strong">
         {costs.length === 0 && open !== "new" && (
-          <div className="py-6">
+          <div className="px-3 py-6">
             <p className="text-[15px] leading-[22px] font-medium">
               No extra costs yet
             </p>
@@ -99,7 +99,7 @@ export function ExtraCosts({
             ) : (
               <li
                 key={c.id}
-                className="flex items-center gap-4 border-b border-line py-2 text-[15px] leading-[22px]"
+                className="flex items-center gap-4 border-b border-line px-3 py-2 text-[15px] leading-[22px]"
               >
                 <span className="min-w-0 flex-1">{c.label}</span>
                 <span className="tabular-nums">{formatMoney(c.amount)}</span>
