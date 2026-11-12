@@ -1259,3 +1259,45 @@ Spec: [docs/specs/row-inset.md](../docs/specs/row-inset.md). Frontend only.
 - [x] The row-inset spec's success criteria 1–5 pass on the live site, at desktop and on the
   author's phone (checked by the author, 2026-11-12)
 - [x] All tests pass on `main` (CI on 519b8c7)
+
+## Phase 19: Share card
+
+Spec: [docs/specs/share-card.md](../docs/specs/share-card.md). Frontend only.
+
+### - [x] T45: A shared link shows a card; search shows the name and line
+
+**Description:**
+- `frontend/index.html`: after `<title>`, the description, the canonical link, and `og:type`,
+  `og:site_name`, `og:title`, `og:description`, `og:url`, `og:image` (+ width, height, alt),
+  as in the spec. Absolute URLs; the description and `og:description` are the same line.
+- `frontend/public/og-image.png`: a fresh screenshot of a local demo account's builds list,
+  light theme, at a 1200×630 viewport (the README's is from 2026-10-27, before the summary,
+  logo and row inset). Under 1 MB.
+- `frontend/public/robots.txt`: `User-agent: *` / `Allow: /`.
+- `frontend/src/csp.test.ts`: one test, written first, that the tags are in `index.html`,
+  `og:image` is the absolute URL of `/og-image.png`, and the PNG exists at 1200×630 (read
+  from its header).
+
+**Acceptance criteria:**
+- [x] `npm run build` puts `og-image.png` and `robots.txt` in `dist/`, and `dist/index.html`
+  has every tag
+- [x] The image shows the two sample builds and the summary, nothing personal, light theme
+- [x] The description is under 155 characters and ends "Try the demo, no sign-up needed."
+
+**Verification:**
+- [x] `npm test` (155), `npm run lint`, `npx tsc -b`, `npx prettier --check src index.html`,
+  `npm run build`, `npx playwright test` (14), all passing
+- [x] The new test failed before the tags and image existed (no description)
+- [x] Look at `og-image.png` at full size and as a ~500px-wide card
+
+- Found while building: the image is 48 KB; the demo banner and a `demo-…` username show,
+  as the spec allows.
+
+**Dependencies:** none
+**Files:** `frontend/index.html`, `frontend/public/og-image.png`, `frontend/public/robots.txt`, `frontend/src/csp.test.ts`, `docs/specs/share-card.md`
+**Scope:** S
+
+### Checkpoint 17: Share card
+- [ ] The share-card spec's success criteria 1–5 pass on the live site: Facebook's Sharing
+  Debugger, LinkedIn's Post Inspector, a paste in Messenger (by the author)
+- [ ] All tests pass on `main`
