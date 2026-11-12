@@ -226,6 +226,20 @@ makes Privacy reachable when logged in, which T42 left out.
 **Checkpoint 15:** the footer spec's success criteria 1–4 pass on the live site, at desktop
 and on the author's phone.
 
+### Phase 18: Row inset ([docs/specs/row-inset.md](../docs/specs/row-inset.md))
+- [ ] T44: Every hairline row insets its content 12px from both ends
+
+```
+T44 row inset (build page rows + builds list cards + brand rule) ── Checkpoint 16
+```
+One task, though it touches 8 components: each change is the same class on a row, and
+shipping only some of the rows would leave the app inconsistent between merges. Frontend
+only; no API, data, token or dependency change. No new tests (spacing), so the screenshots
+are the check.
+
+**Checkpoint 16:** the row-inset spec's success criteria 1–5 pass on the live site, at
+desktop and on the author's phone.
+
 ## Risks and Mitigations
 
 | Risk | Impact | Mitigation |
@@ -264,6 +278,7 @@ and on the author's phone.
 | Demo cleanup deletes a Google-only account (no password, like a demo) | High | Google usernames never start with `demo-`; a test with an old Google-only account (T40) |
 | Two Google sign-ins pick the same new username at once | Low | Catch the unique-name error and try the next number, as sign-up already does (T40) |
 | A page that sets its own height breaks the column, leaving a gap or a scrollbar under the footer | Low | Only the wrapper sets a height (`min-h-dvh`); the flip e2e test checks the footer touches the window's bottom at desktop and 375px (T43) |
+| The 24px the inset takes makes a phone row wrap or a page scroll sideways at 320px | Medium | Screenshots at 375px and 320px of a build page and the builds list; tighten a row's own gaps if it wraps, never drop the inset on one row (T44) |
 
 ## Open Questions
 
