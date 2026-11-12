@@ -1241,8 +1241,8 @@ Spec: [docs/specs/row-inset.md](../docs/specs/row-inset.md). Frontend only.
 - [x] An open edit box still spans the row's full width
 - [x] Nothing wraps newly or scrolls sideways at 375px; at 320px the build page now fits
   (before, the Profit figure pushed it wider and cut off "Add" and the delete icons), so
-  "Add bundle" and long part names wrap there instead. Every page still scrolls 11px
-  sideways at 320px, as before; that's not from the rows
+  "Add bundle" and long part names wrap there instead. Every page still scrolled 11px
+  sideways at 320px, as before; that was the header, fixed in #74
 
 **Verification:**
 - [x] `npm test` (153), `npm run lint`, `npx tsc -b`, `npx prettier --check src`,
