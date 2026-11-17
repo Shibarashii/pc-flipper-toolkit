@@ -102,7 +102,7 @@ export function Account() {
               </Section>
 
               <Section title="Password" className="mt-8">
-                <PasswordRow hasPassword={me.has_password} />
+                <PasswordRow me={me} />
               </Section>
 
               <Section title="Google" className="mt-8">
@@ -254,15 +254,16 @@ function UsernameForm({
 }
 
 /** "You log in with a password." and Change, which opens Current and New password. */
-function PasswordRow({ hasPassword }: { hasPassword: boolean }) {
+function PasswordRow({ me }: { me: Me }) {
   const [editing, setEditing] = useState(false);
   const [changed, setChanged] = useState(false);
 
-  if (!hasPassword) return <p className="mt-3">You log in with Google.</p>;
+  if (!me.has_password) return <p className="mt-3">You log in with Google.</p>;
 
   if (editing)
     return (
       <PasswordForm
+        username={me.username}
         onChanged={(session) => {
           updateSession(session);
           setEditing(false);
@@ -300,9 +301,11 @@ function PasswordRow({ hasPassword }: { hasPassword: boolean }) {
 const PASSWORDS = { current_password: "", new_password: "" };
 
 function PasswordForm({
+  username,
   onChanged,
   onCancel,
 }: {
+  username: string;
   onChanged: (session: { token: string; username: string }) => void;
   onCancel: () => void;
 }) {
@@ -314,7 +317,11 @@ function PasswordForm({
     void save(async () => onChanged(await changePassword(passwords)));
   }
 
-  const field = (name: keyof typeof PASSWORDS, label: string) => (
+  const field = (
+    name: keyof typeof PASSWORDS,
+    label: string,
+    autoComplete: string,
+  ) => (
     <Field label={label} errors={errors[name]} className="max-w-[400px]">
       <input
         type="password"
@@ -322,7 +329,7 @@ function PasswordForm({
         onChange={(event) =>
           setPasswords({ ...passwords, [name]: event.target.value })
         }
-        autoComplete={name.replace("_", "-")}
+        autoComplete={autoComplete}
         autoFocus={name === "current_password"}
         required
         aria-invalid={!!errors[name]}
@@ -333,8 +340,10 @@ function PasswordForm({
 
   return (
     <form onSubmit={submit} className="mt-3 flex flex-col gap-4">
-      {field("current_password", "Current password")}
-      {field("new_password", "New password")}
+      {/* Tells password managers which saved login the new password is for. */}
+      <input hidden readOnly autoComplete="username" value={username} />
+      {field("current_password", "Current password", "current-password")}
+      {field("new_password", "New password", "new-password")}
       {failed && (
         <p role="alert" className="text-[13px] leading-[18px] text-loss">
           {generalError(error, errors)}

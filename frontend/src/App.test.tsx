@@ -643,6 +643,17 @@ test("Change password keeps this browser logged in with a new token", async () =
   renderAt("/account");
 
   fireEvent.click(await changeIn("Password"));
+  // Password managers update the saved login named by the (hidden) username field.
+  expect(screen.getByDisplayValue("carol").getAttribute("autocomplete")).toBe(
+    "username",
+  );
+  for (const [label, autocomplete] of [
+    ["Current password", "current-password"],
+    ["New password", "new-password"],
+  ])
+    expect(screen.getByLabelText(label).getAttribute("autocomplete")).toBe(
+      autocomplete,
+    );
   fireEvent.change(screen.getByLabelText("Current password"), {
     target: { value: "old passphrase" },
   });
