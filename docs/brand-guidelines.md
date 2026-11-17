@@ -3,8 +3,9 @@
 Direction: **editorial ledger**. Calm, warm and deliberate, like a well-set annual report.
 Ink on warm paper, one serif voice for names and the hero number, a quiet sans for everything else.
 
-Figma: [PC Flipper Toolkit — v1 Screens](https://www.figma.com/design/Wp4dGW94gTWFjwZSha3nby), page **Brand v2 — Editorial ledger**
+Figma: [PC Flipper Toolkit — v1 Screens](https://www.figma.com/design/Wp4dGW94gTWFjwZSha3nby), page **Brand identity**
 (tokens: `Brand v2` collection, text styles: `editorial/*`, effect: `editorial/focus-ring`).
+How the file is organized and how to design in it: [figma.md](figma.md).
 
 ## Principles
 
