@@ -125,6 +125,14 @@ reset links; it's signed, so it can't be changed.)
 
 ## Frontend
 
+**Design** (approved 2026-11-17), on Figma's *Ready for development* page, light and dark:
+[Account](https://www.figma.com/design/Wp4dGW94gTWFjwZSha3nby?node-id=129-393) (desktop,
+mobile, and every row's states),
+[Log in & sign up](https://www.figma.com/design/Wp4dGW94gTWFjwZSha3nby?node-id=129-389),
+[Recovery](https://www.figma.com/design/Wp4dGW94gTWFjwZSha3nby?node-id=129-391) (`/forgot`,
+`/reset-password`, `/verify-email` and the sign-up notice). Words come from the list under
+"Wording" below; sizes from the existing code where the two differ.
+
 ### Account page (`/account`)
 
 Under "Logged in as …", three sections with hairlines, like the Google one, each a row that
@@ -138,8 +146,7 @@ opens an edit form in place:
   `current-password` and `new-password`). Google-only accounts see "You log in with Google"
   instead.
 - **Google:** as today.
-- **Demo accounts** see the existing "Sign up for your own account first" line instead of
-  these rows.
+- **Demo accounts** see one line instead of these rows and Google (see "Wording").
 
 ### Log-in and sign-up (`Login.tsx`)
 
@@ -156,6 +163,34 @@ opens an edit form in place:
   or why not.
 - **Referrer-Policy `no-referrer`** on `/reset-password` and `/verify-email`, in
   `vercel.json`, since their URLs carry tokens.
+
+### Wording
+
+Approved with the designs. Errors not listed here are Django's own messages (e.g. "A user with
+that username already exists.", "This password is too common.").
+
+- **Account, Username:** "Change"; the form's buttons "Save" and "Cancel".
+- **Account, Email:** "No email yet. Add one so you can get back in if you forget your
+  password." / "Add email"; sent: "We sent a link to {email}. It works for 24 hours."; taken:
+  "That email is used by another account."
+- **Account, Password:** "You log in with a password." and "Change"; the form's button "Change
+  password"; wrong current password: "That isn't your current password."; done: "Password
+  changed. Your other devices are logged out."; Google-only: "You log in with Google."
+- **Account, demo:** "Demo accounts can't change their account. Sign up for your own account
+  first." (replaces today's Google-only line).
+- **Log in:** the link "Forgot your username or password?". **Sign-up:** the field "Email";
+  on the builds list after: "We sent a link to {email} to confirm your email."
+- **`/forgot`:** title "Forgot your username or password?"; "Type your account's email. We'll
+  send your username and a link to set a new password."; "Send link"; "Back to log in"; sent:
+  "If an account has that email, we've sent it a link. It works for 1 hour."
+- **`/reset-password`:** "Set a new password", the field "New password", "Set password"; done:
+  "Password changed" / "Log in with your new password." and "Log in"; bad link: "This link no
+  longer works" / "Reset links work once, for 1 hour. Ask for a new one." / "Get a new link".
+- **`/verify-email`:** "Email confirmed" / "{email} is on your account now." / "Go to
+  Account"; bad link: "This link no longer works" / "Confirmation links work once, for 24
+  hours. Add your email again on Account to get a new one." / "Go to Account".
+
+Text uses curly apostrophes (’), as the rest of the app does.
 
 ### Other screens
 
