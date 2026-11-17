@@ -255,7 +255,7 @@ the platforms' crawlers, so the real check is on the live site.
 by the author in Facebook's Sharing Debugger, LinkedIn's Post Inspector and Messenger.
 
 ### Phase 20: Account management, part 1 ([docs/specs/account-management.md](../docs/specs/account-management.md))
-- [ ] T46: Change your username on Account
+- [x] T46: Change your username on Account
 - [ ] T47: Change your password on Account
 
 ```

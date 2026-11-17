@@ -12,10 +12,12 @@ export const cleanMoney = (value: string) => value.replace(/[₱,]/g, "").trim()
 
 /** Saving state for an inline form. `save(work)` runs the request; a 400 puts each
  * message under its field, and `failed` covers the rest (no connection, or an error on
- * a field the form doesn't show). `shown` is the form's fields, e.g. its EMPTY. */
+ * a field the form doesn't show; `error` is what was thrown, for `generalError`). `shown`
+ * is the form's fields, e.g. its EMPTY. */
 export function useSave(shown: Record<string, string>) {
   const [errors, setErrors] = useState<FieldErrors>({});
   const [failed, setFailed] = useState(false);
+  const [error, setError] = useState<unknown>(null);
   const [saving, setSaving] = useState(false);
 
   async function save(work: () => Promise<void>) {
@@ -26,6 +28,7 @@ export function useSave(shown: Record<string, string>) {
       await work();
     } catch (err) {
       const fieldErrors = err instanceof ApiError ? err.fieldErrors : {};
+      setError(err);
       setErrors(fieldErrors);
       setFailed(!Object.keys(fieldErrors).some((key) => key in shown));
     } finally {
@@ -33,7 +36,7 @@ export function useSave(shown: Record<string, string>) {
     }
   }
 
-  return { errors, failed, saving, save };
+  return { errors, error, failed, saving, save };
 }
 
 /** The pencil and trash buttons at the end of a row. `name` labels them for screen readers. */

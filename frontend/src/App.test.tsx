@@ -26,7 +26,7 @@ afterEach(() => {
 
 /** Each call to fetch gets the next response (the last one repeats). The builds list's
  * summary is answered on the side, so it doesn't take a response or count as a call. */
-function stubFetch(...responses: (() => Response)[]) {
+function stubFetch(...responses: (() => Response | Promise<Response>)[]) {
   let call = 0;
   const fetchMock = vi.fn<typeof fetch>(async () =>
     responses[Math.min(call++, responses.length - 1)](),
@@ -507,7 +507,7 @@ test("a Google-only account isn't offered Disconnect", async () => {
   ).toBeTruthy();
 });
 
-test("a demo is told to sign up first, with no Google button", async () => {
+test("a demo is told to sign up first, with nothing to change", async () => {
   vi.stubEnv("VITE_GOOGLE_CLIENT_ID", "client.apps.googleusercontent.com");
   const google = stubGoogle();
   saveSession({ token: "d1", username: "demo-abc" });
@@ -516,10 +516,91 @@ test("a demo is told to sign up first, with no Google button", async () => {
 
   expect(
     await screen.findByText(
-      "Demo accounts can’t connect Google. Sign up for your own account first.",
+      "Demo accounts can’t change their account. Sign up for your own account first.",
     ),
   ).toBeTruthy();
+  expect(screen.queryByRole("button", { name: "Change" })).toBeNull();
+  expect(screen.queryByRole("heading", { name: "Google" })).toBeNull();
   expect(google.renderButton).not.toHaveBeenCalled();
+});
+
+test("Change renames you, and the header follows", async () => {
+  saveSession({ token: "abc", username: "carol" });
+  const fetchMock = stubFetch(me(), me({ username: "dave" }));
+  renderAt("/account");
+
+  fireEvent.click(await screen.findByRole("button", { name: "Change" }));
+  const field = screen.getByRole("textbox", { name: "Username" });
+  expect((field as HTMLInputElement).value).toBe("carol");
+  fireEvent.change(field, { target: { value: "dave" } });
+  fireEvent.click(screen.getByRole("button", { name: "Save" }));
+
+  expect(await screen.findByRole("link", { name: "dave" })).toBeTruthy();
+  expect(screen.queryByRole("button", { name: "Save" })).toBeNull();
+  expect(JSON.parse(localStorage.getItem("session")!)).toEqual({
+    token: "abc",
+    username: "dave",
+  });
+  const [url, init] = fetchMock.mock.calls[1];
+  expect(url).toBe("/api/auth/me/");
+  expect(init?.method).toBe("PATCH");
+  expect(JSON.parse(init?.body as string)).toEqual({ username: "dave" });
+});
+
+test("a rename answered after Log out doesn't log you back in", async () => {
+  saveSession({ token: "abc", username: "carol" });
+  let answer: (res: Response) => void = () => {};
+  stubFetch(
+    me(),
+    () => new Promise<Response>((resolve) => (answer = resolve)),
+    () => new Response(null, { status: 204 }),
+  );
+  renderAt("/account");
+
+  fireEvent.click(await screen.findByRole("button", { name: "Change" }));
+  fireEvent.change(screen.getByRole("textbox", { name: "Username" }), {
+    target: { value: "dave" },
+  });
+  fireEvent.click(screen.getByRole("button", { name: "Save" }));
+  fireEvent.click(screen.getByRole("button", { name: "Log out" }));
+  expect(await screen.findByRole("heading", { name: "Log in" })).toBeTruthy();
+
+  answer(me({ username: "dave" })());
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  expect(localStorage.getItem("session")).toBeNull();
+  expect(screen.getByRole("heading", { name: "Log in" })).toBeTruthy();
+});
+
+test("too many renames says to wait", async () => {
+  saveSession({ token: "abc", username: "carol" });
+  stubFetch(me(), () => Response.json({}, { status: 429 }));
+  renderAt("/account");
+
+  fireEvent.click(await screen.findByRole("button", { name: "Change" }));
+  fireEvent.click(screen.getByRole("button", { name: "Save" }));
+  expect((await screen.findByRole("alert")).textContent).toBe(
+    "Too many attempts. Wait a minute and try again.",
+  );
+});
+
+test("a refused username shows under the field; Cancel keeps the old one", async () => {
+  saveSession({ token: "abc", username: "carol" });
+  stubFetch(me(), () =>
+    Response.json({ username: ["That username is taken."] }, { status: 400 }),
+  );
+  renderAt("/account");
+
+  fireEvent.click(await screen.findByRole("button", { name: "Change" }));
+  fireEvent.change(screen.getByRole("textbox", { name: "Username" }), {
+    target: { value: "bob" },
+  });
+  fireEvent.click(screen.getByRole("button", { name: "Save" }));
+  expect(await screen.findByText("That username is taken.")).toBeTruthy();
+
+  fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+  expect(screen.queryByRole("textbox", { name: "Username" })).toBeNull();
+  expect(screen.queryByText("That username is taken.")).toBeNull();
+  expect(screen.getByRole("link", { name: "carol" })).toBeTruthy();
 });
 
 test("a refused connect shows the server's message", async () => {

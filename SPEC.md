@@ -126,6 +126,7 @@ a 404, and in a body it's a 400 under the field ([public ids spec](docs/specs/pu
 | POST | `/api/auth/logout/` | Delete the current token |
 | POST | `/api/auth/demo/` | Create a demo account with the sample builds → `{token, username}` (201) |
 | GET | `/api/auth/me/` | The logged-in user: `{username, google, has_password, is_demo}`, where `google` is `{email}` or `null` |
+| PATCH | `/api/auth/me/` | Change your username `{username}`: the sign-up rules, except that changing only the case of your own name is allowed. Returns the same as GET. A demo gets `403`. Rate-limited like log-in. ([spec](docs/specs/account-management.md)) |
 | POST | `/api/auth/google/` | Sign in with Google's ID token (`credential`) → `{token, username}`; 201 when it makes the account ([spec](docs/specs/google-sign-in.md)) |
 | POST | `/api/auth/google/connect/` | Connect the Google account in `credential` to the logged-in user → `{google: {email}}`; 400 for a demo, a second one, or one connected elsewhere |
 | DELETE | `/api/auth/google/connect/` | Disconnect it (204); 400 without a password, the only other way in |

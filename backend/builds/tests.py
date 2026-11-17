@@ -16,6 +16,7 @@ from django.utils import timezone
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APITestCase
 
+from .auth import TAKEN
 from .models import Build, Bundle, ExtraCost, Part
 
 
@@ -983,6 +984,67 @@ class AuthTests(APITestCase):
         self.assertEqual(res.status_code, 400)
         self.assertEqual(res.json(), {"username": ["That username is taken."]})
 
+    def sign_up_carol(self):
+        res = self.post(
+            "/api/auth/signup/", {"username": "carol", "password": "a long passphrase"}
+        )
+        self.client.credentials(HTTP_AUTHORIZATION=f"Token {res.json()['token']}")
+
+    def rename(self, username):
+        return self.client.patch("/api/auth/me/", {"username": username}, format="json")
+
+    def test_a_new_username_logs_in_and_the_old_one_doesnt(self):
+        self.sign_up_carol()
+        res = self.rename("dave")
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.json()["username"], "dave")
+        self.assertEqual(self.client.get("/api/auth/me/").json()["username"], "dave")
+
+        self.client.credentials()
+        old = {"username": "carol", "password": "a long passphrase"}
+        self.assertEqual(self.post("/api/auth/login/", old).status_code, 400)
+        new = {"username": "dave", "password": "a long passphrase"}
+        self.assertEqual(self.post("/api/auth/login/", new).status_code, 200)
+
+    def test_a_rename_follows_the_sign_up_rules(self):
+        User.objects.create_user("bob", password="x")
+        self.sign_up_carol()
+        self.assertEqual(self.rename("BOB").json(), {"username": [TAKEN]})
+        self.assertEqual(self.rename("Demo-x").status_code, 400)
+        self.assertEqual(self.rename("not ok!").status_code, 400)
+        self.assertEqual(self.rename("").status_code, 400)
+        self.assertEqual(self.client.get("/api/auth/me/").json()["username"], "carol")
+
+    def test_changing_only_the_case_of_your_own_name_works(self):
+        self.sign_up_carol()
+        res = self.rename("Carol")
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.json()["username"], "Carol")
+
+    def test_a_rename_is_normalized_like_sign_up(self):
+        # Sign-up's create_user applies NFKC, so a full-width "ｄ" is a "d".
+        User.objects.create_user("dave", password="x")
+        self.sign_up_carol()
+        self.assertEqual(self.rename("ｄave").json(), {"username": [TAKEN]})
+        self.assertEqual(self.rename("ｅve").json()["username"], "eve")
+
+    def test_renames_share_the_auth_rate_limit_but_me_doesnt(self):
+        self.sign_up_carol()
+        cache.clear()
+        codes = [self.rename("carol").status_code for _ in range(11)]
+        self.assertEqual(codes, [200] * 10 + [429])
+        self.assertEqual(self.client.get("/api/auth/me/").status_code, 200)
+
+    def test_a_name_taken_at_the_same_moment_as_a_rename_is_a_400(self):
+        User.objects.create_user("dave", password="x")
+        self.sign_up_carol()
+        with mock.patch(
+            "builds.auth.UsernameSerializer.validate_username", lambda self, name: name
+        ):
+            res = self.rename("dave")
+        self.assertEqual(res.status_code, 400)
+        self.assertEqual(res.json(), {"username": [TAKEN]})
+
 
 class IsolationTests(LoggedInApiTestCase):
     """alice is logged in. Everything set up here belongs to bob."""
@@ -1239,6 +1301,12 @@ class DemoTests(APITestCase):
         self.assertEqual(
             res.json(), {"username": ['Usernames can\'t start with "demo-".']}
         )
+
+    def test_a_demo_cant_rename_itself(self):
+        name = self.demo()
+        res = self.client.patch("/api/auth/me/", {"username": "dave"}, format="json")
+        self.assertEqual(res.status_code, 403)
+        self.assertEqual(self.client.get("/api/auth/me/").json()["username"], name)
 
     def test_demo_shares_the_auth_rate_limit(self):
         wrong = {"username": "carol", "password": "nope"}

@@ -197,6 +197,13 @@ export type Me = {
 
 export const getMe = () => request<Me>("/auth/me/");
 
+/** The sign-up rules apply; changing only your own name's case is fine. */
+export const renameUser = (username: string) =>
+  request<Me>("/auth/me/", {
+    method: "PATCH",
+    body: JSON.stringify({ username }),
+  });
+
 /** Links the Google account in the ID token to this account. */
 export const connectGoogle = (credential: string) =>
   request<Pick<Me, "google">>("/auth/google/connect/", {

@@ -1312,7 +1312,7 @@ Spec: [docs/specs/share-card.md](../docs/specs/share-card.md). Frontend only.
 Spec: [docs/specs/account-management.md](../docs/specs/account-management.md). No migration, no
 new dependencies.
 
-### - [ ] T46: Change your username on Account
+### - [x] T46: Change your username on Account
 
 **Description:**
 - `PATCH /api/auth/me/ {username}` (`backend/builds/auth.py`): the sign-up rules, reusing
@@ -1323,17 +1323,22 @@ new dependencies.
   the header follows.
 - SPEC.md's auth table gets the endpoint.
 - Tests first, in `tests.py` and `App.test.tsx`.
+- Built 2026-11-17: sign-up and rename share `UsernameSerializer`. A taken name gets sign-up's
+  "That username is taken.", not the design caption's Django text. Demo accounts see the
+  approved "can’t change their account" line in place of every section, Google's included.
+  The schema shows the PATCH body as `PatchedUsernameRequest` (drf-spectacular makes every
+  PATCH body partial); the API still requires `username`.
 
 **Acceptance criteria:**
-- [ ] A new username shows in the header at once, and logging in works with it, not the old one
-- [ ] A name taken by another account in any case, or one starting with `demo-`, is refused
+- [x] A new username shows in the header at once, and logging in works with it, not the old one
+- [x] A name taken by another account in any case, or one starting with `demo-`, is refused
   with the sign-up message; changing only your own name's case works
-- [ ] A demo user gets `403`, and the page shows the existing "sign up first" line
+- [x] A demo user gets `403`, and the page shows the existing "sign up first" line
 
 **Verification:**
-- [ ] Standard verification, plus `makemigrations --check` and `spectacular --validate
+- [x] Standard verification, plus `makemigrations --check` and `spectacular --validate
   --fail-on-warn`
-- [ ] Manual: rename on the local copy at desktop and 375px, light and dark
+- [x] Manual: rename on the local copy at desktop and 375px, light and dark
 
 **Dependencies:** none
 **Files:** `backend/builds/auth.py`, `backend/builds/tests.py`, `frontend/src/api.ts`, `frontend/src/pages/Account.tsx`, `frontend/src/App.test.tsx`, `SPEC.md`, `docs/specs/account-management.md`
