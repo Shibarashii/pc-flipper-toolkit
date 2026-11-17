@@ -8,6 +8,7 @@ from django.db import IntegrityError, transaction
 from drf_spectacular.utils import extend_schema
 from rest_framework import serializers, status
 from rest_framework.authtoken.models import Token
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.throttling import ScopedRateThrottle
@@ -33,7 +34,8 @@ class CredentialsSerializer(serializers.Serializer):
     )
 
 
-class SignupSerializer(CredentialsSerializer):
+# A new username: sign-up's, or a rename (`context["user"]` is the one renaming).
+class UsernameSerializer(serializers.Serializer):
     username = serializers.CharField(
         max_length=150,
         validators=User._meta.get_field("username").validators,
@@ -41,7 +43,10 @@ class SignupSerializer(CredentialsSerializer):
     )
 
     def validate_username(self, username):
-        if User.objects.filter(username__iexact=username).exists():
+        taken = User.objects.filter(username__iexact=username)
+        if user := self.context.get("user"):
+            taken = taken.exclude(pk=user.pk)  # changing only your own name's case
+        if taken.exists():
             raise serializers.ValidationError(TAKEN)
         # Reserved: cleanup deletes demo accounts by this prefix (and no password).
         if username.lower().startswith(DEMO_PREFIX):
@@ -50,6 +55,8 @@ class SignupSerializer(CredentialsSerializer):
             )
         return username
 
+
+class SignupSerializer(UsernameSerializer, CredentialsSerializer):
     def validate(self, data):
         try:
             validate_password(data["password"], User(username=data["username"]))
@@ -263,6 +270,32 @@ class MeView(APIView):
                 "is_demo": is_demo(user),
             }
         )
+
+    @extend_schema(
+        summary="Change your username",
+        description="The sign-up rules apply, except that changing only the case of your "
+        "own name is allowed. Refused (403) for a demo.",
+        request=UsernameSerializer,
+        responses={200: MeSerializer},
+        tags=["auth"],
+    )
+    def patch(self, request):
+        user = request.user
+        if is_demo(user):
+            raise PermissionDenied(
+                "Demo accounts can't change their account. "
+                "Sign up for your own account first."
+            )
+        serializer = UsernameSerializer(data=request.data, context={"user": user})
+        serializer.is_valid(raise_exception=True)
+        user.username = serializer.validated_data["username"]
+        try:
+            with transaction.atomic():
+                user.save(update_fields=["username"])
+        except IntegrityError:
+            # Someone took the name between the check above and now.
+            raise serializers.ValidationError({"username": [TAKEN]})
+        return self.get(request)
 
 
 def refuse(message: str):

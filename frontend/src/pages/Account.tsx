@@ -1,17 +1,23 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import {
   ApiError,
   connectGoogle,
   disconnectGoogle,
   generalError,
   getMe,
+  renameUser,
   type Me,
 } from "../api";
+import { getToken, saveSession } from "../auth";
+import { Field, useSave } from "../components/form";
 import { Bone, Skeleton } from "../components/Skeleton";
 import { GoogleButton, googleClientId } from "../google";
-import { buttonSecondary } from "../ui";
+import { buttonPrimary, buttonSecondary, input } from "../ui";
 
-/** Who you're logged in as, and connecting Google to sign in with it too (`/account`). */
+const section = "border-t border-line-strong pt-4";
+const heading = "font-serif text-[22px] leading-7 font-medium";
+
+/** Who you're logged in as, your username, and connecting Google (`/account`). */
 export function Account() {
   const [me, setMe] = useState<Me | "loading" | "error">("loading");
   const [error, setError] = useState("");
@@ -77,40 +83,143 @@ export function Account() {
             <span className="font-medium text-ink">{me.username}</span>
           </p>
 
-          <section className="mt-8 border-t border-line-strong pt-4 sm:mt-12">
-            <h2 className="font-serif text-[22px] leading-7 font-medium">
-              Google
-            </h2>
-            {error && (
-              <p
-                role="alert"
-                className="mt-3 text-[13px] leading-[18px] text-loss"
-              >
-                {error}
-              </p>
-            )}
-            <GoogleRow
-              me={me}
-              saving={saving}
-              onConnect={(credential) =>
-                change(async () => (await connectGoogle(credential)).google)
-              }
-              onDisconnect={() =>
-                change(async () => {
-                  await disconnectGoogle();
-                  return null;
-                })
-              }
-              onError={() =>
-                setError(
-                  "Couldn’t load Google sign-in. Check your connection and reload.",
-                )
-              }
-            />
-          </section>
+          {me.is_demo ? (
+            <p className={`mt-8 sm:mt-12 ${section}`}>
+              Demo accounts can’t change their account. Sign up for your own
+              account first.
+            </p>
+          ) : (
+            <>
+              <section className={`mt-8 sm:mt-12 ${section}`}>
+                <h2 className={heading}>Username</h2>
+                <UsernameRow me={me} onRenamed={setMe} />
+              </section>
+
+              <section className={`mt-8 ${section}`}>
+                <h2 className={heading}>Google</h2>
+                {error && (
+                  <p
+                    role="alert"
+                    className="mt-3 text-[13px] leading-[18px] text-loss"
+                  >
+                    {error}
+                  </p>
+                )}
+                <GoogleRow
+                  me={me}
+                  saving={saving}
+                  onConnect={(credential) =>
+                    change(async () => (await connectGoogle(credential)).google)
+                  }
+                  onDisconnect={() =>
+                    change(async () => {
+                      await disconnectGoogle();
+                      return null;
+                    })
+                  }
+                  onError={() =>
+                    setError(
+                      "Couldn’t load Google sign-in. Check your connection and reload.",
+                    )
+                  }
+                />
+              </section>
+            </>
+          )}
         </>
       )}
     </main>
+  );
+}
+
+/** The username and Change, which opens one field with Save and Cancel in place. */
+function UsernameRow({
+  me,
+  onRenamed,
+}: {
+  me: Me;
+  onRenamed: (me: Me) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+
+  if (editing)
+    return (
+      <UsernameForm
+        username={me.username}
+        onSaved={(renamed) => {
+          saveSession({ token: getToken(), username: renamed.username });
+          onRenamed(renamed);
+          setEditing(false);
+        }}
+        onCancel={() => setEditing(false)}
+      />
+    );
+
+  return (
+    <div className="mt-3 flex items-center justify-between gap-4">
+      <p className="min-w-0 break-words">{me.username}</p>
+      <button
+        type="button"
+        onClick={() => setEditing(true)}
+        className={`shrink-0 ${buttonSecondary}`}
+      >
+        Change
+      </button>
+    </div>
+  );
+}
+
+// Its own component so Cancel drops what was typed and any error with it.
+function UsernameForm({
+  username,
+  onSaved,
+  onCancel,
+}: {
+  username: string;
+  onSaved: (me: Me) => void;
+  onCancel: () => void;
+}) {
+  const [name, setName] = useState(username);
+  const { errors, failed, saving, save } = useSave({ username: "" });
+
+  function submit(event: FormEvent) {
+    event.preventDefault();
+    void save(async () => onSaved(await renameUser(name)));
+  }
+
+  return (
+    <form onSubmit={submit} className="mt-3">
+      <Field
+        label="Username"
+        labelClass="sr-only"
+        errors={errors.username}
+        className="max-w-[400px]"
+      >
+        <input
+          value={name}
+          onChange={(event) => setName(event.target.value)}
+          autoComplete="username"
+          autoFocus
+          required
+          maxLength={150}
+          aria-invalid={!!errors.username}
+          className={input(!!errors.username)}
+        />
+      </Field>
+      {failed && (
+        <p role="alert" className="mt-2 text-[13px] leading-[18px] text-loss">
+          Couldn’t save. Check your connection and try again.
+        </p>
+      )}
+      <div className="mt-4 flex gap-2">
+        <button type="submit" disabled={saving} className={buttonPrimary}>
+          Save
+        </button>
+        <button type="button" onClick={onCancel} className={buttonSecondary}>
+          Cancel
+        </button>
+      </div>
+    </form>
   );
 }
 
@@ -127,13 +236,6 @@ function GoogleRow({
   onDisconnect: () => void;
   onError: () => void;
 }) {
-  if (me.is_demo)
-    return (
-      <p className="mt-3">
-        Demo accounts can’t connect Google. Sign up for your own account first.
-      </p>
-    );
-
   if (me.google)
     return (
       <div className="mt-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
