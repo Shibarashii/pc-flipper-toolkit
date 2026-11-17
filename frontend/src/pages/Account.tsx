@@ -1,6 +1,13 @@
-import { useEffect, useState, type FormEvent } from "react";
+import {
+  useEffect,
+  useId,
+  useState,
+  type FormEvent,
+  type ReactNode,
+} from "react";
 import {
   ApiError,
+  changePassword,
   connectGoogle,
   disconnectGoogle,
   generalError,
@@ -8,7 +15,7 @@ import {
   renameUser,
   type Me,
 } from "../api";
-import { renameSession } from "../auth";
+import { updateSession } from "../auth";
 import { Field, useSave } from "../components/form";
 import { Bone, Skeleton } from "../components/Skeleton";
 import { GoogleButton, googleClientId } from "../google";
@@ -90,13 +97,15 @@ export function Account() {
             </p>
           ) : (
             <>
-              <section className={`mt-8 sm:mt-12 ${section}`}>
-                <h2 className={heading}>Username</h2>
+              <Section title="Username" className="mt-8 sm:mt-12">
                 <UsernameRow me={me} onRenamed={setMe} />
-              </section>
+              </Section>
 
-              <section className={`mt-8 ${section}`}>
-                <h2 className={heading}>Google</h2>
+              <Section title="Password" className="mt-8">
+                <PasswordRow hasPassword={me.has_password} />
+              </Section>
+
+              <Section title="Google" className="mt-8">
                 {error && (
                   <p
                     role="alert"
@@ -123,12 +132,33 @@ export function Account() {
                     )
                   }
                 />
-              </section>
+              </Section>
             </>
           )}
         </>
       )}
     </main>
+  );
+}
+
+/** A hairline, a heading, and what's under it; named by the heading for screen readers. */
+function Section({
+  title,
+  className,
+  children,
+}: {
+  title: string;
+  className: string;
+  children: ReactNode;
+}) {
+  const id = useId();
+  return (
+    <section aria-labelledby={id} className={`${className} ${section}`}>
+      <h2 id={id} className={heading}>
+        {title}
+      </h2>
+      {children}
+    </section>
   );
 }
 
@@ -147,7 +177,7 @@ function UsernameRow({
       <UsernameForm
         username={me.username}
         onSaved={(renamed) => {
-          renameSession(renamed.username);
+          updateSession({ username: renamed.username });
           onRenamed(renamed);
           setEditing(false);
         }}
@@ -214,6 +244,105 @@ function UsernameForm({
       <div className="mt-4 flex gap-2">
         <button type="submit" disabled={saving} className={buttonPrimary}>
           Save
+        </button>
+        <button type="button" onClick={onCancel} className={buttonSecondary}>
+          Cancel
+        </button>
+      </div>
+    </form>
+  );
+}
+
+/** "You log in with a password." and Change, which opens Current and New password. */
+function PasswordRow({ hasPassword }: { hasPassword: boolean }) {
+  const [editing, setEditing] = useState(false);
+  const [changed, setChanged] = useState(false);
+
+  if (!hasPassword) return <p className="mt-3">You log in with Google.</p>;
+
+  if (editing)
+    return (
+      <PasswordForm
+        onChanged={(session) => {
+          updateSession(session);
+          setEditing(false);
+          setChanged(true);
+        }}
+        onCancel={() => setEditing(false)}
+      />
+    );
+
+  return (
+    <>
+      {changed && (
+        <p role="status" className="mt-3">
+          <span className="font-medium">Password changed.</span> Your other
+          devices are logged out.
+        </p>
+      )}
+      <div className="mt-3 flex items-center justify-between gap-4">
+        <p className="min-w-0">You log in with a password.</p>
+        <button
+          type="button"
+          onClick={() => {
+            setChanged(false);
+            setEditing(true);
+          }}
+          className={`shrink-0 ${buttonSecondary}`}
+        >
+          Change
+        </button>
+      </div>
+    </>
+  );
+}
+
+const PASSWORDS = { current_password: "", new_password: "" };
+
+function PasswordForm({
+  onChanged,
+  onCancel,
+}: {
+  onChanged: (session: { token: string; username: string }) => void;
+  onCancel: () => void;
+}) {
+  const [passwords, setPasswords] = useState(PASSWORDS);
+  const { errors, error, failed, saving, save } = useSave(PASSWORDS);
+
+  function submit(event: FormEvent) {
+    event.preventDefault();
+    void save(async () => onChanged(await changePassword(passwords)));
+  }
+
+  const field = (name: keyof typeof PASSWORDS, label: string) => (
+    <Field label={label} errors={errors[name]} className="max-w-[400px]">
+      <input
+        type="password"
+        value={passwords[name]}
+        onChange={(event) =>
+          setPasswords({ ...passwords, [name]: event.target.value })
+        }
+        autoComplete={name.replace("_", "-")}
+        autoFocus={name === "current_password"}
+        required
+        aria-invalid={!!errors[name]}
+        className={input(!!errors[name])}
+      />
+    </Field>
+  );
+
+  return (
+    <form onSubmit={submit} className="mt-3 flex flex-col gap-4">
+      {field("current_password", "Current password")}
+      {field("new_password", "New password")}
+      {failed && (
+        <p role="alert" className="text-[13px] leading-[18px] text-loss">
+          {generalError(error, errors)}
+        </p>
+      )}
+      <div className="flex gap-2">
+        <button type="submit" disabled={saving} className={buttonPrimary}>
+          Change password
         </button>
         <button type="button" onClick={onCancel} className={buttonSecondary}>
           Cancel

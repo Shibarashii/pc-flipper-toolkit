@@ -44,6 +44,14 @@ function update(next: State) {
   listeners.forEach((listener) => listener());
 }
 
+// Another tab logged in or out, or got a new token from a password change: follow it, so
+// this tab's next request doesn't 401 on the old token and end the session for both.
+window.addEventListener("storage", (event) => {
+  if (event.key !== STORAGE_KEY && event.key !== null) return;
+  state = { session: load(), notice: "" };
+  listeners.forEach((listener) => listener());
+});
+
 export const getToken = () => state.session?.token ?? "";
 
 /** Demo accounts are named "demo-…"; sign-up refuses that prefix, so it's reliable. */
@@ -53,10 +61,11 @@ export const isDemo = (session: Session) =>
 export const saveSession = (session: Session) =>
   update({ session, notice: "" });
 
-/** After a rename. Does nothing once logged out, e.g. if Log out beat the answer. */
-export const renameSession = (username: string) =>
+/** After a rename or a new token. Does nothing once logged out, e.g. if Log out beat
+ * the answer. */
+export const updateSession = (fields: Partial<Session>) =>
   state.session &&
-  update({ ...state, session: { ...state.session, username } });
+  update({ ...state, session: { ...state.session, ...fields } });
 
 export const endSession = (notice = "") => update({ session: null, notice });
 

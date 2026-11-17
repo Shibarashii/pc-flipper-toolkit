@@ -204,6 +204,16 @@ export const renameUser = (username: string) =>
     body: JSON.stringify({ username }),
   });
 
+/** Replaces the token, so every other device is logged out; returns the new one. */
+export const changePassword = (passwords: {
+  current_password: string;
+  new_password: string;
+}) =>
+  request<Session>("/auth/password/", {
+    method: "POST",
+    body: JSON.stringify(passwords),
+  });
+
 /** Links the Google account in the ID token to this account. */
 export const connectGoogle = (credential: string) =>
   request<Pick<Me, "google">>("/auth/google/connect/", {

@@ -66,6 +66,30 @@ class SignupSerializer(UsernameSerializer, CredentialsSerializer):
         return data
 
 
+class PasswordChangeSerializer(serializers.Serializer):
+    current_password = serializers.CharField(
+        write_only=True, trim_whitespace=False, style={"input_type": "password"}
+    )
+    new_password = serializers.CharField(
+        write_only=True,
+        trim_whitespace=False,
+        style={"input_type": "password"},
+        help_text="Must pass Django's password validators.",
+    )
+
+    def validate_current_password(self, password):
+        if not self.context["user"].check_password(password):
+            raise serializers.ValidationError("That isn’t your current password.")
+        return password
+
+    def validate_new_password(self, password):
+        try:
+            validate_password(password, self.context["user"])
+        except DjangoValidationError as e:
+            raise serializers.ValidationError(list(e.messages))
+        return password
+
+
 class UserSerializer(serializers.Serializer):
     username = serializers.CharField(read_only=True)
 
@@ -303,6 +327,38 @@ class MeView(APIView):
             # Someone took the name between the check above and now.
             raise serializers.ValidationError({"username": [TAKEN]})
         return self.get(request)
+
+
+class PasswordView(APIView):
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "auth"
+
+    @extend_schema(
+        summary="Change your password",
+        description="Checks the current password, then sets the new one and replaces the "
+        "token, so every other device is logged out; use the one returned. A wrong current "
+        "password is a 400 on `current_password`; an account without a password "
+        "(Google-only) is a 400; a demo is a 403.",
+        request=PasswordChangeSerializer,
+        responses={200: TokenSerializer},
+        tags=["auth"],
+    )
+    def post(self, request):
+        user = request.user
+        if is_demo(user):
+            raise PermissionDenied(
+                "Demo accounts can't change their account. "
+                "Sign up for your own account first."
+            )
+        if not user.has_usable_password():
+            refuse("You log in with Google, so there's no password to change.")
+        serializer = PasswordChangeSerializer(data=request.data, context={"user": user})
+        serializer.is_valid(raise_exception=True)
+        with transaction.atomic():
+            user.set_password(serializer.validated_data["new_password"])
+            user.save(update_fields=["password"])
+            Token.objects.filter(user=user).delete()
+            return token_response(user)
 
 
 def refuse(message: str):
