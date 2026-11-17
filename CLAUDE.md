@@ -16,6 +16,21 @@ which also has the commands (setup, tests, lint) and the project structure.
   overwrite them.
 - [docs/brand-guidelines.md](docs/brand-guidelines.md): the look (warm paper and ink, green
   accent, hairlines rather than cards).
+- [docs/figma.md](docs/figma.md): the design file, its pages and components, and how to build a
+  screen in it. Read it before any Figma work.
+
+## Designing in Figma
+
+- Read [docs/figma.md](docs/figma.md) first; it has the ids of every page and component.
+- New designs go on **Flow — in review**, linked to their spec. They move to **Ready for
+  development** only after the user approves the spec; code is built from that page.
+- Use the existing components (Header, Footer, Button, Field, rows, cards…) as instances, the
+  `Brand v2` variables and the `editorial/*` text styles. Never hard-code a color, detach an
+  instance or redraw a component.
+- Every screen comes in light and dark (the dark one is the light one with the `Dark` mode),
+  desktop 1280 and mobile 375, named `<Screen> · <State> — <Desktop|Mobile> · <Light|Dark>`.
+- Copy sizes from the code (`App.tsx`, the page, `ui.ts`) and words from the spec. Where Figma
+  and the code disagree on spacing, the code wins.
 
 ## How a feature goes
 
