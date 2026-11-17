@@ -8,7 +8,7 @@ import {
   renameUser,
   type Me,
 } from "../api";
-import { getToken, saveSession } from "../auth";
+import { renameSession } from "../auth";
 import { Field, useSave } from "../components/form";
 import { Bone, Skeleton } from "../components/Skeleton";
 import { GoogleButton, googleClientId } from "../google";
@@ -147,7 +147,7 @@ function UsernameRow({
       <UsernameForm
         username={me.username}
         onSaved={(renamed) => {
-          saveSession({ token: getToken(), username: renamed.username });
+          renameSession(renamed.username);
           onRenamed(renamed);
           setEditing(false);
         }}
@@ -180,7 +180,7 @@ function UsernameForm({
   onCancel: () => void;
 }) {
   const [name, setName] = useState(username);
-  const { errors, failed, saving, save } = useSave({ username: "" });
+  const { errors, error, failed, saving, save } = useSave({ username: "" });
 
   function submit(event: FormEvent) {
     event.preventDefault();
@@ -208,7 +208,7 @@ function UsernameForm({
       </Field>
       {failed && (
         <p role="alert" className="mt-2 text-[13px] leading-[18px] text-loss">
-          Couldn’t save. Check your connection and try again.
+          {generalError(error, {})}
         </p>
       )}
       <div className="mt-4 flex gap-2">

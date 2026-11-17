@@ -26,7 +26,7 @@ afterEach(() => {
 
 /** Each call to fetch gets the next response (the last one repeats). The builds list's
  * summary is answered on the side, so it doesn't take a response or count as a call. */
-function stubFetch(...responses: (() => Response)[]) {
+function stubFetch(...responses: (() => Response | Promise<Response>)[]) {
   let call = 0;
   const fetchMock = vi.fn<typeof fetch>(async () =>
     responses[Math.min(call++, responses.length - 1)](),
@@ -545,6 +545,42 @@ test("Change renames you, and the header follows", async () => {
   expect(url).toBe("/api/auth/me/");
   expect(init?.method).toBe("PATCH");
   expect(JSON.parse(init?.body as string)).toEqual({ username: "dave" });
+});
+
+test("a rename answered after Log out doesn't log you back in", async () => {
+  saveSession({ token: "abc", username: "carol" });
+  let answer: (res: Response) => void = () => {};
+  stubFetch(
+    me(),
+    () => new Promise<Response>((resolve) => (answer = resolve)),
+    () => new Response(null, { status: 204 }),
+  );
+  renderAt("/account");
+
+  fireEvent.click(await screen.findByRole("button", { name: "Change" }));
+  fireEvent.change(screen.getByRole("textbox", { name: "Username" }), {
+    target: { value: "dave" },
+  });
+  fireEvent.click(screen.getByRole("button", { name: "Save" }));
+  fireEvent.click(screen.getByRole("button", { name: "Log out" }));
+  expect(await screen.findByRole("heading", { name: "Log in" })).toBeTruthy();
+
+  answer(me({ username: "dave" })());
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  expect(localStorage.getItem("session")).toBeNull();
+  expect(screen.getByRole("heading", { name: "Log in" })).toBeTruthy();
+});
+
+test("too many renames says to wait", async () => {
+  saveSession({ token: "abc", username: "carol" });
+  stubFetch(me(), () => Response.json({}, { status: 429 }));
+  renderAt("/account");
+
+  fireEvent.click(await screen.findByRole("button", { name: "Change" }));
+  fireEvent.click(screen.getByRole("button", { name: "Save" }));
+  expect((await screen.findByRole("alert")).textContent).toBe(
+    "Too many attempts. Wait a minute and try again.",
+  );
 });
 
 test("a refused username shows under the field; Cancel keeps the old one", async () => {

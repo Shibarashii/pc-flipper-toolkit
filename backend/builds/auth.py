@@ -43,6 +43,7 @@ class UsernameSerializer(serializers.Serializer):
     )
 
     def validate_username(self, username):
+        username = User.normalize_username(username)  # as create_user does (NFKC)
         taken = User.objects.filter(username__iexact=username)
         if user := self.context.get("user"):
             taken = taken.exclude(pk=user.pk)  # changing only your own name's case
@@ -255,6 +256,12 @@ class LogoutView(APIView):
 
 
 class MeView(APIView):
+    throttle_scope = "auth"
+
+    def get_throttles(self):
+        # Renames only: each says whether a name is taken, like sign-up.
+        return [ScopedRateThrottle()] if self.request.method == "PATCH" else []
+
     @extend_schema(
         summary="Who's logged in",
         responses={200: MeSerializer},
@@ -274,7 +281,7 @@ class MeView(APIView):
     @extend_schema(
         summary="Change your username",
         description="The sign-up rules apply, except that changing only the case of your "
-        "own name is allowed. Refused (403) for a demo.",
+        "own name is allowed. Refused (403) for a demo. Rate-limited (`auth`).",
         request=UsernameSerializer,
         responses={200: MeSerializer},
         tags=["auth"],

@@ -1021,6 +1021,20 @@ class AuthTests(APITestCase):
         self.assertEqual(res.status_code, 200)
         self.assertEqual(res.json()["username"], "Carol")
 
+    def test_a_rename_is_normalized_like_sign_up(self):
+        # Sign-up's create_user applies NFKC, so a full-width "ｄ" is a "d".
+        User.objects.create_user("dave", password="x")
+        self.sign_up_carol()
+        self.assertEqual(self.rename("ｄave").json(), {"username": [TAKEN]})
+        self.assertEqual(self.rename("ｅve").json()["username"], "eve")
+
+    def test_renames_share_the_auth_rate_limit_but_me_doesnt(self):
+        self.sign_up_carol()
+        cache.clear()
+        codes = [self.rename("carol").status_code for _ in range(11)]
+        self.assertEqual(codes, [200] * 10 + [429])
+        self.assertEqual(self.client.get("/api/auth/me/").status_code, 200)
+
     def test_a_name_taken_at_the_same_moment_as_a_rename_is_a_400(self):
         User.objects.create_user("dave", password="x")
         self.sign_up_carol()

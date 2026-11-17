@@ -53,6 +53,11 @@ export const isDemo = (session: Session) =>
 export const saveSession = (session: Session) =>
   update({ session, notice: "" });
 
+/** After a rename. Does nothing once logged out, e.g. if Log out beat the answer. */
+export const renameSession = (username: string) =>
+  state.session &&
+  update({ ...state, session: { ...state.session, username } });
+
 export const endSession = (notice = "") => update({ session: null, notice });
 
 /** For when the server stops accepting the session. A demo has no password to log back in with. */
