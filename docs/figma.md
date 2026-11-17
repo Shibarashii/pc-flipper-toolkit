@@ -43,9 +43,8 @@ marks the section *Ready for dev* in Dev Mode (the API can't). A design that's d
 Every fill and stroke is bound to a `Brand v2` variable (`figma.variables.setBoundVariableForPaint`),
 never a hex value, so the dark copy of a screen works by switching the mode.
 
-The file also holds old explorations: the collections `Tailwind colors`, `Brand`, `Direction A/B/C`
-and the text styles `text-*` and `brand/*`. **Never use them.** They're from before the brand was
-chosen.
+These are the file's only variables and styles; the explorations from before the brand was chosen
+were deleted on 2026-11-17. Don't add another collection or style set: extend these.
 
 ## Components
 
