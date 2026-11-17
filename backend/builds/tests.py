@@ -1035,6 +1035,59 @@ class AuthTests(APITestCase):
         self.assertEqual(codes, [200] * 10 + [429])
         self.assertEqual(self.client.get("/api/auth/me/").status_code, 200)
 
+    def change_password(self, current="a long passphrase", new="another passphrase"):
+        return self.post(
+            "/api/auth/password/", {"current_password": current, "new_password": new}
+        )
+
+    def test_a_password_change_logs_out_every_other_device(self):
+        self.sign_up_carol()
+        old = self.client._credentials["HTTP_AUTHORIZATION"]
+        res = self.change_password()
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.json()["username"], "carol")
+        new = f"Token {res.json()['token']}"
+        self.assertNotEqual(new, old)
+
+        self.client.credentials(HTTP_AUTHORIZATION=old)
+        self.assertEqual(self.client.get("/api/auth/me/").status_code, 401)
+        self.client.credentials(HTTP_AUTHORIZATION=new)
+        self.assertEqual(self.client.get("/api/auth/me/").status_code, 200)
+
+        self.client.credentials()
+        before = {"username": "carol", "password": "a long passphrase"}
+        self.assertEqual(self.post("/api/auth/login/", before).status_code, 400)
+        after = {"username": "carol", "password": "another passphrase"}
+        self.assertEqual(self.post("/api/auth/login/", after).status_code, 200)
+
+    def test_a_wrong_current_or_weak_new_password_is_refused(self):
+        self.sign_up_carol()
+        res = self.change_password(current="not it")
+        self.assertEqual(
+            res.json(), {"current_password": ["That isn’t your current password."]}
+        )
+        res = self.change_password(new="carol")
+        self.assertEqual(res.status_code, 400)
+        self.assertEqual(list(res.json()), ["new_password"])
+        self.assertEqual(self.client.get("/api/auth/me/").status_code, 200)
+        self.client.credentials()
+        before = {"username": "carol", "password": "a long passphrase"}
+        self.assertEqual(self.post("/api/auth/login/", before).status_code, 200)
+
+    def test_a_google_only_account_has_no_password_to_change(self):
+        user = User.objects.create_user("carol")  # no password, as Google sign-up makes
+        token = Token.objects.create(user=user)
+        self.client.credentials(HTTP_AUTHORIZATION=f"Token {token.key}")
+        res = self.change_password(current="")
+        self.assertEqual(res.status_code, 400)
+        self.assertIn("non_field_errors", res.json())
+
+    def test_password_changes_share_the_auth_rate_limit(self):
+        self.sign_up_carol()
+        cache.clear()
+        codes = [self.change_password(current="guess").status_code for _ in range(11)]
+        self.assertEqual(codes, [400] * 10 + [429])
+
     def test_a_name_taken_at_the_same_moment_as_a_rename_is_a_400(self):
         User.objects.create_user("dave", password="x")
         self.sign_up_carol()
@@ -1307,6 +1360,15 @@ class DemoTests(APITestCase):
         res = self.client.patch("/api/auth/me/", {"username": "dave"}, format="json")
         self.assertEqual(res.status_code, 403)
         self.assertEqual(self.client.get("/api/auth/me/").json()["username"], name)
+
+    def test_a_demo_cant_change_a_password(self):
+        self.demo()
+        res = self.client.post(
+            "/api/auth/password/",
+            {"current_password": "", "new_password": "a long passphrase"},
+            format="json",
+        )
+        self.assertEqual(res.status_code, 403)
 
     def test_demo_shares_the_auth_rate_limit(self):
         wrong = {"username": "carol", "password": "nope"}

@@ -1344,7 +1344,7 @@ new dependencies.
 **Files:** `backend/builds/auth.py`, `backend/builds/tests.py`, `frontend/src/api.ts`, `frontend/src/pages/Account.tsx`, `frontend/src/App.test.tsx`, `SPEC.md`, `docs/specs/account-management.md`
 **Scope:** S
 
-### - [ ] T47: Change your password on Account
+### - [x] T47: Change your password on Account
 
 **Description:**
 - `POST /api/auth/password/ {current_password, new_password}`: `check_password`, Django's
@@ -1355,16 +1355,21 @@ new dependencies.
   (`current-password`, `new-password` autocomplete). On save the new token is stored. Google-only
   accounts see "You log in with Google" instead.
 - SPEC.md's auth table gets the endpoint. Tests first.
+- Built 2026-11-17: Account's sections are now regions named by their headings (both rows
+  have a "Change" button). Tabs follow each other's session through the `storage` event;
+  without it, a second tab's 401 on the old token cleared the stored session, so this browser
+  was logged out on reload. The manual check used a second tab plus `curl` with the old
+  token as the other device.
 
 **Acceptance criteria:**
-- [ ] A wrong current password is refused on `current_password`; a weak new one gets the
+- [x] A wrong current password is refused on `current_password`; a weak new one gets the
   validators' messages on `new_password`
-- [ ] After a change, the old token gets `401` and this browser stays logged in
-- [ ] Google-only accounts can't change a password (`400`, and no form); demo `403`
+- [x] After a change, the old token gets `401` and this browser stays logged in
+- [x] Google-only accounts can't change a password (`400`, and no form); demo `403`
 
 **Verification:**
-- [ ] Standard verification, plus `spectacular --validate --fail-on-warn`
-- [ ] Manual: two browsers logged in locally; a change in one logs the other out
+- [x] Standard verification, plus `spectacular --validate --fail-on-warn`
+- [x] Manual: two browsers logged in locally; a change in one logs the other out
 
 **Dependencies:** none (after T46 only to avoid conflicts in `Account.tsx`)
 **Files:** `backend/builds/auth.py`, `backend/config/urls.py`, `backend/builds/tests.py`, `frontend/src/api.ts`, `frontend/src/pages/Account.tsx`, `frontend/src/App.test.tsx`, `SPEC.md`

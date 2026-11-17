@@ -425,6 +425,13 @@ test("the privacy page opens logged in too", () => {
   expect(screen.getByRole("heading", { name: "Privacy" })).toBeTruthy();
 });
 
+/** The "Change" button in one of Account's sections. */
+const changeIn = async (section: string) =>
+  within(await screen.findByRole("region", { name: section })).getByRole(
+    "button",
+    { name: "Change" },
+  );
+
 /** GET /auth/me/ for the Account page. */
 const me =
   (fields: object = {}) =>
@@ -529,7 +536,7 @@ test("Change renames you, and the header follows", async () => {
   const fetchMock = stubFetch(me(), me({ username: "dave" }));
   renderAt("/account");
 
-  fireEvent.click(await screen.findByRole("button", { name: "Change" }));
+  fireEvent.click(await changeIn("Username"));
   const field = screen.getByRole("textbox", { name: "Username" });
   expect((field as HTMLInputElement).value).toBe("carol");
   fireEvent.change(field, { target: { value: "dave" } });
@@ -557,7 +564,7 @@ test("a rename answered after Log out doesn't log you back in", async () => {
   );
   renderAt("/account");
 
-  fireEvent.click(await screen.findByRole("button", { name: "Change" }));
+  fireEvent.click(await changeIn("Username"));
   fireEvent.change(screen.getByRole("textbox", { name: "Username" }), {
     target: { value: "dave" },
   });
@@ -576,7 +583,7 @@ test("too many renames says to wait", async () => {
   stubFetch(me(), () => Response.json({}, { status: 429 }));
   renderAt("/account");
 
-  fireEvent.click(await screen.findByRole("button", { name: "Change" }));
+  fireEvent.click(await changeIn("Username"));
   fireEvent.click(screen.getByRole("button", { name: "Save" }));
   expect((await screen.findByRole("alert")).textContent).toBe(
     "Too many attempts. Wait a minute and try again.",
@@ -590,7 +597,7 @@ test("a refused username shows under the field; Cancel keeps the old one", async
   );
   renderAt("/account");
 
-  fireEvent.click(await screen.findByRole("button", { name: "Change" }));
+  fireEvent.click(await changeIn("Username"));
   fireEvent.change(screen.getByRole("textbox", { name: "Username" }), {
     target: { value: "bob" },
   });
@@ -626,6 +633,119 @@ test("a refused connect shows the server's message", async () => {
     "This Google account is connected to another account.",
   );
   expect(screen.getByText("Not connected")).toBeTruthy();
+});
+
+test("Change password keeps this browser logged in with a new token", async () => {
+  saveSession({ token: "abc", username: "carol" });
+  const fetchMock = stubFetch(me(), () =>
+    Response.json({ token: "new", username: "carol" }),
+  );
+  renderAt("/account");
+
+  fireEvent.click(await changeIn("Password"));
+  // Password managers update the saved login named by the (hidden) username field.
+  expect(screen.getByDisplayValue("carol").getAttribute("autocomplete")).toBe(
+    "username",
+  );
+  for (const [label, autocomplete] of [
+    ["Current password", "current-password"],
+    ["New password", "new-password"],
+  ])
+    expect(screen.getByLabelText(label).getAttribute("autocomplete")).toBe(
+      autocomplete,
+    );
+  fireEvent.change(screen.getByLabelText("Current password"), {
+    target: { value: "old passphrase" },
+  });
+  fireEvent.change(screen.getByLabelText("New password"), {
+    target: { value: "new passphrase" },
+  });
+  fireEvent.click(screen.getByRole("button", { name: "Change password" }));
+
+  expect((await screen.findByRole("status")).textContent).toBe(
+    "Password changed. Your other devices are logged out.",
+  );
+  expect(screen.queryByLabelText("New password")).toBeNull();
+  expect(getToken()).toBe("new");
+  const { url, body } = requestTo(fetchMock, 1);
+  expect(url).toBe("/api/auth/password/");
+  expect(JSON.parse(body as string)).toEqual({
+    current_password: "old passphrase",
+    new_password: "new passphrase",
+  });
+});
+
+test("a wrong current password shows under its field", async () => {
+  saveSession({ token: "abc", username: "carol" });
+  stubFetch(me(), () =>
+    Response.json(
+      { current_password: ["That isn’t your current password."] },
+      { status: 400 },
+    ),
+  );
+  renderAt("/account");
+
+  fireEvent.click(await changeIn("Password"));
+  for (const label of ["Current password", "New password"])
+    fireEvent.change(screen.getByLabelText(label), {
+      target: { value: "a passphrase" },
+    });
+  fireEvent.click(screen.getByRole("button", { name: "Change password" }));
+  expect(
+    await screen.findByText("That isn’t your current password."),
+  ).toBeTruthy();
+  expect(getToken()).toBe("abc");
+});
+
+test("too many password attempts says to wait", async () => {
+  saveSession({ token: "abc", username: "carol" });
+  stubFetch(me(), () => Response.json({}, { status: 429 }));
+  renderAt("/account");
+
+  fireEvent.click(await changeIn("Password"));
+  for (const label of ["Current password", "New password"])
+    fireEvent.change(screen.getByLabelText(label), {
+      target: { value: "a passphrase" },
+    });
+  fireEvent.click(screen.getByRole("button", { name: "Change password" }));
+  expect((await screen.findByRole("alert")).textContent).toBe(
+    "Too many attempts. Wait a minute and try again.",
+  );
+  expect(getToken()).toBe("abc");
+});
+
+test("a Google-only account has no password to change", async () => {
+  saveSession({ token: "abc", username: "carol" });
+  stubFetch(me({ google: { email: "c@gmail.com" }, has_password: false }));
+  renderAt("/account");
+
+  const password = within(
+    await screen.findByRole("region", { name: "Password" }),
+  );
+  expect(password.getByText("You log in with Google.")).toBeTruthy();
+  expect(password.queryByRole("button")).toBeNull();
+});
+
+test("a session changed in another tab is followed here", () => {
+  saveSession({ token: "abc", username: "carol" });
+  // What another tab's password change (or Log out) leaves in storage.
+  localStorage.setItem(
+    "session",
+    JSON.stringify({ token: "new", username: "carol" }),
+  );
+  window.dispatchEvent(new StorageEvent("storage", { key: "session" }));
+  expect(getToken()).toBe("new");
+
+  localStorage.removeItem("session");
+  window.dispatchEvent(new StorageEvent("storage", { key: "session" }));
+  expect(getToken()).toBe("");
+});
+
+test("another tab clearing storage logs this one out too", () => {
+  saveSession({ token: "abc", username: "carol" });
+  localStorage.clear();
+  window.dispatchEvent(new StorageEvent("storage", { key: null }));
+  expect(getToken()).toBe("");
 });
 
 test("Account says so when it can't load", async () => {

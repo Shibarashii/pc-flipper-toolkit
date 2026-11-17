@@ -256,7 +256,7 @@ by the author in Facebook's Sharing Debugger, LinkedIn's Post Inspector and Mess
 
 ### Phase 20: Account management, part 1 ([docs/specs/account-management.md](../docs/specs/account-management.md))
 - [x] T46: Change your username on Account
-- [ ] T47: Change your password on Account
+- [x] T47: Change your password on Account
 
 ```
 T46 rename ──┐

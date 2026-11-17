@@ -10,6 +10,7 @@ from builds.auth import (
     LoginView,
     LogoutView,
     MeView,
+    PasswordView,
     SignupView,
 )
 from builds.views import (
@@ -37,6 +38,7 @@ urlpatterns = [
     path("api/auth/google/", GoogleView.as_view()),
     path("api/auth/google/connect/", GoogleConnectView.as_view()),
     path("api/auth/me/", MeView.as_view()),
+    path("api/auth/password/", PasswordView.as_view()),
     path("api/prices/", PriceSearchView.as_view()),
     path("api/", include(router.urls)),
 ]
