@@ -830,11 +830,14 @@ Spec: [docs/specs/ci-speedups.md](../docs/specs/ci-speedups.md). Only
 **Files:** `.github/workflows/ci.yml`
 **Scope:** XS
 
-### Checkpoint 10: CI speedups
+### Checkpoint 10: CI speedups (done)
 - [x] After the merge, the next PR's e2e log shows a Chromium cache hit (PR #51, 2026-11-06:
   `Cache hit for: playwright-ubuntu24-1.64.1`)
-- [ ] A PR that gets a second push mid-run ends with only the newest run finished
-- [ ] Every merge on `main` keeps its own run, and Render still deploys after it
+- [x] A PR that gets a second push mid-run ends with only the newest run finished (PR #79,
+  2026-11-12: the run for `7e62498` was cancelled by the second push; `e4742a6`'s passed)
+- [x] Every merge on `main` keeps its own run, and Render still deploys after it (#76–#80 each
+  have their own passing run on `main`, none cancelled; after #50, the public-ids and
+  part-condition migrations reached the live API, Checkpoints 12 and 13)
 
 ## Phase 13: Copy listing
 
