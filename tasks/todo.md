@@ -1306,3 +1306,231 @@ Spec: [docs/specs/share-card.md](../docs/specs/share-card.md). Frontend only.
   chat (ours and a GitHub link), so criterion 3 depends on Messenger; Meta's crawlers get
   the page with every tag (checked with their user agents)
 - [x] All tests pass on `main` (CI on 6fc80f0)
+
+## Phase 20: Account management, part 1
+
+Spec: [docs/specs/account-management.md](../docs/specs/account-management.md). No migration, no
+new dependencies.
+
+### - [ ] T46: Change your username on Account
+
+**Description:**
+- `PATCH /api/auth/me/ {username}` (`backend/builds/auth.py`): the sign-up rules, reusing
+  `SignupSerializer.validate_username`, except that the user's own account doesn't count as
+  taken, so changing only the case works. Demo users `403`. Documented with `extend_schema`.
+- Account (`Account.tsx`): a Username section above Google: the name and "Change", which opens
+  one field with Save and Cancel. On save, the stored session's username (`auth.ts`) updates so
+  the header follows.
+- SPEC.md's auth table gets the endpoint.
+- Tests first, in `tests.py` and `App.test.tsx`.
+
+**Acceptance criteria:**
+- [ ] A new username shows in the header at once, and logging in works with it, not the old one
+- [ ] A name taken by another account in any case, or one starting with `demo-`, is refused
+  with the sign-up message; changing only your own name's case works
+- [ ] A demo user gets `403`, and the page shows the existing "sign up first" line
+
+**Verification:**
+- [ ] Standard verification, plus `makemigrations --check` and `spectacular --validate
+  --fail-on-warn`
+- [ ] Manual: rename on the local copy at desktop and 375px, light and dark
+
+**Dependencies:** none
+**Files:** `backend/builds/auth.py`, `backend/builds/tests.py`, `frontend/src/api.ts`, `frontend/src/pages/Account.tsx`, `frontend/src/App.test.tsx`, `SPEC.md`, `docs/specs/account-management.md`
+**Scope:** S
+
+### - [ ] T47: Change your password on Account
+
+**Description:**
+- `POST /api/auth/password/ {current_password, new_password}`: `check_password`, Django's
+  `validate_password`, `set_password`, then the user's `Token` is deleted and a new one returned
+  through `token_response`, so every other device is logged out. The `auth` rate limit. An
+  account without a usable password (Google-only) `400`; demo `403`.
+- Account: a Password section: "Change" opens Current password and New password
+  (`current-password`, `new-password` autocomplete). On save the new token is stored. Google-only
+  accounts see "You log in with Google" instead.
+- SPEC.md's auth table gets the endpoint. Tests first.
+
+**Acceptance criteria:**
+- [ ] A wrong current password is refused on `current_password`; a weak new one gets the
+  validators' messages on `new_password`
+- [ ] After a change, the old token gets `401` and this browser stays logged in
+- [ ] Google-only accounts can't change a password (`400`, and no form); demo `403`
+
+**Verification:**
+- [ ] Standard verification, plus `spectacular --validate --fail-on-warn`
+- [ ] Manual: two browsers logged in locally; a change in one logs the other out
+
+**Dependencies:** none (after T46 only to avoid conflicts in `Account.tsx`)
+**Files:** `backend/builds/auth.py`, `backend/config/urls.py`, `backend/builds/tests.py`, `frontend/src/api.ts`, `frontend/src/pages/Account.tsx`, `frontend/src/App.test.tsx`, `SPEC.md`
+**Scope:** S
+
+### Checkpoint 18: Account management, part 1
+- [ ] The spec's success criterion 1 passes on the live site (a second browser is logged out
+  after a password change), at desktop and 375px, light and dark
+- [ ] All tests pass on `main`
+
+## Phase 21: Account management, part 2
+
+Spec: [docs/specs/account-management.md](../docs/specs/account-management.md). One migration
+(`0010`, an index); no new Python package (Brevo over Django's SMTP backend).
+
+### - [ ] S1: Brevo set up and tested (the author, outside the code)
+
+- [ ] A Brevo account, with the sender address verified
+- [ ] An SMTP key; Render's environment has `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_USE_TLS`,
+  `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`, `DEFAULT_FROM_EMAIL` and `SITE_URL`
+- [ ] A test email lands in a Gmail inbox and one other provider's inbox, not spam. If not,
+  stop and decide (a domain of our own, another sender) before T49 merges
+
+**Blocks:** the merge of T49
+
+### - [ ] T48: Confirm-email API
+
+**Description:**
+- `settings.py`: the email settings and `SITE_URL` from the environment; Django's console
+  backend when `EMAIL_HOST` is empty (local, CI). `.env.example` documents each one.
+- `emails.py` (new): the plain-text emails (confirm, "your email was changed"), sent in a
+  background thread, with a `ponytail:` comment: lost if Render restarts mid-send; a task queue
+  if that's ever seen.
+- Migration `0010`: `RunSQL` for a unique index on `lower(email)` where `email <> ''`, with its
+  reverse.
+- `POST /api/auth/email/ {email}` (logged in): sends a link (`202`); another account's email
+  `400`. `POST /api/auth/email/confirm/ {token}` (public, `auth` rate limit): a
+  `django.core.signing` token (salted, 24 hours) holding the user's id, the new email and the
+  account's current email; saves the email if the current one is unchanged and no other account
+  took it. `GET /api/auth/me/` gains `email`. Demo `403`.
+- SPEC.md's auth table. Tests first.
+
+**Acceptance criteria:**
+- [ ] Nothing is saved until the link is opened; then `me.email` is the new address
+- [ ] A link works once, not after 24 hours (frozen clock), and not after another change
+- [ ] Another account's email is refused at sending and at confirming, in any case
+- [ ] Changing an existing email sends the old address a notice once the new one is confirmed
+- [ ] The database refuses two accounts with the same email in different case; many can have
+  none
+
+**Verification:**
+- [ ] Standard verification, plus `makemigrations --check`, `spectacular --validate
+  --fail-on-warn`, and `migrate` then `migrate builds 0009` locally (the reverse works)
+- [ ] Manual: the console backend prints the email in `runserver`'s output
+
+**Dependencies:** none (Brevo isn't needed: nothing in the app calls this yet)
+**Files:** `backend/config/settings.py`, `backend/.env.example`, `backend/builds/emails.py`, `backend/builds/migrations/0010_…`, `backend/builds/auth.py`, `backend/config/urls.py`, `backend/builds/tests.py`, `SPEC.md`
+**Scope:** M
+
+### - [ ] T49: Add or change your email on Account
+
+**Description:**
+- Account: an Email section between Username and Password: the email and "Change", or "No email
+  yet. Add one so you can get back in if you forget your password." and "Add email". After
+  sending: "We sent a link to …. It works for 24 hours."
+- `/verify-email?token=…` (new page, logged in and out): confirms on load, then "Email
+  confirmed" with a link to Account, or why not.
+- `vercel.json`: `Referrer-Policy: no-referrer` for `/verify-email`; `csp.test.ts` checks it.
+- Privacy page: the app stores your email and sends it to Brevo only to deliver these emails.
+- Tests first.
+
+**Acceptance criteria:**
+- [ ] An account without an email sees the prompt, adds one, and after opening the link sees
+  it on Account
+- [ ] A used, expired or broken link explains itself and points back to Account
+- [ ] The page works logged in and logged out; fits 375px, light and dark
+
+**Verification:**
+- [ ] Standard verification
+- [ ] Manual: the whole flow locally with the console backend's link
+
+**Dependencies:** T48; S1 before merging
+**Files:** `frontend/src/api.ts`, `frontend/src/pages/Account.tsx`, `frontend/src/pages/VerifyEmail.tsx`, `frontend/src/App.tsx`, `frontend/src/pages/Privacy.tsx`, `frontend/vercel.json`, `frontend/src/App.test.tsx`, `frontend/src/csp.test.ts`
+**Scope:** S
+
+### - [ ] T50: Sign-up needs an email; new Google accounts take a verified Gmail
+
+**Description:**
+- `SignupSerializer` gains a required `email`; sign-up sends the confirmation link and the
+  account works at once.
+- `google.verify` also returns `email_verified` and `hd`. A **new** Google account takes the
+  email only when it's verified, a Gmail or Workspace (`hd`) address, and no other account has
+  it. Existing users are never matched by email.
+- `Login.tsx`: sign-up gets Email (`type="email"`, `autocomplete="email"`, required), and the
+  builds list it opens says "We sent a link to … to confirm your email."
+- The e2e flip test fills in an email. Tests first.
+
+**Acceptance criteria:**
+- [ ] Sign-up without a valid email is refused on `email`; with one, the link is sent
+- [ ] A new Google account with a verified Gmail address has it on Account; an unverified,
+  non-Gmail or taken one starts with none
+- [ ] An existing account with the same email is never logged into through Google
+
+**Verification:**
+- [ ] Standard verification, plus `spectacular --validate --fail-on-warn`
+- [ ] Manual: sign up locally and confirm with the console backend's link
+
+**Dependencies:** T49
+**Files:** `backend/builds/auth.py`, `backend/builds/google.py`, `backend/builds/tests.py`, `backend/builds/test_google.py`, `frontend/src/pages/Login.tsx`, `frontend/e2e/flip.spec.ts`, `SPEC.md`
+**Scope:** S
+
+### Checkpoint 19: Account management, part 2
+- [ ] The spec's success criterion 2 passes on the live site, with the real emails in an inbox
+- [ ] All tests pass on `main`
+
+## Phase 22: Account management, part 3
+
+Spec: [docs/specs/account-management.md](../docs/specs/account-management.md). No migration, no
+new dependencies.
+
+### - [ ] T51: Reset API
+
+**Description:**
+- `POST /api/auth/password-reset/ {email}` (public, `auth` rate limit): always `202` with
+  "If an account has that email, we've sent it a link." Only an active user with that email
+  (ignoring case) and a usable password gets the email: the username and a link built from
+  `SITE_URL`, sent in the background thread. One email per address per 15 minutes, silently,
+  through Django's cache. Never a lockout.
+- `POST /api/auth/password-reset/confirm/ {uid, token, new_password}`: Django's
+  `default_token_generator`, `PASSWORD_RESET_TIMEOUT = 3600`, the password validators; sets the
+  password, deletes the token, emails "Your password was changed", `204`. No log-in.
+- SPEC.md's auth table. Tests first.
+
+**Acceptance criteria:**
+- [ ] A known email, an unknown one, a Google-only account and an inactive one get the same
+  status and body; only the first gets an email
+- [ ] The email names the username, and its link starts with `SITE_URL`
+- [ ] A link works once, not after an hour, and not after the password changes; a reset
+  deletes the token and sends the notice
+- [ ] A second request for the same address within 15 minutes sends nothing; the account still
+  logs in
+
+**Verification:**
+- [ ] Standard verification, plus `spectacular --validate --fail-on-warn`
+
+**Dependencies:** Phase 21
+**Files:** `backend/config/settings.py`, `backend/builds/auth.py`, `backend/config/urls.py`, `backend/builds/emails.py`, `backend/builds/tests.py`, `SPEC.md`
+**Scope:** S
+
+### - [ ] T52: Forgot and reset pages
+
+**Description:**
+- Log-in: "Forgot your username or password?" under the form, to `/forgot`.
+- `/forgot`: one email field, then the same message whatever happens.
+- `/reset-password?uid=…&token=…` (logged in and out): New password, then "Password changed.
+  Log in with your new password." with a link; a bad link offers `/forgot`.
+- `vercel.json`: `Referrer-Policy: no-referrer` for `/reset-password`. Tests first.
+
+**Acceptance criteria:**
+- [ ] The whole reset works from the log-in page to logging in with the new password
+- [ ] A bad, used or expired link offers a new one
+- [ ] Fits 375px, light and dark
+
+**Verification:**
+- [ ] Standard verification, `npx playwright test`
+- [ ] Manual: the whole flow locally with the console backend's link
+
+**Dependencies:** T51
+**Files:** `frontend/src/api.ts`, `frontend/src/pages/Login.tsx`, `frontend/src/pages/Forgot.tsx`, `frontend/src/pages/ResetPassword.tsx`, `frontend/src/App.tsx`, `frontend/vercel.json`, `frontend/src/App.test.tsx`
+**Scope:** S
+
+### Checkpoint 20: Account management, part 3
+- [ ] The spec's success criteria 3–5 pass on the live site, with a real reset email
+- [ ] All tests pass on `main`
