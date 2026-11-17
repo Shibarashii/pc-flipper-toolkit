@@ -1070,6 +1070,9 @@ class AuthTests(APITestCase):
         self.assertEqual(res.status_code, 400)
         self.assertEqual(list(res.json()), ["new_password"])
         self.assertEqual(self.client.get("/api/auth/me/").status_code, 200)
+        self.client.credentials()
+        before = {"username": "carol", "password": "a long passphrase"}
+        self.assertEqual(self.post("/api/auth/login/", before).status_code, 200)
 
     def test_a_google_only_account_has_no_password_to_change(self):
         user = User.objects.create_user("carol")  # no password, as Google sign-up makes

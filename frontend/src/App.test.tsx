@@ -686,6 +686,23 @@ test("a wrong current password shows under its field", async () => {
   expect(getToken()).toBe("abc");
 });
 
+test("too many password attempts says to wait", async () => {
+  saveSession({ token: "abc", username: "carol" });
+  stubFetch(me(), () => Response.json({}, { status: 429 }));
+  renderAt("/account");
+
+  fireEvent.click(await changeIn("Password"));
+  for (const label of ["Current password", "New password"])
+    fireEvent.change(screen.getByLabelText(label), {
+      target: { value: "a passphrase" },
+    });
+  fireEvent.click(screen.getByRole("button", { name: "Change password" }));
+  expect((await screen.findByRole("alert")).textContent).toBe(
+    "Too many attempts. Wait a minute and try again.",
+  );
+  expect(getToken()).toBe("abc");
+});
+
 test("a Google-only account has no password to change", async () => {
   saveSession({ token: "abc", username: "carol" });
   stubFetch(me({ google: { email: "c@gmail.com" }, has_password: false }));
@@ -710,6 +727,13 @@ test("a session changed in another tab is followed here", () => {
 
   localStorage.removeItem("session");
   window.dispatchEvent(new StorageEvent("storage", { key: "session" }));
+  expect(getToken()).toBe("");
+});
+
+test("another tab clearing storage logs this one out too", () => {
+  saveSession({ token: "abc", username: "carol" });
+  localStorage.clear();
+  window.dispatchEvent(new StorageEvent("storage", { key: null }));
   expect(getToken()).toBe("");
 });
 
