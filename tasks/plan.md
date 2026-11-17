@@ -254,6 +254,52 @@ the platforms' crawlers, so the real check is on the live site.
 **Checkpoint 17:** the share-card spec's success criteria 1–5 pass on the live site, checked
 by the author in Facebook's Sharing Debugger, LinkedIn's Post Inspector and Messenger.
 
+### Phase 20: Account management, part 1 ([docs/specs/account-management.md](../docs/specs/account-management.md))
+- [ ] T46: Change your username on Account
+- [ ] T47: Change your password on Account
+
+```
+T46 rename ──┐
+T47 password ┴── Checkpoint 18
+```
+Username and password first: they need no email, so they ship and are checked live before any
+email work. Each task is the endpoint, its tests and its Account section together. No migration,
+no dependency.
+
+**Checkpoint 18:** the account-management spec's success criterion 1 passes on the live site
+(a second browser is logged out after a password change), at desktop and 375px, light and dark.
+
+### Phase 21: Account management, part 2 (email)
+- [ ] S1: Brevo set up and tested (the author, outside the code)
+- [ ] T48: Confirm-email API
+- [ ] T49: Add or change your email on Account
+- [ ] T50: Sign-up needs an email; new Google accounts take a verified Gmail
+
+```
+S1 Brevo (author) ──┐
+T48 email API ──────┴── T49 Account's Email ── T50 sign-up email ── Checkpoint 19
+```
+T48 is backend only (settings, sending, the unique index, the two endpoints), so it can merge
+before Brevo is ready: nothing in the app calls it yet. T49 is the first change that lets users
+trigger an email, so it merges only after S1 shows Brevo's emails land in an inbox. T50 then
+makes the email required, last, so sign-up never asks for something that can't be confirmed.
+
+**Checkpoint 19:** the spec's success criterion 2 passes on the live site, with real emails in
+an inbox.
+
+### Phase 22: Account management, part 3 (forgot username or password)
+- [ ] T51: Reset API
+- [ ] T52: Forgot and reset pages
+
+```
+T51 reset API ── T52 forgot + reset pages ── Checkpoint 20
+```
+Needs part 2's emails. The API ships first with its OWASP tests (same answer either way, link
+once and for an hour, token deleted); the pages follow.
+
+**Checkpoint 20:** the spec's success criteria 3–5 pass on the live site, with a real reset
+email.
+
 ## Risks and Mitigations
 
 | Risk | Impact | Mitigation |
@@ -293,6 +339,9 @@ by the author in Facebook's Sharing Debugger, LinkedIn's Post Inspector and Mess
 | Two Google sign-ins pick the same new username at once | Low | Catch the unique-name error and try the next number, as sign-up already does (T40) |
 | A page that sets its own height breaks the column, leaving a gap or a scrollbar under the footer | Low | Only the wrapper sets a height (`min-h-dvh`); the flip e2e test checks the footer touches the window's bottom at desktop and 375px (T43) |
 | The 24px the inset takes makes a phone row wrap or a page scroll sideways at 320px | Medium | Screenshots at 375px and 320px of a build page and the builds list; tighten a row's own gaps if it wraps, never drop the inset on one row (T44) |
+| Brevo's emails land in spam when sent from a free address | High (parts 2–3 don't work for users) | S1 tests delivery to Gmail and one other provider before T49 merges; stop and decide (a domain of our own, another sender) if they land in spam |
+| An email sent from a background thread is lost when Render restarts | Low (the user asks again) | A `ponytail:` comment in `emails.py`; a task queue only if it's ever seen (T48) |
+| Sign-up needing an email breaks the e2e flow | Med | T50 fills in the email in the flip test; the demo doesn't use sign-up |
 
 ## Open Questions
 
