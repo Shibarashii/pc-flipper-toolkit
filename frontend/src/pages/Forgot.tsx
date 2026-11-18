@@ -1,12 +1,7 @@
 import { useState, type SubmitEvent } from "react";
 import { Link } from "react-router";
-import {
-  ApiError,
-  askForResetLink,
-  generalError,
-  type FieldErrors,
-} from "../api";
-import { Field } from "../components/form";
+import { askForResetLink, generalError } from "../api";
+import { Field, focusOnMount, useSave } from "../components/form";
 import { buttonPrimary, input, link } from "../ui";
 
 /** `/forgot`, logged in or out: emails the username and a reset link. The same message
@@ -14,24 +9,14 @@ import { buttonPrimary, input, link } from "../ui";
 export function Forgot() {
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
-  const [errors, setErrors] = useState<FieldErrors>({});
-  const [error, setError] = useState("");
-  const [saving, setSaving] = useState(false);
+  const { errors, error, failed, saving, save } = useSave({ email: "" });
 
-  async function submit(e: SubmitEvent<HTMLFormElement>) {
+  function submit(e: SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
-    setSaving(true);
-    setErrors({});
-    setError("");
-    try {
+    void save(async () => {
       await askForResetLink(email.trim());
       setSent(true);
-    } catch (err) {
-      const fieldErrors = err instanceof ApiError ? err.fieldErrors : {};
-      setErrors(fieldErrors);
-      setError(generalError(err, fieldErrors));
-    }
-    setSaving(false);
+    });
   }
 
   return (
@@ -40,7 +25,12 @@ export function Forgot() {
         Forgot your username or password?
       </h1>
       {sent ? (
-        <p role="status" className="mt-6">
+        <p
+          role="status"
+          ref={focusOnMount}
+          tabIndex={-1}
+          className="mt-6 outline-none"
+        >
           <span className="font-medium">
             If an account has that email, we’ve sent it a link.
           </span>{" "}
@@ -71,9 +61,9 @@ export function Forgot() {
                 className={input(!!errors.email)}
               />
             </Field>
-            {error && (
+            {failed && (
               <p role="alert" className="text-[13px] leading-[18px] text-loss">
-                {error}
+                {generalError(error, {})}
               </p>
             )}
             <button

@@ -1068,9 +1068,11 @@ test.each([
   ).toBeTruthy();
 
   askForLink(" carol@example.com ");
-  expect((await screen.findByRole("status")).textContent).toBe(
+  const sent = await screen.findByRole("status");
+  expect(sent.textContent).toBe(
     "If an account has that email, we’ve sent it a link. It works for 1 hour. If it doesn’t arrive, check your spam folder.",
   );
+  expect(document.activeElement).toBe(sent); // the form it replaced had focus
   expect(screen.queryByRole("textbox", { name: "Email" })).toBeNull();
   expect(
     screen.getByRole("link", { name: "Back to log in" }).getAttribute("href"),
@@ -1119,9 +1121,10 @@ test.each([
   ).toBeTruthy();
 
   setNewPassword("a new passphrase");
-  expect(
-    await screen.findByRole("heading", { name: "Password changed" }),
-  ).toBeTruthy();
+  const heading = await screen.findByRole("heading", {
+    name: "Password changed",
+  });
+  expect(document.activeElement).toBe(heading);
   expect(screen.getByText("Log in with your new password.")).toBeTruthy();
   expect(
     screen.getByRole("link", { name: "Log in" }).getAttribute("href"),
@@ -1142,9 +1145,10 @@ test("a used, expired or changed reset link offers a new one", async () => {
   renderAt("/reset-password?uid=MQ&token=used");
   setNewPassword("a new passphrase");
 
-  expect(
-    await screen.findByRole("heading", { name: "This link no longer works" }),
-  ).toBeTruthy();
+  const heading = await screen.findByRole("heading", {
+    name: "This link no longer works",
+  });
+  expect(document.activeElement).toBe(heading);
   expect(
     screen.getByText("Reset links work once, for 1 hour. Ask for a new one."),
   ).toBeTruthy();

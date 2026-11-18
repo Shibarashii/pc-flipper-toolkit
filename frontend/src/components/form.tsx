@@ -179,3 +179,7 @@ export function SaveStatus({
     </p>
   );
 }
+
+/** A ref that focuses its element once it appears: for the message or heading that replaces
+ * a form, so keyboard and screen-reader users carry on from there. Give it `tabIndex={-1}`. */
+export const focusOnMount = (el: HTMLElement | null) => el?.focus();

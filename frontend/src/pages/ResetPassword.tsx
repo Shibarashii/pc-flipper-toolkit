@@ -1,16 +1,11 @@
 import { useState, type SubmitEvent } from "react";
 import { Link, useSearchParams } from "react-router";
-import {
-  ApiError,
-  generalError,
-  resetPassword,
-  type FieldErrors,
-} from "../api";
-import { Field } from "../components/form";
+import { ApiError, generalError, resetPassword } from "../api";
+import { Field, focusOnMount, useSave } from "../components/form";
 import { buttonPrimary, input } from "../ui";
 
 const heading =
-  "font-serif text-[40px] leading-[44px] font-medium tracking-[-0.01em]";
+  "font-serif text-[40px] leading-[44px] font-medium tracking-[-0.01em] outline-none";
 
 /** `/reset-password?uid=…&token=…`, opened from the emailed link, logged in or out. A
  * new password; it doesn't log in. */
@@ -22,25 +17,21 @@ export function ResetPassword() {
   const [result, setResult] = useState<"form" | "done" | "gone">(
     uid && token ? "form" : "gone",
   );
-  const [errors, setErrors] = useState<FieldErrors>({});
-  const [error, setError] = useState("");
-  const [saving, setSaving] = useState(false);
+  const { errors, error, failed, saving, save } = useSave({
+    new_password: "",
+  });
 
-  async function submit(e: SubmitEvent<HTMLFormElement>) {
+  function submit(e: SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
-    setSaving(true);
-    setErrors({});
-    setError("");
-    try {
-      await resetPassword({ uid, token, new_password: password });
+    void save(async () => {
+      try {
+        await resetPassword({ uid, token, new_password: password });
+      } catch (err) {
+        if (err instanceof ApiError && err.fieldErrors.token) setResult("gone");
+        throw err;
+      }
       setResult("done");
-    } catch (err) {
-      const fieldErrors = err instanceof ApiError ? err.fieldErrors : {};
-      if (fieldErrors.token) setResult("gone");
-      setErrors(fieldErrors);
-      setError(generalError(err, fieldErrors));
-    }
-    setSaving(false);
+    });
   }
 
   return (
@@ -64,9 +55,9 @@ export function ResetPassword() {
                 className={input(!!errors.new_password)}
               />
             </Field>
-            {error && (
+            {failed && (
               <p role="alert" className="text-[13px] leading-[18px] text-loss">
-                {error}
+                {generalError(error, {})}
               </p>
             )}
             <button
@@ -81,7 +72,9 @@ export function ResetPassword() {
       )}
       {result === "done" && (
         <>
-          <h1 className={heading}>Password changed</h1>
+          <h1 ref={focusOnMount} tabIndex={-1} className={heading}>
+            Password changed
+          </h1>
           <p className="mt-6">Log in with your new password.</p>
           <Link
             to="/login"
@@ -93,7 +86,9 @@ export function ResetPassword() {
       )}
       {result === "gone" && (
         <>
-          <h1 className={heading}>This link no longer works</h1>
+          <h1 ref={focusOnMount} tabIndex={-1} className={heading}>
+            This link no longer works
+          </h1>
           <p className="mt-6">
             Reset links work once, for 1 hour. Ask for a new one.
           </p>
