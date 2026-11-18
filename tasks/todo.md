@@ -1387,11 +1387,21 @@ Spec: [docs/specs/account-management.md](../docs/specs/account-management.md). O
 
 ### - [ ] S1: Brevo set up and tested (the author, outside the code)
 
-- [ ] A Brevo account, with the sender address verified
+- [x] A Brevo account, with the sender address verified (`pcflippertoolkit@gmail.com`,
+  2026-11-18)
 - [ ] An SMTP key; Render's environment has `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_USE_TLS`,
-  `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`, `DEFAULT_FROM_EMAIL` and `SITE_URL`
-- [ ] A test email lands in a Gmail inbox and one other provider's inbox, not spam. If not,
-  stop and decide (a domain of our own, another sender) before T49 merges
+  `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`, `DEFAULT_FROM_EMAIL` and `SITE_URL`. (Key made
+  2026-11-18; it expires on 2027-11-18, or after 90 days unused, so a quiet stretch can stop
+  emails until a new key is made. Render's environment is set with T48.)
+- [x] A test email lands in a Gmail inbox and one other provider's inbox, not spam. If not,
+  stop and decide (a domain of our own, another sender) before T49 merges. **Decided
+  2026-11-18:** the Gmail inbox got it; mail-tester scored 5.5/10. Brevo can't sign as
+  gmail.com, so it sends from its own `brevosend.com` address with the Gmail one as Reply-To,
+  and SpamAssassin takes about 2.75 points for that. Accepted for now: the emails aren't
+  critical and most users are on Gmail. "Check your spam folder" goes in each "we sent a link"
+  message, the emails get a text and an HTML version (Brevo turns text-only into HTML with a
+  tracking image, which costs points), and a domain of our own is
+  [parked](../docs/ideas/backlog.md#parked).
 
 **Blocks:** the merge of T49
 
@@ -1400,7 +1410,8 @@ Spec: [docs/specs/account-management.md](../docs/specs/account-management.md). O
 **Description:**
 - `settings.py`: the email settings and `SITE_URL` from the environment; Django's console
   backend when `EMAIL_HOST` is empty (local, CI). `.env.example` documents each one.
-- `emails.py` (new): the plain-text emails (confirm, "your email was changed"), sent in a
+- `emails.py` (new): the emails (confirm, "your email was changed"), each with a text and an
+  HTML version (S1's test), sent in a
   background thread, with a `ponytail:` comment: lost if Render restarts mid-send; a task queue
   if that's ever seen.
 - Migration `0010`: `RunSQL` for a unique index on `lower(email)` where `email <> ''`, with its
@@ -1434,7 +1445,8 @@ Spec: [docs/specs/account-management.md](../docs/specs/account-management.md). O
 **Description:**
 - Account: an Email section between Username and Password: the email and "Change", or "No email
   yet. Add one so you can get back in if you forget your password." and "Add email". After
-  sending: "We sent a link to …. It works for 24 hours."
+  sending: "We sent a link to …. It works for 24 hours. If it doesn’t arrive, check your spam
+  folder."
 - `/verify-email?token=…` (new page, logged in and out): confirms on load, then "Email
   confirmed" with a link to Account, or why not.
 - `vercel.json`: `Referrer-Policy: no-referrer` for `/verify-email`; `csp.test.ts` checks it.
@@ -1464,7 +1476,8 @@ Spec: [docs/specs/account-management.md](../docs/specs/account-management.md). O
   email only when it's verified, a Gmail or Workspace (`hd`) address, and no other account has
   it. Existing users are never matched by email.
 - `Login.tsx`: sign-up gets Email (`type="email"`, `autocomplete="email"`, required), and the
-  builds list it opens says "We sent a link to … to confirm your email."
+  builds list it opens says "We sent a link to … to confirm your email. If it doesn’t arrive,
+  check your spam folder."
 - The e2e flip test fills in an email. Tests first.
 
 **Acceptance criteria:**

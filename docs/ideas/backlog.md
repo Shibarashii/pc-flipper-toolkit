@@ -46,6 +46,14 @@ part, like the header's price already does.
 
 ## Parked
 
+- **A domain of our own for email** (parked 2026-11-18). Emails go through Brevo from
+  `pcflippertoolkit@gmail.com`. Brevo can't sign as gmail.com, so recipients see a
+  `…brevosend.com` sender with the Gmail address as Reply-To, and mail-tester scored a realistic
+  email 5.5/10 (SpamAssassin's `FREEMAIL_FORGED_REPLYTO` and `HEADER_FROM_DIFFERENT_DOMAINS`,
+  about −2.75). Gmail put the test in the inbox, so it was accepted for now. A domain (about $10
+  a year), authenticated in Brevo's Domains tab and sending from `noreply@…`, should fix it;
+  only `DEFAULT_FROM_EMAIL` changes. Revisit if anyone says an email never arrived, or to make
+  the project look more polished.
 - **A build's condition** (added 2026-11-07, parked 2026-11-12). One condition for the whole
   build, for Facebook's Condition field, or a "Refurbished" tag. Not needed: with mixed parts,
   Facebook's Condition is the worst part's, which the seller can tell at a glance, and the
