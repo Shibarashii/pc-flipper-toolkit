@@ -231,6 +231,25 @@ export const confirmEmail = (token: string) =>
     body: JSON.stringify({ token }),
   });
 
+/** Emails the account with this address its username and a reset link; the same answer
+ * either way. */
+export const askForResetLink = (email: string) =>
+  request<{ detail: string }>("/auth/password-reset/", {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
+
+/** Sets a new password from a reset link; every device is logged out, nothing logs in. */
+export const resetPassword = (reset: {
+  uid: string;
+  token: string;
+  new_password: string;
+}) =>
+  request<null>("/auth/password-reset/confirm/", {
+    method: "POST",
+    body: JSON.stringify(reset),
+  });
+
 /** Links the Google account in the ID token to this account. */
 export const connectGoogle = (credential: string) =>
   request<Pick<Me, "google">>("/auth/google/connect/", {

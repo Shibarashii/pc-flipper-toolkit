@@ -1562,7 +1562,7 @@ new dependencies.
 **Files:** `backend/config/settings.py`, `backend/builds/auth.py`, `backend/config/urls.py`, `backend/builds/emails.py`, `backend/builds/tests.py`, `SPEC.md`
 **Scope:** S
 
-### - [ ] T52: Forgot and reset pages
+### - [x] T52: Forgot and reset pages
 
 **Description:**
 - Log-in: "Forgot your username or password?" under the form, to `/forgot`.
@@ -1570,15 +1570,22 @@ new dependencies.
 - `/reset-password?uid=…&token=…` (logged in and out): New password, then "Password changed.
   Log in with your new password." with a link; a bad link offers `/forgot`.
 - `vercel.json`: `Referrer-Policy: no-referrer` for `/reset-password`. Tests first.
+- Built 2026-11-18 from the approved Recovery designs. The pages' copy uses curly apostrophes
+  like the rest of the app; the sent message adds the spec's spam-folder sentence, which the
+  design leaves out. A reset link is checked only when the new password is sent (the API has
+  no separate check), so a dead link shows its page after "Set password". Checked locally
+  (the link made with Django's token generator, since the console email wasn't readable):
+  forgot → link → a weak password, then a good one → log in with it; the used link again
+  offers a new one; 375px light and dark.
 
 **Acceptance criteria:**
-- [ ] The whole reset works from the log-in page to logging in with the new password
-- [ ] A bad, used or expired link offers a new one
-- [ ] Fits 375px, light and dark
+- [x] The whole reset works from the log-in page to logging in with the new password
+- [x] A bad, used or expired link offers a new one
+- [x] Fits 375px, light and dark
 
 **Verification:**
-- [ ] Standard verification, `npx playwright test`
-- [ ] Manual: the whole flow locally with the console backend's link
+- [x] Standard verification, `npx playwright test`
+- [x] Manual: the whole flow locally with the console backend's link
 
 **Dependencies:** T51
 **Files:** `frontend/src/api.ts`, `frontend/src/pages/Login.tsx`, `frontend/src/pages/Forgot.tsx`, `frontend/src/pages/ResetPassword.tsx`, `frontend/src/App.tsx`, `frontend/vercel.json`, `frontend/src/App.test.tsx`

@@ -12,7 +12,7 @@ import {
 import { saveSession, useAuth, type Session } from "../auth";
 import { Field } from "../components/form";
 import { GoogleButton, googleClientId } from "../google";
-import { buttonPrimary, buttonSecondary, focusRing, input } from "../ui";
+import { buttonPrimary, buttonSecondary, focusRing, input, link } from "../ui";
 
 const MODES = {
   login: {
@@ -147,6 +147,13 @@ export function Login({ mode }: { mode: keyof typeof MODES }) {
           {submit}
         </button>
       </form>
+      {!signingUp && (
+        <p className="mt-4">
+          <Link to="/forgot" className={link}>
+            Forgot your username or password?
+          </Link>
+        </p>
+      )}
 
       <div className="mt-6 flex flex-col gap-3 border-t border-line pt-6">
         {googleClientId() && (

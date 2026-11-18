@@ -1025,6 +1025,172 @@ test("an email another account took meanwhile says so", async () => {
   expect(screen.getByRole("link", { name: "Go to Account" })).toBeTruthy();
 });
 
+// Forgot your username or password (docs/specs/account-management.md, part 3).
+test("log-in links to forgot, sign-up doesn't", async () => {
+  renderAt("/login");
+  expect(
+    screen
+      .getByRole("link", { name: "Forgot your username or password?" })
+      .getAttribute("href"),
+  ).toBe("/forgot");
+  fireEvent.click(screen.getByRole("link", { name: "Sign up" }));
+  await screen.findByRole("heading", { name: "Sign up" });
+  expect(
+    screen.queryByRole("link", { name: "Forgot your username or password?" }),
+  ).toBeNull();
+});
+
+const SENT_DETAIL = "If an account has that email, we've sent it a link.";
+
+function askForLink(email: string) {
+  fireEvent.change(screen.getByRole("textbox", { name: "Email" }), {
+    target: { value: email },
+  });
+  fireEvent.click(screen.getByRole("button", { name: "Send link" }));
+}
+
+test.each([
+  ["logged out", false],
+  ["logged in", true],
+])("forgot sends a link and says the same thing, %s", async (_, loggedIn) => {
+  if (loggedIn) saveSession({ token: "abc", username: "carol" });
+  const fetchMock = stubFetch(() =>
+    Response.json({ detail: SENT_DETAIL }, { status: 202 }),
+  );
+  renderAt("/forgot");
+  expect(
+    screen.getByRole("heading", { name: "Forgot your username or password?" }),
+  ).toBeTruthy();
+  expect(
+    screen.getByText(
+      "Type your account’s email. We’ll send your username and a link to set a new password.",
+    ),
+  ).toBeTruthy();
+
+  askForLink(" carol@example.com ");
+  const sent = await screen.findByRole("status");
+  expect(sent.textContent).toBe(
+    "If an account has that email, we’ve sent it a link. It works for 1 hour. If it doesn’t arrive, check your spam folder.",
+  );
+  expect(document.activeElement).toBe(sent); // the form it replaced had focus
+  expect(screen.queryByRole("textbox", { name: "Email" })).toBeNull();
+  expect(
+    screen.getByRole("link", { name: "Back to log in" }).getAttribute("href"),
+  ).toBe("/login");
+  const { url, body } = requestTo(fetchMock, 0);
+  expect(url).toBe("/api/auth/password-reset/");
+  expect(JSON.parse(body as string)).toEqual({ email: "carol@example.com" });
+});
+
+test("forgot shows what's wrong with the email, or too many tries", async () => {
+  stubFetch(
+    () =>
+      Response.json(
+        { email: ["Enter a valid email address."] },
+        { status: 400 },
+      ),
+    () => Response.json({}, { status: 429 }),
+  );
+  renderAt("/forgot");
+
+  askForLink("carol");
+  expect(await screen.findByText("Enter a valid email address.")).toBeTruthy();
+  askForLink("carol@example.com");
+  expect((await screen.findByRole("alert")).textContent).toBe(
+    "Too many attempts. Wait a minute and try again.",
+  );
+  expect(screen.queryByRole("status")).toBeNull();
+});
+
+function setNewPassword(password: string) {
+  fireEvent.change(screen.getByLabelText("New password"), {
+    target: { value: password },
+  });
+  fireEvent.click(screen.getByRole("button", { name: "Set password" }));
+}
+
+test.each([
+  ["logged out", false],
+  ["logged in", true],
+])("a reset link sets a new password, %s", async (_, loggedIn) => {
+  if (loggedIn) saveSession({ token: "abc", username: "carol" });
+  const fetchMock = stubFetch(() => new Response(null, { status: 204 }));
+  renderAt("/reset-password?uid=MQ&token=set-abc");
+  expect(
+    screen.getByRole("heading", { name: "Set a new password" }),
+  ).toBeTruthy();
+
+  setNewPassword("a new passphrase");
+  const heading = await screen.findByRole("heading", {
+    name: "Password changed",
+  });
+  expect(document.activeElement).toBe(heading);
+  expect(screen.getByText("Log in with your new password.")).toBeTruthy();
+  expect(
+    screen.getByRole("link", { name: "Log in" }).getAttribute("href"),
+  ).toBe("/login");
+  const { url, body } = requestTo(fetchMock, 0);
+  expect(url).toBe("/api/auth/password-reset/confirm/");
+  expect(JSON.parse(body as string)).toEqual({
+    uid: "MQ",
+    token: "set-abc",
+    new_password: "a new passphrase",
+  });
+});
+
+test("a used, expired or changed reset link offers a new one", async () => {
+  stubFetch(() =>
+    Response.json({ token: ["This link no longer works."] }, { status: 400 }),
+  );
+  renderAt("/reset-password?uid=MQ&token=used");
+  setNewPassword("a new passphrase");
+
+  const heading = await screen.findByRole("heading", {
+    name: "This link no longer works",
+  });
+  expect(document.activeElement).toBe(heading);
+  expect(
+    screen.getByText("Reset links work once, for 1 hour. Ask for a new one."),
+  ).toBeTruthy();
+  expect(
+    screen.getByRole("link", { name: "Get a new link" }).getAttribute("href"),
+  ).toBe("/forgot");
+});
+
+test("a reset link without its uid or token doesn't ask the server", async () => {
+  const fetchMock = stubFetch();
+  renderAt("/reset-password?token=abc");
+  expect(
+    await screen.findByRole("heading", { name: "This link no longer works" }),
+  ).toBeTruthy();
+  expect(fetchMock).not.toHaveBeenCalled();
+});
+
+test("a weak new password says why and keeps the form", async () => {
+  stubFetch(
+    () =>
+      Response.json(
+        { new_password: ["This password is too common."] },
+        { status: 400 },
+      ),
+    () => Response.json({}, { status: 500 }),
+  );
+  renderAt("/reset-password?uid=MQ&token=abc");
+
+  setNewPassword("password");
+  expect(await screen.findByText("This password is too common.")).toBeTruthy();
+  expect(
+    screen.getByLabelText("New password").getAttribute("aria-invalid"),
+  ).toBe("true");
+  setNewPassword("a new passphrase");
+  expect((await screen.findByRole("alert")).textContent).toBe(
+    "Something went wrong. Try again.",
+  );
+  expect(
+    screen.getByRole("heading", { name: "Set a new password" }),
+  ).toBeTruthy();
+});
+
 const REPO = "https://github.com/Shibarashii/pc-flipper-toolkit";
 const LINKEDIN = "https://www.linkedin.com/in/seanrei-valdeabella/";
 

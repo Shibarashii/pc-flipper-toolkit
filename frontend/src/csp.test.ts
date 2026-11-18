@@ -36,9 +36,9 @@ test("the CSP lets Google's sign-in button load", () => {
 });
 
 // Other sites see only our origin, never a page's path (Google's sign-in recommends this),
-// except from /verify-email, whose URL holds a confirmation token: there, nothing at all.
+// except from /verify-email and /reset-password, whose URLs hold a token: there, nothing.
 // Two rules that never both match, since Vercel doesn't document which of two would win.
-test("pages send only our origin as the referrer, /verify-email nothing", () => {
+test("pages send only our origin as the referrer, the link pages nothing", () => {
   const { headers } = JSON.parse(readFileSync("vercel.json", "utf8"));
   const policies = (path: string): string[] =>
     headers
@@ -50,7 +50,8 @@ test("pages send only our origin as the referrer, /verify-email nothing", () => 
       );
   for (const path of ["/", "/login", "/account", "/builds/1"])
     expect(policies(path)).toEqual(["strict-origin-when-cross-origin"]);
-  expect(policies("/verify-email")).toEqual(["no-referrer"]);
+  for (const path of ["/verify-email", "/reset-password"])
+    expect(policies(path)).toEqual(["no-referrer"]);
 });
 
 // A shared link's card and the search snippet (docs/specs/share-card.md). Link previewers
