@@ -1461,7 +1461,7 @@ Spec: [docs/specs/account-management.md](../docs/specs/account-management.md). O
 - Tests first.
 - Built 2026-11-18: after "Send link" the status shows above the row, which stays as it was
   (the design shows the status alone), so a typo can be fixed at once, like Password's "changed"
-  state. The page sends its link once, even under StrictMode or when you log out on it (a
+  state. The author approved this difference from the design on 2026-11-18. The page sends its link once, even under StrictMode or when you log out on it (a
   test each). An email another account took meanwhile is "Couldn’t confirm your email" with
   that message. `vercel.json` splits Referrer-Policy into two rules that never both match,
   since Vercel doesn't document which of two would win.
