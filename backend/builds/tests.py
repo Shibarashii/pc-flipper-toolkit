@@ -1,3 +1,5 @@
+import re
+import time
 import uuid
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal as D
@@ -6,6 +8,7 @@ from unittest import mock
 
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.core import mail, signing
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.management import call_command
@@ -16,7 +19,7 @@ from django.utils import timezone
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APITestCase
 
-from .auth import TAKEN
+from .auth import CONFIRM_SALT, TAKEN, TAKEN_EMAIL
 from .models import Build, Bundle, ExtraCost, Part
 
 
@@ -1099,6 +1102,152 @@ class AuthTests(APITestCase):
         self.assertEqual(res.json(), {"username": [TAKEN]})
 
 
+class SyncThread:
+    """Stands in for threading.Thread so a test's email is in the outbox at once."""
+
+    def __init__(self, target, daemon=None):
+        self.target = target
+
+    def start(self):
+        self.target()
+
+
+class EmailTests(APITestCase):
+    def setUp(self):
+        cache.clear()  # confirming shares the auth rate limit
+        mock.patch("builds.emails.Thread", SyncThread).start()
+        self.addCleanup(mock.patch.stopall)
+        self.carol = User.objects.create_user("carol", password="x")
+        token = Token.objects.create(user=self.carol)
+        self.client.credentials(HTTP_AUTHORIZATION=f"Token {token.key}")
+
+    def send(self, email):
+        return self.client.post("/api/auth/email/", {"email": email}, format="json")
+
+    def link(self):
+        """The confirmation link's token, from the last email sent."""
+        match = re.search(r"/verify-email\?token=(\S+)", mail.outbox[-1].body)
+        return match.group(1)
+
+    def confirm(self, token):
+        return self.client.post(
+            "/api/auth/email/confirm/", {"token": token}, format="json"
+        )
+
+    def my_email(self):
+        return self.client.get("/api/auth/me/").json()["email"]
+
+    def test_nothing_is_saved_until_the_link_is_opened(self):
+        self.assertEqual(self.my_email(), "")
+        self.assertEqual(self.send("carol@example.com").status_code, 202)
+        self.assertEqual(self.my_email(), "")
+
+        [sent] = mail.outbox
+        self.assertEqual(sent.to, ["carol@example.com"])
+        self.assertIn(f"{settings.SITE_URL}/verify-email?token=", sent.body)
+        self.assertEqual(sent.alternatives[0][1], "text/html")  # and a text version
+
+        res = self.confirm(self.link())
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.json(), {"email": "carol@example.com"})
+        self.assertEqual(self.my_email(), "carol@example.com")
+
+    def test_a_link_works_once(self):
+        self.send("carol@example.com")
+        token = self.link()
+        self.assertEqual(self.confirm(token).status_code, 200)
+        res = self.confirm(token)
+        self.assertEqual(res.status_code, 400)
+        self.assertEqual(list(res.json()), ["token"])
+
+    def test_a_link_works_for_24_hours(self):
+        self.send("carol@example.com")
+        token, now = self.link(), time.time()
+        with mock.patch("time.time", return_value=now + 24 * 3600 + 1):
+            self.assertEqual(self.confirm(token).status_code, 400)
+        with mock.patch("time.time", return_value=now + 23 * 3600):
+            self.assertEqual(self.confirm(token).status_code, 200)
+
+    def test_a_link_stops_working_after_another_change(self):
+        self.send("first@example.com")
+        first = self.link()
+        self.send("second@example.com")
+        self.assertEqual(self.confirm(self.link()).status_code, 200)
+        self.assertEqual(self.confirm(first).status_code, 400)
+        self.assertEqual(self.my_email(), "second@example.com")
+
+    def test_a_changed_link_is_refused(self):
+        self.send("carol@example.com")
+        self.assertEqual(self.confirm(self.link() + "x").status_code, 400)
+        self.assertEqual(self.confirm("nonsense").status_code, 400)
+
+    def test_another_accounts_email_is_refused_at_sending_and_at_confirming(self):
+        User.objects.create_user("dave", email="Dave@Example.com")
+        res = self.send("dave@example.com")
+        self.assertEqual(res.status_code, 400)
+        self.assertEqual(res.json(), {"email": [TAKEN_EMAIL]})
+        self.assertEqual(mail.outbox, [])
+
+        self.send("shared@example.com")
+        User.objects.create_user("erin", email="SHARED@example.com")
+        res = self.confirm(self.link())
+        self.assertEqual(res.status_code, 400)
+        self.assertEqual(res.json(), {"email": [TAKEN_EMAIL]})
+        self.assertEqual(self.my_email(), "")
+
+    def test_the_old_address_gets_a_notice_once_the_new_one_is_confirmed(self):
+        self.carol.email = "old@example.com"
+        self.carol.save()
+        self.send("new@example.com")
+        self.assertEqual([m.to for m in mail.outbox], [["new@example.com"]])
+
+        self.confirm(self.link())
+        notice = mail.outbox[-1]
+        self.assertEqual(notice.to, ["old@example.com"])
+        self.assertIn("new@example.com", notice.body)
+        self.assertIn("change your password", notice.body)
+        self.assertEqual(notice.alternatives[0][1], "text/html")
+
+    def test_the_link_shows_neither_the_current_email_nor_the_username(self):
+        # The new address isn't confirmed yet: whoever owns it shouldn't learn either.
+        self.carol.email = "old@example.com"
+        self.carol.save()
+        self.send("new@example.com")
+        payload = signing.loads(self.link(), salt=CONFIRM_SALT)
+        self.assertNotIn("old@example.com", str(payload))
+        self.assertNotIn("carol", mail.outbox[-1].body)
+
+    def test_no_notice_when_there_was_no_email(self):
+        self.send("carol@example.com")
+        self.confirm(self.link())
+        self.assertEqual(len(mail.outbox), 1)
+
+    def test_your_own_email_again_is_refused(self):
+        self.carol.email = "carol@example.com"
+        self.carol.save()
+        res = self.send("Carol@Example.com")
+        self.assertEqual(res.status_code, 400)
+        self.assertEqual(list(res.json()), ["email"])
+
+    def test_sending_needs_a_valid_email_and_a_log_in(self):
+        self.assertEqual(self.send("not an email").status_code, 400)
+        self.client.credentials()
+        self.assertEqual(self.send("carol@example.com").status_code, 401)
+        self.assertEqual(mail.outbox, [])
+
+    def test_sending_shares_the_auth_rate_limit(self):
+        codes = [self.send(f"c{i}@example.com").status_code for i in range(11)]
+        self.assertEqual(codes, [202] * 10 + [429])
+
+    def test_the_database_refuses_one_email_on_two_accounts_in_any_case(self):
+        User.objects.create_user("dave", email="same@example.com")
+        with self.assertRaises(IntegrityError), transaction.atomic():
+            User.objects.create_user("erin", email="SAME@example.com")
+        # Many accounts can have none.
+        User.objects.create_user("frank")
+        User.objects.create_user("grace")
+
+
 class IsolationTests(LoggedInApiTestCase):
     """alice is logged in. Everything set up here belongs to bob."""
 
@@ -1367,6 +1516,13 @@ class DemoTests(APITestCase):
             "/api/auth/password/",
             {"current_password": "", "new_password": "a long passphrase"},
             format="json",
+        )
+        self.assertEqual(res.status_code, 403)
+
+    def test_a_demo_cant_add_an_email(self):
+        self.demo()
+        res = self.client.post(
+            "/api/auth/email/", {"email": "demo@example.com"}, format="json"
         )
         self.assertEqual(res.status_code, 403)
 

@@ -1405,7 +1405,7 @@ Spec: [docs/specs/account-management.md](../docs/specs/account-management.md). O
 
 **Blocks:** the merge of T49
 
-### - [ ] T48: Confirm-email API
+### - [x] T48: Confirm-email API
 
 **Description:**
 - `settings.py`: the email settings and `SITE_URL` from the environment; Django's console
@@ -1422,19 +1422,25 @@ Spec: [docs/specs/account-management.md](../docs/specs/account-management.md). O
   account's current email; saves the email if the current one is unchanged and no other account
   took it. `GET /api/auth/me/` gains `email`. Demo `403`.
 - SPEC.md's auth table. Tests first.
+- Built 2026-11-18: the token carries a keyed hash of the account's current email, not the
+  email itself (a token can be decoded, and its address isn't confirmed yet), and the
+  confirmation email says "Hi," without the username for the same reason. Sending again to
+  your own email is a 400; sending shares the `auth` rate limit (10 a minute per user), since
+  each send is an email. Production still has no `EMAIL_HOST`, so until Render's environment
+  is set (S1), any email prints in Render's log instead of being sent.
 
 **Acceptance criteria:**
-- [ ] Nothing is saved until the link is opened; then `me.email` is the new address
-- [ ] A link works once, not after 24 hours (frozen clock), and not after another change
-- [ ] Another account's email is refused at sending and at confirming, in any case
-- [ ] Changing an existing email sends the old address a notice once the new one is confirmed
-- [ ] The database refuses two accounts with the same email in different case; many can have
+- [x] Nothing is saved until the link is opened; then `me.email` is the new address
+- [x] A link works once, not after 24 hours (frozen clock), and not after another change
+- [x] Another account's email is refused at sending and at confirming, in any case
+- [x] Changing an existing email sends the old address a notice once the new one is confirmed
+- [x] The database refuses two accounts with the same email in different case; many can have
   none
 
 **Verification:**
-- [ ] Standard verification, plus `makemigrations --check`, `spectacular --validate
+- [x] Standard verification, plus `makemigrations --check`, `spectacular --validate
   --fail-on-warn`, and `migrate` then `migrate builds 0009` locally (the reverse works)
-- [ ] Manual: the console backend prints the email in `runserver`'s output
+- [x] Manual: the console backend prints the email in `runserver`'s output
 
 **Dependencies:** none (Brevo isn't needed: nothing in the app calls this yet)
 **Files:** `backend/config/settings.py`, `backend/.env.example`, `backend/builds/emails.py`, `backend/builds/migrations/0010_…`, `backend/builds/auth.py`, `backend/config/urls.py`, `backend/builds/tests.py`, `SPEC.md`

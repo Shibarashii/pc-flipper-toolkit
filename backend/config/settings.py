@@ -153,3 +153,20 @@ SPECTACULAR_SETTINGS = {
 # Sign in with Google (docs/specs/google-sign-in.md): the OAuth client's id, which isn't a
 # secret. Unset, Google sign-in answers "isn't set up" and everything else works.
 GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "")
+
+# Email (docs/specs/account-management.md): Brevo's SMTP relay in production. Without
+# EMAIL_HOST (local, CI), emails print in runserver's output; tests use Django's outbox.
+EMAIL_HOST = os.environ.get("EMAIL_HOST", "")
+if EMAIL_HOST:
+    EMAIL_PORT = int(os.environ.get("EMAIL_PORT") or 587)
+    EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "1") == "1"
+    EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
+    EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
+    EMAIL_TIMEOUT = 10
+else:
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+DEFAULT_FROM_EMAIL = os.environ.get(
+    "DEFAULT_FROM_EMAIL", "PC Flipper Toolkit <noreply@localhost>"
+)
+# Where links in emails point: the frontend, never the request's host.
+SITE_URL = os.environ.get("SITE_URL", "http://localhost:5173").rstrip("/")

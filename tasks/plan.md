@@ -271,7 +271,7 @@ no dependency.
 
 ### Phase 21: Account management, part 2 (email)
 - [ ] S1: Brevo set up and tested (the author, outside the code)
-- [ ] T48: Confirm-email API
+- [x] T48: Confirm-email API
 - [ ] T49: Add or change your email on Account
 - [ ] T50: Sign-up needs an email; new Google accounts take a verified Gmail
 

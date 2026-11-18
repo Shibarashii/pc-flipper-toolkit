@@ -3,8 +3,10 @@
 from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.password_validation import validate_password
+from django.core import signing
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import IntegrityError, transaction
+from django.utils.crypto import constant_time_compare, salted_hmac
 from drf_spectacular.utils import extend_schema
 from rest_framework import serializers, status
 from rest_framework.authtoken.models import Token
@@ -14,7 +16,7 @@ from rest_framework.response import Response
 from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 
-from . import google
+from . import emails, google
 from .authentication import expired
 from .demo import PREFIX as DEMO_PREFIX
 from .demo import create_demo_user, is_demo
@@ -23,6 +25,19 @@ from .models import GoogleAccount
 User = get_user_model()
 
 TAKEN = "That username is taken."
+TAKEN_EMAIL = "That email is used by another account."
+LINK_GONE = "This link no longer works."
+# Confirmation links: signed, so they can't be changed; checked against the account's
+# current email when opened, so each works once (docs/specs/account-management.md).
+CONFIRM_SALT = "builds.confirm-email"
+CONFIRM_MAX_AGE = 24 * 60 * 60
+
+
+def email_mark(email: str) -> str:
+    """Stands for the account's current email in a link, which anyone can decode."""
+    return salted_hmac(CONFIRM_SALT, email).hexdigest()
+
+
 GOOGLE_FAILED = "Google sign-in didn't work. Try again."
 CONNECTED_ELSEWHERE = "This Google account is connected to another account."
 
@@ -64,6 +79,30 @@ class SignupSerializer(UsernameSerializer, CredentialsSerializer):
         except DjangoValidationError as e:
             raise serializers.ValidationError({"password": list(e.messages)})
         return data
+
+
+def email_taken(email: str, user) -> bool:
+    return User.objects.filter(email__iexact=email).exclude(pk=user.pk).exists()
+
+
+class EmailSerializer(serializers.Serializer):
+    email = serializers.EmailField(max_length=254)
+
+    def validate_email(self, email):
+        user = self.context["user"]
+        if email.lower() == user.email.lower():
+            raise serializers.ValidationError("That’s already your email.")
+        if email_taken(email, user):
+            raise serializers.ValidationError(TAKEN_EMAIL)
+        return email
+
+
+class ConfirmEmailSerializer(serializers.Serializer):
+    token = serializers.CharField(help_text="From the link in the email.")
+
+
+class ConfirmedEmailSerializer(serializers.Serializer):
+    email = serializers.EmailField(read_only=True)
 
 
 class PasswordChangeSerializer(serializers.Serializer):
@@ -112,6 +151,9 @@ class MeSerializer(UserSerializer):
         read_only=True, help_text="False for Google-only and demo accounts."
     )
     is_demo = serializers.BooleanField(read_only=True)
+    email = serializers.CharField(
+        read_only=True, help_text='The confirmed email, or "" when there is none.'
+    )
 
 
 def connected_google(user) -> dict | None:
@@ -299,6 +341,7 @@ class MeView(APIView):
                 "google": connected_google(user),
                 "has_password": user.has_usable_password(),
                 "is_demo": is_demo(user),
+                "email": user.email,
             }
         )
 
@@ -312,11 +355,7 @@ class MeView(APIView):
     )
     def patch(self, request):
         user = request.user
-        if is_demo(user):
-            raise PermissionDenied(
-                "Demo accounts can't change their account. "
-                "Sign up for your own account first."
-            )
+        refuse_demo(user)
         serializer = UsernameSerializer(data=request.data, context={"user": user})
         serializer.is_valid(raise_exception=True)
         user.username = serializer.validated_data["username"]
@@ -345,11 +384,7 @@ class PasswordView(APIView):
     )
     def post(self, request):
         user = request.user
-        if is_demo(user):
-            raise PermissionDenied(
-                "Demo accounts can't change their account. "
-                "Sign up for your own account first."
-            )
+        refuse_demo(user)
         if not user.has_usable_password():
             refuse("You log in with Google, so there's no password to change.")
         serializer = PasswordChangeSerializer(data=request.data, context={"user": user})
@@ -359,6 +394,82 @@ class PasswordView(APIView):
             user.save(update_fields=["password"])
             Token.objects.filter(user=user).delete()
             return token_response(user)
+
+
+class EmailView(APIView):
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "auth"
+
+    @extend_schema(
+        summary="Add or change your email",
+        description="Emails a confirmation link to the address (202); nothing is saved "
+        "until it's opened. Another account's email, or your own again, is a 400 on "
+        "`email`; a demo is a 403.",
+        request=EmailSerializer,
+        responses={202: None},
+        tags=["auth"],
+    )
+    def post(self, request):
+        user = request.user
+        refuse_demo(user)
+        serializer = EmailSerializer(data=request.data, context={"user": user})
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data["email"]
+        token = signing.dumps(
+            {"user": user.pk, "email": email, "was": email_mark(user.email)},
+            salt=CONFIRM_SALT,
+        )
+        emails.confirm_email(email, token)
+        return Response(status=status.HTTP_202_ACCEPTED)
+
+
+class ConfirmEmailView(PublicAuthView):
+    @extend_schema(
+        summary="Confirm an email",
+        description="Saves the email from a confirmation link (no log-in needed: it may be "
+        "opened on another device). Expired (24 hours), used, outdated or changed links are "
+        "a 400 on `token`; an email another account took meanwhile is a 400 on `email`. A "
+        "replaced email gets a notice.",
+        request=ConfirmEmailSerializer,
+        responses={200: ConfirmedEmailSerializer},
+        tags=["auth"],
+    )
+    def post(self, request):
+        serializer = ConfirmEmailSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            link = signing.loads(
+                serializer.validated_data["token"],
+                salt=CONFIRM_SALT,
+                max_age=CONFIRM_MAX_AGE,
+            )
+        except signing.BadSignature:  # expired is a kind of bad signature
+            raise serializers.ValidationError({"token": [LINK_GONE]})
+        user = User.objects.filter(pk=link["user"], is_active=True).first()
+        # Used, or changed since: the account's email isn't the one it was sent from.
+        if user is None or not constant_time_compare(
+            email_mark(user.email), link["was"]
+        ):
+            raise serializers.ValidationError({"token": [LINK_GONE]})
+        if email_taken(link["email"], user):
+            raise serializers.ValidationError({"email": [TAKEN_EMAIL]})
+        was, user.email = user.email, link["email"]
+        try:
+            with transaction.atomic():
+                user.save(update_fields=["email"])
+        except IntegrityError:
+            # Another account confirmed it between the check above and now.
+            raise serializers.ValidationError({"email": [TAKEN_EMAIL]})
+        if was:
+            emails.email_changed(user.username, was, user.email)
+        return Response({"email": user.email})
+
+
+def refuse_demo(user):
+    if is_demo(user):
+        raise PermissionDenied(
+            "Demo accounts can't change their account. Sign up for your own account first."
+        )
 
 
 def refuse(message: str):
