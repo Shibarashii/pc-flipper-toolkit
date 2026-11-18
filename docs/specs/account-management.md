@@ -114,8 +114,8 @@ reset links; it's signed, so it can't be changed.)
 - **Brevo** over Django's built-in SMTP backend: no new Python package.
 - **Settings from the environment** (`backend/.env.example` documents them): `EMAIL_HOST`
   (from Brevo's SMTP settings page), `EMAIL_PORT=2525` (Render's free plan blocks the usual
-  587; Brevo also takes 2525), `EMAIL_USE_TLS=1`, `EMAIL_HOST_USER` (Brevo's SMTP login), `EMAIL_HOST_PASSWORD` (a Brevo **SMTP key**, not an API key),
-  `DEFAULT_FROM_EMAIL` (the sender verified in Brevo), `SITE_URL`.
+  587; Brevo also takes 2525), `EMAIL_USE_TLS=1`, `EMAIL_HOST_USER` (Brevo's SMTP login),
+  `EMAIL_HOST_PASSWORD` (a Brevo **SMTP key**, not an API key), `DEFAULT_FROM_EMAIL` (the sender verified in Brevo), `SITE_URL`.
 - **No `EMAIL_HOST`** (local development, CI): Django's console backend, so emails print in
   `runserver`'s output. Tests use Django's in-memory outbox.
 - **Emails with a text and an HTML version** (Brevo turns a text-only email into HTML with a
