@@ -1447,7 +1447,7 @@ Spec: [docs/specs/account-management.md](../docs/specs/account-management.md). O
 **Files:** `backend/config/settings.py`, `backend/.env.example`, `backend/builds/emails.py`, `backend/builds/migrations/0010_…`, `backend/builds/auth.py`, `backend/config/urls.py`, `backend/builds/tests.py`, `SPEC.md`
 **Scope:** M
 
-### - [ ] T49: Add or change your email on Account
+### - [x] T49: Add or change your email on Account
 
 **Description:**
 - Account: an Email section between Username and Password: the email and "Change", or "No email
@@ -1459,16 +1459,23 @@ Spec: [docs/specs/account-management.md](../docs/specs/account-management.md). O
 - `vercel.json`: `Referrer-Policy: no-referrer` for `/verify-email`; `csp.test.ts` checks it.
 - Privacy page: the app stores your email and sends it to Brevo only to deliver these emails.
 - Tests first.
+- Built 2026-11-18: after "Send link" the status shows above the row, which stays as it was
+  (the design shows the status alone), so a typo can be fixed at once, like Password's "changed"
+  state. The author approved this difference from the design on 2026-11-18. The page sends its link once, even under StrictMode or when you log out on it (a
+  test each). An email another account took meanwhile is "Couldn’t confirm your email" with
+  that message. `vercel.json` splits Referrer-Policy into two rules that never both match,
+  since Vercel doesn't document which of two would win.
 
 **Acceptance criteria:**
-- [ ] An account without an email sees the prompt, adds one, and after opening the link sees
+- [x] An account without an email sees the prompt, adds one, and after opening the link sees
   it on Account
-- [ ] A used, expired or broken link explains itself and points back to Account
-- [ ] The page works logged in and logged out; fits 375px, light and dark
+- [x] A used, expired or broken link explains itself and points back to Account
+- [x] The page works logged in and logged out; fits 375px, light and dark
 
 **Verification:**
-- [ ] Standard verification
-- [ ] Manual: the whole flow locally with the console backend's link
+- [x] Standard verification
+- [x] Manual: the whole flow locally (the link minted in a Django shell, since the console
+  backend prints in runserver's own terminal)
 
 **Dependencies:** T48; S1 before merging
 **Files:** `frontend/src/api.ts`, `frontend/src/pages/Account.tsx`, `frontend/src/pages/VerifyEmail.tsx`, `frontend/src/App.tsx`, `frontend/src/pages/Privacy.tsx`, `frontend/vercel.json`, `frontend/src/App.test.tsx`, `frontend/src/csp.test.ts`

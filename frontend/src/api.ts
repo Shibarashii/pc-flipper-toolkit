@@ -193,6 +193,8 @@ export type Me = {
   google: { email: string } | null;
   has_password: boolean;
   is_demo: boolean;
+  /** The confirmed email, or "" when there is none. */
+  email: string;
 };
 
 export const getMe = () => request<Me>("/auth/me/");
@@ -212,6 +214,20 @@ export const changePassword = (passwords: {
   request<Session>("/auth/password/", {
     method: "POST",
     body: JSON.stringify(passwords),
+  });
+
+/** Emails a confirmation link; nothing is saved until it's opened. */
+export const sendEmailLink = (email: string) =>
+  request<null>("/auth/email/", {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
+
+/** Saves the email from a confirmation link; works logged in or out. */
+export const confirmEmail = (token: string) =>
+  request<{ email: string }>("/auth/email/confirm/", {
+    method: "POST",
+    body: JSON.stringify({ token }),
   });
 
 /** Links the Google account in the ID token to this account. */

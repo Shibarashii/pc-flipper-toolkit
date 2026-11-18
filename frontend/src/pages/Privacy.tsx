@@ -21,7 +21,7 @@ export function Privacy() {
         Privacy
       </h1>
       <p className="mt-1.5 text-[13px] leading-[18px] text-muted">
-        Last updated 10 November 2026
+        Last updated 18 November 2026
       </p>
 
       <Section title="What the app keeps">
@@ -34,6 +34,10 @@ export function Privacy() {
             If you sign in with Google: your Google account’s email and its id,
             so the same Google account always opens the same account here.
             Nothing else from Google: not your name, photo or contacts.
+          </li>
+          <li>
+            Your email, once you confirm it, so you can get back in if you
+            forget your password.
           </li>
           <li>Your builds: the parts, prices, costs and notes you enter.</li>
           <li>
@@ -52,6 +56,10 @@ export function Privacy() {
           Neon, which store it on the app’s behalf and, like any website, keep
           short-lived request logs such as IP addresses. The fonts load from
           Google Fonts, and signing in with Google goes through Google.
+        </p>
+        <p>
+          The app’s emails, like confirmation links, are sent through Brevo,
+          which gets your email address only to deliver them.
         </p>
       </Section>
 

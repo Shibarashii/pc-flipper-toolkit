@@ -3,8 +3,10 @@ import {
   fireEvent,
   render,
   screen,
+  waitFor,
   within,
 } from "@testing-library/react";
+import { StrictMode } from "react";
 import { MemoryRouter } from "react-router";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { getBuild } from "./api";
@@ -441,6 +443,7 @@ const me =
       google: null,
       has_password: true,
       is_demo: false,
+      email: "",
       ...fields,
     });
 
@@ -755,6 +758,193 @@ test("Account says so when it can't load", async () => {
   expect((await screen.findByRole("alert")).textContent).toContain(
     "Couldn’t load your account",
   );
+});
+
+const NO_EMAIL =
+  "No email yet. Add one so you can get back in if you forget your password.";
+
+test("an account without an email adds one, and sees the link was sent", async () => {
+  saveSession({ token: "abc", username: "carol" });
+  const fetchMock = stubFetch(me({ email: "" }), () =>
+    Response.json(null, { status: 202 }),
+  );
+  renderAt("/account");
+
+  const email = await screen.findByRole("region", { name: "Email" });
+  expect(within(email).getByText(NO_EMAIL)).toBeTruthy();
+  fireEvent.click(within(email).getByRole("button", { name: "Add email" }));
+  const field = within(email).getByRole("textbox", { name: "Email" });
+  expect(field.getAttribute("type")).toBe("email");
+  expect(field.getAttribute("autocomplete")).toBe("email");
+  fireEvent.change(field, { target: { value: "carol@example.com" } });
+  fireEvent.click(within(email).getByRole("button", { name: "Send link" }));
+
+  expect((await within(email).findByRole("status")).textContent).toBe(
+    "We sent a link to carol@example.com. It works for 24 hours. If it doesn’t arrive, check your spam folder.",
+  );
+  // Nothing is saved until the link is opened, so the form just closes.
+  expect(within(email).queryByRole("textbox")).toBeNull();
+  const { url, body } = requestTo(fetchMock, 1);
+  expect(url).toBe("/api/auth/email/");
+  expect(JSON.parse(body as string)).toEqual({ email: "carol@example.com" });
+});
+
+test("an account with an email shows it, and Change starts from it", async () => {
+  saveSession({ token: "abc", username: "carol" });
+  stubFetch(me({ email: "carol@example.com" }));
+  renderAt("/account");
+
+  const email = await screen.findByRole("region", { name: "Email" });
+  expect(within(email).getByText("carol@example.com")).toBeTruthy();
+  fireEvent.click(await changeIn("Email"));
+  const field = within(email).getByRole("textbox", { name: "Email" });
+  expect((field as HTMLInputElement).value).toBe("carol@example.com");
+  fireEvent.click(within(email).getByRole("button", { name: "Cancel" }));
+  expect(within(email).getByText("carol@example.com")).toBeTruthy();
+});
+
+test("another account's email shows under the field", async () => {
+  saveSession({ token: "abc", username: "carol" });
+  stubFetch(me({ email: "" }), () =>
+    Response.json(
+      { email: ["That email is used by another account."] },
+      { status: 400 },
+    ),
+  );
+  renderAt("/account");
+
+  fireEvent.click(await screen.findByRole("button", { name: "Add email" }));
+  fireEvent.change(screen.getByRole("textbox", { name: "Email" }), {
+    target: { value: "dave@example.com" },
+  });
+  fireEvent.click(screen.getByRole("button", { name: "Send link" }));
+  expect(
+    await screen.findByText("That email is used by another account."),
+  ).toBeTruthy();
+  expect(screen.queryByRole("status")).toBeNull();
+});
+
+test("too many links says to wait", async () => {
+  saveSession({ token: "abc", username: "carol" });
+  stubFetch(me({ email: "" }), () => Response.json({}, { status: 429 }));
+  renderAt("/account");
+
+  fireEvent.click(await screen.findByRole("button", { name: "Add email" }));
+  fireEvent.change(screen.getByRole("textbox", { name: "Email" }), {
+    target: { value: "carol@example.com" },
+  });
+  fireEvent.click(screen.getByRole("button", { name: "Send link" }));
+  expect((await screen.findByRole("alert")).textContent).toBe(
+    "Too many attempts. Wait a minute and try again.",
+  );
+});
+
+test.each([
+  ["logged out", false],
+  ["logged in", true],
+])("a confirmation link confirms the email, %s", async (_, loggedIn) => {
+  if (loggedIn) saveSession({ token: "abc", username: "carol" });
+  const fetchMock = stubFetch(() =>
+    Response.json({ email: "carol@example.com" }),
+  );
+  renderAt("/verify-email?token=signed.token");
+
+  expect(
+    await screen.findByRole("heading", { name: "Email confirmed" }),
+  ).toBeTruthy();
+  expect(screen.getByText(/is on your account now\./).textContent).toBe(
+    "carol@example.com is on your account now.",
+  );
+  expect(
+    screen.getByRole("link", { name: "Go to Account" }).getAttribute("href"),
+  ).toBe("/account");
+  expect(fetchMock).toHaveBeenCalledTimes(1);
+  const { url, body } = requestTo(fetchMock, 0);
+  expect(url).toBe("/api/auth/email/confirm/");
+  expect(JSON.parse(body as string)).toEqual({ token: "signed.token" });
+});
+
+test("StrictMode's second effect doesn't use the link up", async () => {
+  const fetchMock = stubFetch(() =>
+    Response.json({ email: "carol@example.com" }),
+  );
+  render(
+    <StrictMode>
+      <MemoryRouter initialEntries={["/verify-email?token=once"]}>
+        <App />
+      </MemoryRouter>
+    </StrictMode>,
+  );
+  expect(
+    await screen.findByRole("heading", { name: "Email confirmed" }),
+  ).toBeTruthy();
+  expect(fetchMock).toHaveBeenCalledTimes(1);
+});
+
+test("logging out on the page keeps what the link said", async () => {
+  saveSession({ token: "abc", username: "carol" });
+  const fetchMock = stubFetch(
+    () => Response.json({ email: "carol@example.com" }),
+    () => new Response(null, { status: 204 }),
+  );
+  renderAt("/verify-email?token=then-log-out");
+  await screen.findByRole("heading", { name: "Email confirmed" });
+
+  fireEvent.click(screen.getByRole("button", { name: "Log out" }));
+  await waitFor(() =>
+    expect(screen.queryByRole("button", { name: "Log out" })).toBeNull(),
+  );
+  // Same page, not a new one: the link isn't sent again.
+  expect(screen.getByRole("heading", { name: "Email confirmed" })).toBeTruthy();
+  const confirms = fetchMock.mock.calls.filter(([url]) =>
+    String(url).endsWith("/email/confirm/"),
+  );
+  expect(confirms).toHaveLength(1);
+});
+
+test("a used, expired or broken link explains itself", async () => {
+  stubFetch(() =>
+    Response.json({ token: ["This link no longer works."] }, { status: 400 }),
+  );
+  renderAt("/verify-email?token=used");
+
+  expect(
+    await screen.findByRole("heading", { name: "This link no longer works" }),
+  ).toBeTruthy();
+  expect(
+    screen.getByText(
+      "Confirmation links work once, for 24 hours. Add your email again on Account to get a new one.",
+    ),
+  ).toBeTruthy();
+  expect(
+    screen.getByRole("link", { name: "Go to Account" }).getAttribute("href"),
+  ).toBe("/account");
+});
+
+test("a link without a token doesn't ask the server", async () => {
+  const fetchMock = stubFetch();
+  renderAt("/verify-email");
+  expect(
+    await screen.findByRole("heading", { name: "This link no longer works" }),
+  ).toBeTruthy();
+  expect(fetchMock).not.toHaveBeenCalled();
+});
+
+test("an email another account took meanwhile says so", async () => {
+  stubFetch(() =>
+    Response.json(
+      { email: ["That email is used by another account."] },
+      { status: 400 },
+    ),
+  );
+  renderAt("/verify-email?token=late");
+  expect(
+    await screen.findByRole("heading", { name: "Couldn’t confirm your email" }),
+  ).toBeTruthy();
+  expect(
+    screen.getByText("That email is used by another account."),
+  ).toBeTruthy();
+  expect(screen.getByRole("link", { name: "Go to Account" })).toBeTruthy();
 });
 
 const REPO = "https://github.com/Shibarashii/pc-flipper-toolkit";

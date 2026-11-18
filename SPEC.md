@@ -187,7 +187,7 @@ another user's build (400). A part, bundle or cost can't be moved to another bui
    - The header shows the username and "Log out" when logged in. It starts with the logo and
      the name, one link home; logged in and below 410px wide the logo shows alone, so the header fits
      a 320px phone without scrolling sideways. Logged out, the name always shows (the log-in
-     page has it nowhere else). The username (an icon on phones) opens **Account** (`/account`): connect Google to sign in with it too, or disconnect it when the account has a password ([spec](docs/specs/google-sign-in.md)).
+     page has it nowhere else). The username (an icon on phones) opens **Account** (`/account`): change the username, email and password ([spec](docs/specs/account-management.md)); connect Google to sign in with it too, or disconnect it when the account has a password ([spec](docs/specs/google-sign-in.md)). An email is saved only once its emailed link is opened at `/verify-email`, logged in or out.
    - Both pages have a **"Try the demo"** button that creates a demo account and goes to the
      builds list. A demo account sees a banner under the header: it's a demo, deleted after 24
      hours, ending in a "Sign up for your own account" link that ends the demo and opens sign-up

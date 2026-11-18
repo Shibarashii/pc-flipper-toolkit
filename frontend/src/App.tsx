@@ -16,6 +16,7 @@ import { BuildsList } from "./pages/BuildsList";
 import { Account } from "./pages/Account";
 import { Login } from "./pages/Login";
 import { Privacy } from "./pages/Privacy";
+import { VerifyEmail } from "./pages/VerifyEmail";
 import { buttonSecondary, focusRing, iconButton, link } from "./ui";
 
 export default function App() {
@@ -117,6 +118,7 @@ export default function App() {
             <Route path="/builds/:id" element={<BuildDetail />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/account" element={<Account />} />
+            <Route path="/verify-email" element={<VerifyEmail />} />
             {/* Where you land right after logging in or signing up. */}
             <Route path="/login" element={<Navigate to={from} replace />} />
             <Route path="/signup" element={<Navigate to={from} replace />} />
@@ -126,6 +128,7 @@ export default function App() {
           <Routes>
             <Route path="/login" element={<Login key="login" mode="login" />} />
             <Route path="/privacy" element={<Privacy />} />
+            <Route path="/verify-email" element={<VerifyEmail />} />
             <Route
               path="/signup"
               element={<Login key="signup" mode="signup" />}

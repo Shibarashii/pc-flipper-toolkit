@@ -13,6 +13,7 @@ import {
   generalError,
   getMe,
   renameUser,
+  sendEmailLink,
   type Me,
 } from "../api";
 import { updateSession } from "../auth";
@@ -24,7 +25,7 @@ import { buttonPrimary, buttonSecondary, input } from "../ui";
 const section = "border-t border-line-strong pt-4";
 const heading = "font-serif text-[22px] leading-7 font-medium";
 
-/** Who you're logged in as, your username, and connecting Google (`/account`). */
+/** Who you're logged in as, your username, email and password, and Google (`/account`). */
 export function Account() {
   const [me, setMe] = useState<Me | "loading" | "error">("loading");
   const [error, setError] = useState("");
@@ -99,6 +100,10 @@ export function Account() {
             <>
               <Section title="Username" className="mt-8 sm:mt-12">
                 <UsernameRow me={me} onRenamed={setMe} />
+              </Section>
+
+              <Section title="Email" className="mt-8">
+                <EmailRow me={me} />
               </Section>
 
               <Section title="Password" className="mt-8">
@@ -244,6 +249,120 @@ function UsernameForm({
       <div className="mt-4 flex gap-2">
         <button type="submit" disabled={saving} className={buttonPrimary}>
           Save
+        </button>
+        <button type="button" onClick={onCancel} className={buttonSecondary}>
+          Cancel
+        </button>
+      </div>
+    </form>
+  );
+}
+
+/** The email and Change, or a prompt and Add email; either opens one field. Nothing changes
+ * until the emailed link is opened, so sending only says where the link went. */
+function EmailRow({ me }: { me: Me }) {
+  const [editing, setEditing] = useState(false);
+  const [sentTo, setSentTo] = useState("");
+
+  if (editing)
+    return (
+      <EmailForm
+        email={me.email}
+        onSent={(email) => {
+          setSentTo(email);
+          setEditing(false);
+        }}
+        onCancel={() => setEditing(false)}
+      />
+    );
+
+  const open = () => {
+    setSentTo("");
+    setEditing(true);
+  };
+
+  return (
+    <>
+      {sentTo && (
+        <p role="status" className="mt-3">
+          We sent a link to <span className="font-medium">{sentTo}</span>. It
+          works for 24 hours. If it doesn’t arrive, check your spam folder.
+        </p>
+      )}
+      {me.email ? (
+        <div className="mt-3 flex items-center justify-between gap-4">
+          <p className="min-w-0 break-words">{me.email}</p>
+          <button
+            type="button"
+            onClick={open}
+            className={`shrink-0 ${buttonSecondary}`}
+          >
+            Change
+          </button>
+        </div>
+      ) : (
+        <div className="mt-3 flex flex-col items-start gap-3">
+          <p>
+            No email yet. Add one so you can get back in if you forget your
+            password.
+          </p>
+          <button type="button" onClick={open} className={buttonSecondary}>
+            Add email
+          </button>
+        </div>
+      )}
+    </>
+  );
+}
+
+function EmailForm({
+  email,
+  onSent,
+  onCancel,
+}: {
+  email: string;
+  onSent: (email: string) => void;
+  onCancel: () => void;
+}) {
+  const [value, setValue] = useState(email);
+  const { errors, error, failed, saving, save } = useSave({ email: "" });
+
+  function submit(event: FormEvent) {
+    event.preventDefault();
+    void save(async () => {
+      await sendEmailLink(value);
+      onSent(value);
+    });
+  }
+
+  return (
+    <form onSubmit={submit} className="mt-3">
+      <Field
+        label="Email"
+        labelClass="sr-only"
+        errors={errors.email}
+        className="max-w-[400px]"
+      >
+        <input
+          type="email"
+          value={value}
+          onChange={(event) => setValue(event.target.value)}
+          autoComplete="email"
+          autoFocus
+          required
+          maxLength={254}
+          aria-invalid={!!errors.email}
+          className={input(!!errors.email)}
+        />
+      </Field>
+      {failed && (
+        <p role="alert" className="mt-2 text-[13px] leading-[18px] text-loss">
+          {generalError(error, {})}
+        </p>
+      )}
+      <div className="mt-4 flex gap-2">
+        <button type="submit" disabled={saving} className={buttonPrimary}>
+          Send link
         </button>
         <button type="button" onClick={onCancel} className={buttonSecondary}>
           Cancel
