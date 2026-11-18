@@ -1385,14 +1385,14 @@ new dependencies.
 Spec: [docs/specs/account-management.md](../docs/specs/account-management.md). One migration
 (`0010`, an index); no new Python package (Brevo over Django's SMTP backend).
 
-### - [ ] S1: Brevo set up and tested (the author, outside the code)
+### - [x] S1: Brevo set up and tested (the author, outside the code)
 
 - [x] A Brevo account, with the sender address verified (`pcflippertoolkit@gmail.com`,
   2026-11-18)
-- [ ] An SMTP key; Render's environment has `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_USE_TLS`,
+- [x] An SMTP key; Render's environment has `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_USE_TLS`,
   `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`, `DEFAULT_FROM_EMAIL` and `SITE_URL`. (Key made
   2026-11-18; it expires on 2027-11-18, or after 90 days unused, so a quiet stretch can stop
-  emails until a new key is made. Render's environment is set with T48.)
+  emails until a new key is made. Set in Render and redeployed by the author, 2026-11-18.)
 - [x] A test email lands in a Gmail inbox and one other provider's inbox, not spam. If not,
   stop and decide (a domain of our own, another sender) before T49 merges. **Decided
   2026-11-18:** the Gmail inbox got it; mail-tester scored 5.5/10. Brevo can't sign as

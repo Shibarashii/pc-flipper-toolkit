@@ -270,7 +270,7 @@ no dependency.
 (a second browser is logged out after a password change), at desktop and 375px, light and dark.
 
 ### Phase 21: Account management, part 2 (email)
-- [ ] S1: Brevo set up and tested (the author, outside the code)
+- [x] S1: Brevo set up and tested (the author, outside the code)
 - [x] T48: Confirm-email API
 - [ ] T49: Add or change your email on Account
 - [ ] T50: Sign-up needs an email; new Google accounts take a verified Gmail
