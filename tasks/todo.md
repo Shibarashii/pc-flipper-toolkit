@@ -1591,6 +1591,7 @@ new dependencies.
 **Files:** `frontend/src/api.ts`, `frontend/src/pages/Login.tsx`, `frontend/src/pages/Forgot.tsx`, `frontend/src/pages/ResetPassword.tsx`, `frontend/src/App.tsx`, `frontend/vercel.json`, `frontend/src/App.test.tsx`
 **Scope:** S
 
-### Checkpoint 20: Account management, part 3
-- [ ] The spec's success criteria 3–5 pass on the live site, with a real reset email
-- [ ] All tests pass on `main`
+### Checkpoint 20: Account management, part 3 (done)
+- [x] The spec's success criteria 3–5 pass on the live site, with a real reset email
+  (by the author, 2026-11-18)
+- [x] All tests pass on `main` (CI on c10bd1c)
