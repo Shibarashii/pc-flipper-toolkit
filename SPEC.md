@@ -184,7 +184,7 @@ another user's build (400). A part, bundle or cost can't be moved to another bui
 
 ## Screens
 
-0. **Log in** (`/login`) and **Sign up** (`/signup`): username and password (sign-up also an email), linking to each other. Logged out, every other page redirects here; logging in goes to the builds list, which after sign-up says once where the confirmation link went. **Privacy** (`/privacy`) and `/verify-email` open logged in or out.
+0. **Log in** (`/login`) and **Sign up** (`/signup`): username and password (sign-up also an email), linking to each other; Log in also links to "Forgot your username or password?" (`/forgot`), which emails the username and a link to `/reset-password` to set a new one, then log in ([spec](docs/specs/account-management.md)). Logged out, every other page redirects here; logging in goes to the builds list, which after sign-up says once where the confirmation link went. **Privacy** (`/privacy`), `/verify-email`, `/forgot` and `/reset-password` open logged in or out.
    - Every page ends with a **footer** ([spec](docs/specs/footer.md)): "© 2026 Seanrei Valdeabella" and links to Privacy, the GitHub repo and the author's LinkedIn; at the bottom of the window on short pages, after the content on long ones.
    - The header shows the username and "Log out" when logged in. It starts with the logo and
      the name, one link home; logged in and below 410px wide the logo shows alone, so the header fits

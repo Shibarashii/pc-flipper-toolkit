@@ -289,7 +289,7 @@ an inbox.
 
 ### Phase 22: Account management, part 3 (forgot username or password)
 - [x] T51: Reset API
-- [ ] T52: Forgot and reset pages
+- [x] T52: Forgot and reset pages
 
 ```
 T51 reset API ── T52 forgot + reset pages ── Checkpoint 20
