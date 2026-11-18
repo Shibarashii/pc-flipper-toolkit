@@ -1539,8 +1539,9 @@ new dependencies.
   `default_token_generator`, `PASSWORD_RESET_TIMEOUT = 3600`, the password validators; sets the
   password, deletes the token, emails "Your password was changed", `204`. No log-in.
 - SPEC.md's auth table. Tests first.
-- Built 2026-11-18: the 15-minute wait is marked for every address, known or not, under a keyed
-  hash of it (never the address itself), so the answer and the work never differ. The wait lives
+- Built 2026-11-18: the 15-minute wait is marked only when an email goes out, under a keyed hash
+  of the address (never the address itself); the review found that marking every address let
+  300 made-up ones push real marks out of the 300-entry cache. The answer never differs. The wait lives
   in each process's memory, like the rate limit (a `ponytail:` comment). The email's subject
   names both ("Your PC Flipper Toolkit username, and a link to set a new password"). A uid too
   big for the id column is a 400 on `token` (a test; CI's Postgres runs it).

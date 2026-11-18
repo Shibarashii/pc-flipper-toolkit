@@ -516,13 +516,16 @@ class ResetRequestView(PublicAuthView):
         serializer = ResetRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         email = serializer.validated_data["email"]
-        # For every address, known or not, so the answer never differs. add() is False
-        # while an earlier request's mark is still there.
+        user = User.objects.filter(email__iexact=email, is_active=True).first()
+        # The wait is marked only when an email goes out, so made-up addresses can't fill
+        # the cache and push real marks out. add() is False while a mark is still there.
         # ponytail: in each process's memory, like the rate limit; a shared cache if
         # there's ever more than one worker.
-        first = cache.add(f"reset:{email_mark(email.lower())}", True, RESET_WAIT)
-        user = User.objects.filter(email__iexact=email, is_active=True).first()
-        if first and user and user.has_usable_password():
+        if (
+            user
+            and user.has_usable_password()
+            and cache.add(f"reset:{email_mark(email.lower())}", True, RESET_WAIT)
+        ):
             emails.reset_password(
                 user.username,
                 user.email,

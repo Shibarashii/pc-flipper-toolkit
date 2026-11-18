@@ -20,7 +20,7 @@ from django.utils.http import urlsafe_base64_encode
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APITestCase
 
-from .auth import CONFIRM_SALT, TAKEN, TAKEN_EMAIL
+from .auth import CONFIRM_SALT, TAKEN, TAKEN_EMAIL, ResetRequestView
 from .models import Build, Bundle, ExtraCost, Part
 
 
@@ -1608,6 +1608,22 @@ class ResetTests(APITestCase):
         self.assertTrue(self.logs_in("a long passphrase"))
         # The first link still works.
         self.assertEqual(self.reset(self.link()).status_code, 204)
+
+    def test_the_wait_ends_after_15_minutes(self):
+        self.ask("carol@example.com")
+        later = time.time() + 15 * 60 + 1
+        with mock.patch("time.time", return_value=later):
+            self.ask("carol@example.com")
+        self.assertEqual(len(mail.outbox), 2)
+
+    def test_made_up_addresses_dont_push_out_the_wait(self):
+        # The in-memory cache drops its oldest entries past 300.
+        self.ask("carol@example.com")
+        with mock.patch.object(ResetRequestView, "throttle_classes", []):
+            for i in range(300):
+                self.ask(f"nobody{i}@example.com")
+        self.ask("carol@example.com")
+        self.assertEqual(len(mail.outbox), 1)
 
     def test_asking_shares_the_auth_rate_limit(self):
         codes = [self.ask(f"x{i}@example.com").status_code for i in range(11)]
