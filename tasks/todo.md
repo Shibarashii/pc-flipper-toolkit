@@ -1517,9 +1517,10 @@ Spec: [docs/specs/account-management.md](../docs/specs/account-management.md). O
 **Files:** `backend/builds/auth.py`, `backend/builds/google.py`, `backend/builds/tests.py`, `backend/builds/test_google.py`, `frontend/src/pages/Login.tsx`, `frontend/e2e/flip.spec.ts`, `SPEC.md`
 **Scope:** S
 
-### Checkpoint 19: Account management, part 2
-- [ ] The spec's success criterion 2 passes on the live site, with the real emails in an inbox
-- [ ] All tests pass on `main`
+### Checkpoint 19: Account management, part 2 (done)
+- [x] The spec's success criterion 2 passes on the live site, with the real emails in an inbox
+  (by the author, 2026-11-18)
+- [x] All tests pass on `main` (CI on 686e743)
 
 ## Phase 22: Account management, part 3
 
