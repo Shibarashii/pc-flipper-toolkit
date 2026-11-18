@@ -1375,10 +1375,10 @@ new dependencies.
 **Files:** `backend/builds/auth.py`, `backend/config/urls.py`, `backend/builds/tests.py`, `frontend/src/api.ts`, `frontend/src/pages/Account.tsx`, `frontend/src/App.test.tsx`, `SPEC.md`
 **Scope:** S
 
-### Checkpoint 18: Account management, part 1
-- [ ] The spec's success criterion 1 passes on the live site (a second browser is logged out
-  after a password change), at desktop and 375px, light and dark
-- [ ] All tests pass on `main`
+### Checkpoint 18: Account management, part 1 (done)
+- [x] The spec's success criterion 1 passes on the live site (a second browser is logged out
+  after a password change), at desktop and 375px, light and dark (by the author, 2026-11-18)
+- [x] All tests pass on `main` (CI on c6d77f6)
 
 ## Phase 21: Account management, part 2
 
