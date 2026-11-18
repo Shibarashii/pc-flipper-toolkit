@@ -339,7 +339,7 @@ email.
 | Two Google sign-ins pick the same new username at once | Low | Catch the unique-name error and try the next number, as sign-up already does (T40) |
 | A page that sets its own height breaks the column, leaving a gap or a scrollbar under the footer | Low | Only the wrapper sets a height (`min-h-dvh`); the flip e2e test checks the footer touches the window's bottom at desktop and 375px (T43) |
 | The 24px the inset takes makes a phone row wrap or a page scroll sideways at 320px | Medium | Screenshots at 375px and 320px of a build page and the builds list; tighten a row's own gaps if it wraps, never drop the inset on one row (T44) |
-| Brevo's emails land in spam when sent from a free address | High (parts 2–3 don't work for users) | S1 tests delivery to Gmail and one other provider before T49 merges; stop and decide (a domain of our own, another sender) if they land in spam |
+| Brevo's emails land in spam when sent from a free address | High (parts 2–3 don't work for users) | S1 tests delivery to Gmail and one other provider before T49 merges; stop and decide (a domain of our own, another sender) if they land in spam. 2026-11-18: Gmail inbox, mail-tester 5.5/10; accepted, "check your spam folder" in the messages, a domain parked |
 | An email sent from a background thread is lost when Render restarts | Low (the user asks again) | A `ponytail:` comment in `emails.py`; a task queue only if it's ever seen (T48) |
 | Sign-up needing an email breaks the e2e flow | Med | T50 fills in the email in the flip test; the demo doesn't use sign-up |
 

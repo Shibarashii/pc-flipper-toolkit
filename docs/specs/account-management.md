@@ -118,9 +118,10 @@ reset links; it's signed, so it can't be changed.)
   `DEFAULT_FROM_EMAIL` (the sender verified in Brevo), `SITE_URL`.
 - **No `EMAIL_HOST`** (local development, CI): Django's console backend, so emails print in
   `runserver`'s output. Tests use Django's in-memory outbox.
-- **Plain-text emails**, a few lines each: what happened, the link, how long it works, and
-  "If this wasn't you, you can ignore this email" (or, for the change notices, "log in and
-  change your password").
+- **Emails with a text and an HTML version** (Brevo turns a text-only email into HTML with a
+  tracking image, which spam filters mark down; S1's test, 2026-11-18), a few lines each:
+  what happened, the link, how long it works, and "If this wasn't you, you can ignore this
+  email" (or, for the change notices, "log in and change your password").
 - **Secrets stay in Render's environment,** never in the repo.
 
 ## Frontend
@@ -171,18 +172,20 @@ that username already exists.", "This password is too common.").
 
 - **Account, Username:** "Change"; the form's buttons "Save" and "Cancel".
 - **Account, Email:** "No email yet. Add one so you can get back in if you forget your
-  password." / "Add email"; sent: "We sent a link to {email}. It works for 24 hours."; taken:
-  "That email is used by another account."
+  password." / "Add email"; sent: "We sent a link to {email}. It works for 24 hours. If it
+  doesn’t arrive, check your spam folder."; taken: "That email is used by another account."
 - **Account, Password:** "You log in with a password." and "Change"; the form's button "Change
   password"; wrong current password: "That isn't your current password."; done: "Password
   changed. Your other devices are logged out."; Google-only: "You log in with Google."
 - **Account, demo:** "Demo accounts can't change their account. Sign up for your own account
   first." (replaces today's Google-only line).
 - **Log in:** the link "Forgot your username or password?". **Sign-up:** the field "Email";
-  on the builds list after: "We sent a link to {email} to confirm your email."
+  on the builds list after: "We sent a link to {email} to confirm your email. If it doesn’t
+  arrive, check your spam folder."
 - **`/forgot`:** title "Forgot your username or password?"; "Type your account's email. We'll
   send your username and a link to set a new password."; "Send link"; "Back to log in"; sent:
-  "If an account has that email, we've sent it a link. It works for 1 hour."
+  "If an account has that email, we've sent it a link. It works for 1 hour. If it doesn’t
+  arrive, check your spam folder."
 - **`/reset-password`:** "Set a new password", the field "New password", "Set password"; done:
   "Password changed" / "Log in with your new password." and "Log in"; bad link: "This link no
   longer works" / "Reset links work once, for 1 hour. Ask for a new one." / "Get a new link".
@@ -207,7 +210,10 @@ Before part 2 ships, since its confirmation emails are the first ones sent:
    environment.
 3. Send a test email to a Gmail address and another provider: it must land in the inbox, not
    spam. If it lands in spam, stop and decide what to do (a domain of your own, a different
-   sender) before shipping.
+   sender) before shipping. **Decided 2026-11-18:** the Gmail sender stays for now (Gmail's
+   inbox got the test; mail-tester 5.5/10, mostly for the free-address sender), with "check
+   your spam folder" in the sent messages; a domain of our own is parked in the
+   [backlog](../ideas/backlog.md#parked).
 
 ## Commands
 
