@@ -1229,6 +1229,36 @@ class EmailTests(APITestCase):
         self.assertEqual(res.status_code, 400)
         self.assertEqual(list(res.json()), ["email"])
 
+    def test_an_email_taken_at_the_same_moment_is_a_400(self):
+        self.send("shared@example.com")
+        User.objects.create_user("dave", email="shared@example.com")
+        # As if the "taken" check ran just before dave's confirm saved it.
+        with mock.patch("builds.auth.email_taken", return_value=False):
+            res = self.confirm(self.link())
+        self.assertEqual(res.status_code, 400)
+        self.assertEqual(res.json(), {"email": [TAKEN_EMAIL]})
+
+    def test_a_deactivated_accounts_link_is_refused(self):
+        self.send("carol@example.com")
+        User.objects.filter(pk=self.carol.pk).update(is_active=False)
+        res = self.confirm(self.link())
+        self.assertEqual(res.status_code, 400)
+        self.assertEqual(list(res.json()), ["token"])
+
+    def test_confirming_shares_the_auth_rate_limit(self):
+        codes = [self.confirm("nonsense").status_code for _ in range(11)]
+        self.assertEqual(codes, [400] * 10 + [429])
+
+    def test_a_typed_address_is_escaped_in_the_html(self):
+        # Quoted addresses are valid, and the new one shows in the old one's notice.
+        self.carol.email = "old@example.com"
+        self.carol.save()
+        self.assertEqual(self.send('"<b>x</b>"@example.com').status_code, 202)
+        self.confirm(self.link())
+        html = mail.outbox[-1].alternatives[0][0]
+        self.assertIn("&lt;b&gt;x&lt;/b&gt;", html)
+        self.assertNotIn("<b>x</b>", html)
+
     def test_sending_needs_a_valid_email_and_a_log_in(self):
         self.assertEqual(self.send("not an email").status_code, 400)
         self.client.credentials()
