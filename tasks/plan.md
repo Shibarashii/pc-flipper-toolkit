@@ -288,7 +288,7 @@ makes the email required, last, so sign-up never asks for something that can't b
 an inbox.
 
 ### Phase 22: Account management, part 3 (forgot username or password)
-- [ ] T51: Reset API
+- [x] T51: Reset API
 - [ ] T52: Forgot and reset pages
 
 ```

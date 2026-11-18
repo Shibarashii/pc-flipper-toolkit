@@ -3,10 +3,14 @@
 from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.password_validation import validate_password
+from django.contrib.auth.tokens import default_token_generator
 from django.core import signing
+from django.core.cache import cache
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import IntegrityError, transaction
 from django.utils.crypto import constant_time_compare, salted_hmac
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from drf_spectacular.utils import extend_schema
 from rest_framework import serializers, status
 from rest_framework.authtoken.models import Token
@@ -475,6 +479,92 @@ class ConfirmEmailView(PublicAuthView):
         if was:
             emails.email_changed(user.username, was, user.email)
         return Response({"email": user.email})
+
+
+RESET_SENT = "If an account has that email, we've sent it a link."
+RESET_WAIT = 15 * 60  # seconds between reset emails to one address
+
+
+class ResetRequestSerializer(serializers.Serializer):
+    email = serializers.EmailField(max_length=254)
+
+
+class ResetSentSerializer(serializers.Serializer):
+    detail = serializers.CharField(read_only=True)
+
+
+class ResetSerializer(serializers.Serializer):
+    uid = serializers.CharField(help_text="From the link in the email.")
+    token = serializers.CharField(help_text="From the link in the email.")
+    new_password = serializers.CharField(
+        write_only=True, trim_whitespace=False, style={"input_type": "password"}
+    )
+
+
+class ResetRequestView(PublicAuthView):
+    @extend_schema(
+        summary="Forgot your username or password",
+        description="Always 202 with the same message, whether or not an account has the "
+        "email. An active account with that email (any case) and a password gets its "
+        "username and a link to set a new one, valid for 1 hour. One email per address "
+        "per 15 minutes; asking again within that sends nothing, and nothing is locked.",
+        request=ResetRequestSerializer,
+        responses={202: ResetSentSerializer},
+        tags=["auth"],
+    )
+    def post(self, request):
+        serializer = ResetRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data["email"]
+        # For every address, known or not, so the answer never differs. add() is False
+        # while an earlier request's mark is still there.
+        # ponytail: in each process's memory, like the rate limit; a shared cache if
+        # there's ever more than one worker.
+        first = cache.add(f"reset:{email_mark(email.lower())}", True, RESET_WAIT)
+        user = User.objects.filter(email__iexact=email, is_active=True).first()
+        if first and user and user.has_usable_password():
+            emails.reset_password(
+                user.username,
+                user.email,
+                urlsafe_base64_encode(force_bytes(user.pk)),
+                default_token_generator.make_token(user),
+            )
+        return Response({"detail": RESET_SENT}, status=status.HTTP_202_ACCEPTED)
+
+
+class ResetView(PublicAuthView):
+    @extend_schema(
+        summary="Set a new password from a reset link",
+        description="Sets the password and deletes the token, so every device is logged "
+        "out; it doesn't log in (204). The account's email gets a notice. A link works "
+        "once, for 1 hour, and stops working once the password changes: otherwise, or "
+        "when changed, a 400 on `token`. The new password must pass the validators (a 400 "
+        "on `new_password`).",
+        request=ResetSerializer,
+        responses={204: None},
+        tags=["auth"],
+    )
+    def post(self, request):
+        serializer = ResetSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        try:
+            pk = int(urlsafe_base64_decode(data["uid"]))
+        except ValueError:
+            pk = None
+        user = User.objects.filter(pk=pk, is_active=True).first() if pk else None
+        if user is None or not default_token_generator.check_token(user, data["token"]):
+            raise serializers.ValidationError({"token": [LINK_GONE]})
+        try:
+            validate_password(data["new_password"], user)
+        except DjangoValidationError as e:
+            raise serializers.ValidationError({"new_password": list(e.messages)})
+        with transaction.atomic():
+            user.set_password(data["new_password"])
+            user.save(update_fields=["password"])
+            Token.objects.filter(user=user).delete()
+        emails.password_changed(user.username, user.email)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 def send_confirmation(user, email: str):

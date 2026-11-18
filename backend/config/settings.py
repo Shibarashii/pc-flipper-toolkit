@@ -171,5 +171,7 @@ else:
 DEFAULT_FROM_EMAIL = (
     os.environ.get("DEFAULT_FROM_EMAIL") or "PC Flipper Toolkit <noreply@localhost>"
 )
+# Password reset links (Django's default_token_generator) work for 1 hour.
+PASSWORD_RESET_TIMEOUT = 60 * 60
 # Where links in emails point: the frontend, never the request's host.
 SITE_URL = (os.environ.get("SITE_URL") or "http://localhost:5173").rstrip("/")

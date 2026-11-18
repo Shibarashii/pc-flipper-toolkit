@@ -13,6 +13,8 @@ from builds.auth import (
     LogoutView,
     MeView,
     PasswordView,
+    ResetRequestView,
+    ResetView,
     SignupView,
 )
 from builds.views import (
@@ -43,6 +45,8 @@ urlpatterns = [
     path("api/auth/password/", PasswordView.as_view()),
     path("api/auth/email/", EmailView.as_view()),
     path("api/auth/email/confirm/", ConfirmEmailView.as_view()),
+    path("api/auth/password-reset/", ResetRequestView.as_view()),
+    path("api/auth/password-reset/confirm/", ResetView.as_view()),
     path("api/prices/", PriceSearchView.as_view()),
     path("api/", include(router.urls)),
 ]
