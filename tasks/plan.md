@@ -273,7 +273,7 @@ no dependency.
 - [x] S1: Brevo set up and tested (the author, outside the code)
 - [x] T48: Confirm-email API
 - [x] T49: Add or change your email on Account
-- [ ] T50: Sign-up needs an email; new Google accounts take a verified Gmail
+- [x] T50: Sign-up needs an email; new Google accounts take a verified Gmail
 
 ```
 S1 Brevo (author) ──┐

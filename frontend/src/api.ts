@@ -168,7 +168,8 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
 export type Credentials = { username: string; password: string };
 
-export const signUp = (credentials: Credentials) =>
+/** The email gets a link to confirm it; it's saved once the link is opened. */
+export const signUp = (credentials: Credentials & { email: string }) =>
   request<Session>("/auth/signup/", {
     method: "POST",
     body: JSON.stringify(credentials),

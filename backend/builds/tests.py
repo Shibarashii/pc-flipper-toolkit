@@ -850,17 +850,24 @@ class BundleTests(LoggedInApiTestCase):
         self.assertIn("build", res.json())
 
 
+CAROL = {
+    "username": "carol",
+    "password": "a long passphrase",
+    "email": "carol@example.com",
+}
+
+
 class AuthTests(APITestCase):
     def setUp(self):
         cache.clear()  # the sign-up/log-in rate limit counts live in the cache
+        mock.patch("builds.emails.Thread", SyncThread).start()  # sign-up sends a link
+        self.addCleanup(mock.patch.stopall)
 
     def post(self, url, data=None):
         return self.client.post(url, data or {}, format="json")
 
     def test_sign_up_log_in_and_log_out(self):
-        res = self.post(
-            "/api/auth/signup/", {"username": "carol", "password": "a long passphrase"}
-        )
+        res = self.post("/api/auth/signup/", CAROL)
         self.assertEqual(res.status_code, 201)
         self.assertEqual(res.json()["username"], "carol")
         self.client.credentials(HTTP_AUTHORIZATION=f"Token {res.json()['token']}")
@@ -915,16 +922,54 @@ class AuthTests(APITestCase):
     def test_sign_up_errors_are_under_their_field(self):
         User.objects.create_user("carol", password="x")
 
-        res = self.post(
-            "/api/auth/signup/", {"username": "Carol", "password": "a long passphrase"}
-        )
+        res = self.post("/api/auth/signup/", {**CAROL, "username": "Carol"})
         self.assertEqual(res.json(), {"username": ["That username is taken."]})
 
-        res = self.post("/api/auth/signup/", {"username": "dave", "password": "123"})
+        res = self.post(
+            "/api/auth/signup/",
+            {"username": "dave", "password": "123", "email": "dave@example.com"},
+        )
         self.assertEqual(res.status_code, 400)
         self.assertEqual(set(res.json()), {"password"})
         self.assertIn("This password is entirely numeric.", res.json()["password"])
         self.assertFalse(User.objects.filter(username="dave").exists())
+
+    def test_sign_up_needs_a_valid_email(self):
+        for email in [None, "", "not an email"]:
+            data = {**CAROL, "email": email}
+            if email is None:
+                del data["email"]  # missing
+            with self.subTest(email=email):
+                res = self.post("/api/auth/signup/", data)
+                self.assertEqual(res.status_code, 400)
+                self.assertEqual(list(res.json()), ["email"])
+        self.assertFalse(User.objects.exists())
+        self.assertEqual(mail.outbox, [])
+
+    def test_sign_up_sends_a_link_and_the_account_works_at_once(self):
+        res = self.post("/api/auth/signup/", CAROL)
+        self.assertEqual(res.status_code, 201)
+        self.client.credentials(HTTP_AUTHORIZATION=f"Token {res.json()['token']}")
+        # Nothing is saved until the link is opened.
+        self.assertEqual(self.client.get("/api/auth/me/").json()["email"], "")
+
+        [sent] = mail.outbox
+        self.assertEqual(sent.to, ["carol@example.com"])
+        token = re.search(r"/verify-email\?token=(\S+)", sent.body).group(1)
+        res = self.post("/api/auth/email/confirm/", {"token": token})
+        self.assertEqual(res.json(), {"email": "carol@example.com"})
+        self.assertEqual(
+            self.client.get("/api/auth/me/").json()["email"], "carol@example.com"
+        )
+
+    def test_sign_up_with_another_accounts_email_sends_nothing(self):
+        # The answer is the same either way: sign-up is public, so it mustn't say who has
+        # an account. The owner isn't sent a link they'd only find confusing.
+        User.objects.create_user("dave", email="Carol@Example.com")
+        res = self.post("/api/auth/signup/", CAROL)
+        self.assertEqual(res.status_code, 201)
+        self.assertEqual(mail.outbox, [])
+        self.assertEqual(User.objects.get(username="carol").email, "")
 
     def test_without_a_token_everything_is_401(self):
         build = new_build(name="B")
@@ -980,17 +1025,12 @@ class AuthTests(APITestCase):
         with mock.patch(
             "builds.auth.SignupSerializer.validate_username", lambda self, name: name
         ):
-            res = self.post(
-                "/api/auth/signup/",
-                {"username": "carol", "password": "a long passphrase"},
-            )
+            res = self.post("/api/auth/signup/", CAROL)
         self.assertEqual(res.status_code, 400)
         self.assertEqual(res.json(), {"username": ["That username is taken."]})
 
     def sign_up_carol(self):
-        res = self.post(
-            "/api/auth/signup/", {"username": "carol", "password": "a long passphrase"}
-        )
+        res = self.post("/api/auth/signup/", CAROL)
         self.client.credentials(HTTP_AUTHORIZATION=f"Token {res.json()['token']}")
 
     def rename(self, username):
@@ -1527,9 +1567,7 @@ class DemoTests(APITestCase):
 
     def test_sign_up_refuses_the_demo_prefix(self):
         res = self.client.post(
-            "/api/auth/signup/",
-            {"username": "Demo-carol", "password": "a long passphrase"},
-            format="json",
+            "/api/auth/signup/", {**CAROL, "username": "Demo-carol"}, format="json"
         )
         self.assertEqual(res.status_code, 400)
         self.assertEqual(

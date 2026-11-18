@@ -93,6 +93,81 @@ test("logged out, a build page sends you to log in, then back to it", async () =
   });
 });
 
+const SIGNED_UP =
+  "We sent a link to carol@example.com to confirm your email. If it doesn’t arrive, check your spam folder.";
+
+test("sign-up asks for an email, then the builds list says where the link went", async () => {
+  const fetchMock = stubFetch(
+    () => Response.json({ token: "abc", username: "carol" }, { status: 201 }),
+    () => Response.json([]),
+  );
+  renderAt("/signup");
+
+  // Username, Email, Password, in that order.
+  const fields = screen.getAllByRole("textbox");
+  expect(fields.map((f) => f.getAttribute("autocomplete"))).toEqual([
+    "username",
+    "email",
+  ]);
+  const email = screen.getByLabelText("Email");
+  expect(email.getAttribute("type")).toBe("email");
+  fillIn("carol", "a long passphrase");
+  const create = screen.getByRole("button", { name: "Create account" });
+  expect((create as HTMLButtonElement).disabled).toBe(true);
+  fireEvent.change(email, { target: { value: " carol@example.com " } });
+  fireEvent.click(create);
+
+  expect((await screen.findByRole("status")).textContent).toBe(SIGNED_UP);
+  expect(screen.getByRole("heading", { name: "Builds" })).toBeTruthy();
+  expect(JSON.parse(requestTo(fetchMock, 0).body as string)).toEqual({
+    username: "carol",
+    password: "a long passphrase",
+    email: "carol@example.com",
+  });
+});
+
+test("the sign-up notice shows once", async () => {
+  stubFetch(
+    () => Response.json({ token: "abc", username: "carol" }, { status: 201 }),
+    () => Response.json([makeBuild()]),
+    () => Response.json(makeBuild()),
+    () => Response.json([makeBuild()]),
+  );
+  renderAt("/signup");
+  fillIn("carol", "a long passphrase");
+  fireEvent.change(screen.getByLabelText("Email"), {
+    target: { value: "carol@example.com" },
+  });
+  fireEvent.click(screen.getByRole("button", { name: "Create account" }));
+  expect(await screen.findByText(SIGNED_UP)).toBeTruthy();
+
+  fireEvent.click((await screen.findAllByText("Ryzen 5 7600 + RTX 4060"))[0]);
+  fireEvent.click(await screen.findByRole("link", { name: /All builds/ }));
+  await screen.findByRole("heading", { name: "Builds" });
+  expect(screen.queryByText(SIGNED_UP)).toBeNull();
+});
+
+test("a sign-up email the server refuses shows under its field", async () => {
+  stubFetch(() =>
+    Response.json({ email: ["Enter a valid email address."] }, { status: 400 }),
+  );
+  renderAt("/signup");
+  fillIn("carol", "a long passphrase");
+  fireEvent.change(screen.getByLabelText("Email"), {
+    target: { value: "carol@" },
+  });
+  fireEvent.click(screen.getByRole("button", { name: "Create account" }));
+  expect(await screen.findByText("Enter a valid email address.")).toBeTruthy();
+  expect(screen.queryByRole("alert")).toBeNull();
+  expect(getToken()).toBe("");
+});
+
+test("log-in has no email field", () => {
+  stubFetch();
+  renderAt("/login");
+  expect(screen.queryByLabelText("Email")).toBeNull();
+});
+
 test("a wrong password shows the server's message", async () => {
   stubFetch(() =>
     Response.json(
@@ -124,6 +199,9 @@ test("sign-up errors show under their field", async () => {
   renderAt("/signup");
 
   fillIn("carol", "123");
+  fireEvent.change(screen.getByLabelText("Email"), {
+    target: { value: "carol@example.com" },
+  });
   fireEvent.click(screen.getByRole("button", { name: "Create account" }));
 
   expect(await screen.findByText("That username is taken.")).toBeTruthy();

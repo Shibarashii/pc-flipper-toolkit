@@ -73,6 +73,10 @@ class UsernameSerializer(serializers.Serializer):
 
 
 class SignupSerializer(UsernameSerializer, CredentialsSerializer):
+    email = serializers.EmailField(
+        max_length=254, help_text="Gets a link to confirm it; saved once it's opened."
+    )
+
     def validate(self, data):
         try:
             validate_password(data["password"], User(username=data["username"]))
@@ -81,8 +85,10 @@ class SignupSerializer(UsernameSerializer, CredentialsSerializer):
         return data
 
 
-def email_taken(email: str, user) -> bool:
-    return User.objects.filter(email__iexact=email).exclude(pk=user.pk).exists()
+def email_taken(email: str, user=None) -> bool:
+    """Another account (than `user`, if given) has this email, in any case."""
+    others = User.objects.filter(email__iexact=email)
+    return (others.exclude(pk=user.pk) if user else others).exists()
 
 
 class EmailSerializer(serializers.Serializer):
@@ -189,8 +195,10 @@ class PublicAuthView(APIView):
 class SignupView(PublicAuthView):
     @extend_schema(
         summary="Sign up",
-        description="Creates an account and logs it in. Passwords must pass Django's "
-        "password validators; their messages come back under `password`.",
+        description="Creates an account and logs it in, then emails a link to confirm "
+        "`email`; the email is saved once it's opened. Passwords must pass Django's "
+        "password validators; their messages come back under `password`. An email another "
+        "account has gets no link, and the answer is the same.",
         request=SignupSerializer,
         responses={201: TokenSerializer},
         tags=["auth"],
@@ -198,12 +206,16 @@ class SignupView(PublicAuthView):
     def post(self, request):
         serializer = SignupSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data.pop("email")
         try:
             with transaction.atomic():
                 user = User.objects.create_user(**serializer.validated_data)
         except IntegrityError:
             # Someone took the name between the check above and now.
             raise serializers.ValidationError({"username": [TAKEN]})
+        # Public, so the answer can't say whether another account has the email.
+        if not email_taken(email):
+            send_confirmation(user, email)
         return token_response(user, status.HTTP_201_CREATED)
 
 
@@ -244,8 +256,8 @@ class GoogleCredentialSerializer(serializers.Serializer):
     )
 
 
-def google_account(request) -> tuple[str, str]:
-    """The `sub` and email of the Google account in the request's credential, checked."""
+def google_account(request) -> google.Identity:
+    """The Google account in the request's credential, checked."""
     if not settings.GOOGLE_CLIENT_ID:
         raise serializers.ValidationError(
             {"credential": ["Google sign-in isn't set up."]}
@@ -270,7 +282,7 @@ class GoogleView(PublicAuthView):
         tags=["auth"],
     )
     def post(self, request):
-        sub, email = google_account(request)
+        sub, email, vouched = google_account(request)
         # A few tries: two first sign-ins at once can race for the same sub or username.
         for _ in range(3):
             account = (
@@ -286,7 +298,12 @@ class GoogleView(PublicAuthView):
                 return token_response(account.user)
             try:
                 with transaction.atomic():
-                    user = User.objects.create_user(google.username_for(email))
+                    # Only a new account takes Google's email, and only one Google vouches
+                    # for that no account has: existing accounts are never matched by it.
+                    user = User.objects.create_user(
+                        google.username_for(email),
+                        email=email if vouched and not email_taken(email) else "",
+                    )
                     GoogleAccount.objects.create(user=user, sub=sub, email=email)
             except IntegrityError:
                 continue
@@ -414,12 +431,7 @@ class EmailView(APIView):
         refuse_demo(user)
         serializer = EmailSerializer(data=request.data, context={"user": user})
         serializer.is_valid(raise_exception=True)
-        email = serializer.validated_data["email"]
-        token = signing.dumps(
-            {"user": user.pk, "email": email, "was": email_mark(user.email)},
-            salt=CONFIRM_SALT,
-        )
-        emails.confirm_email(email, token)
+        send_confirmation(user, serializer.validated_data["email"])
         return Response(status=status.HTTP_202_ACCEPTED)
 
 
@@ -465,6 +477,16 @@ class ConfirmEmailView(PublicAuthView):
         return Response({"email": user.email})
 
 
+def send_confirmation(user, email: str):
+    """Emails a link that saves `email` on `user` once opened, if their email hasn't
+    changed by then."""
+    token = signing.dumps(
+        {"user": user.pk, "email": email, "was": email_mark(user.email)},
+        salt=CONFIRM_SALT,
+    )
+    emails.confirm_email(email, token)
+
+
 def refuse_demo(user):
     if is_demo(user):
         raise PermissionDenied(
@@ -499,7 +521,7 @@ class GoogleConnectView(APIView):
             )
         if GoogleAccount.objects.filter(user=user).exists():
             refuse("Disconnect Google first.")
-        sub, email = google_account(request)
+        sub, email, _ = google_account(request)
         try:
             with transaction.atomic():
                 GoogleAccount.objects.create(user=user, sub=sub, email=email)

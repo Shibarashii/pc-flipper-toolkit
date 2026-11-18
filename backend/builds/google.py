@@ -3,6 +3,7 @@
 
 import functools
 import re
+from typing import NamedTuple
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -27,9 +28,17 @@ class InvalidToken(Exception):
     """Not a valid Google ID token for this app."""
 
 
-def verify(credential: str) -> tuple[str, str]:
-    """The Google account's `sub` (who it is) and email, from an ID token signed by Google
-    for our client id. Raises InvalidToken otherwise."""
+class Identity(NamedTuple):
+    sub: str  # who the Google account is; its email can change
+    email: str
+    # Google vouches for the email only when it's verified and Google's own: a Gmail or a
+    # Workspace (`hd`) address. Another provider's address could have changed hands.
+    vouched: bool
+
+
+def verify(credential: str) -> Identity:
+    """The Google account in an ID token signed by Google for our client id. Raises
+    InvalidToken otherwise."""
     # An empty audience would skip the audience check: never verify without one.
     if not settings.GOOGLE_CLIENT_ID:
         raise InvalidToken("GOOGLE_CLIENT_ID isn't set")
@@ -42,7 +51,10 @@ def verify(credential: str) -> tuple[str, str]:
     sub, email = claims.get("sub"), claims.get("email")
     if not (isinstance(sub, str) and sub and isinstance(email, str) and email):
         raise InvalidToken
-    return sub, email
+    vouched = claims.get("email_verified") is True and (
+        email.lower().endswith("@gmail.com") or bool(claims.get("hd"))
+    )
+    return Identity(sub, email, vouched)
 
 
 def username_for(email: str) -> str:
