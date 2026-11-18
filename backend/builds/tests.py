@@ -16,10 +16,11 @@ from django.db import IntegrityError, connection, transaction
 from django.db.migrations.executor import MigrationExecutor
 from django.test import TestCase, TransactionTestCase, override_settings
 from django.utils import timezone
+from django.utils.http import urlsafe_base64_encode
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APITestCase
 
-from .auth import CONFIRM_SALT, TAKEN, TAKEN_EMAIL
+from .auth import CONFIRM_SALT, TAKEN, TAKEN_EMAIL, ResetRequestView
 from .models import Build, Bundle, ExtraCost, Part
 
 
@@ -1460,6 +1461,173 @@ class AdminTests(TestCase):
 
     def test_admin_requires_login(self):
         self.assertEqual(self.client.get("/admin/builds/build/").status_code, 302)
+
+
+SENT = {"detail": "If an account has that email, we've sent it a link."}
+
+
+class ResetTests(APITestCase):
+    """Forgot your username or password (docs/specs/account-management.md, part 3)."""
+
+    def setUp(self):
+        cache.clear()  # the rate limit and the 15-minute wait live in the cache
+        mock.patch("builds.emails.Thread", SyncThread).start()
+        self.addCleanup(mock.patch.stopall)
+        self.carol = User.objects.create_user(
+            "carol", email="carol@example.com", password="a long passphrase"
+        )
+
+    def ask(self, email):
+        return self.client.post(
+            "/api/auth/password-reset/", {"email": email}, format="json"
+        )
+
+    def link(self):
+        """The uid and token from the last email's link."""
+        match = re.search(
+            r"/reset-password\?uid=([\w-]+)&token=([\w-]+)", mail.outbox[-1].body
+        )
+        return {"uid": match.group(1), "token": match.group(2)}
+
+    def reset(self, link, password="a new passphrase"):
+        return self.client.post(
+            "/api/auth/password-reset/confirm/",
+            {**link, "new_password": password},
+            format="json",
+        )
+
+    def logs_in(self, password):
+        res = self.client.post(
+            "/api/auth/login/",
+            {"username": "carol", "password": password},
+            format="json",
+        )
+        return res.status_code == 200
+
+    def test_every_address_gets_the_same_answer_and_only_a_real_one_an_email(self):
+        User.objects.create_user("gina", email="gina@gmail.com")  # Google-only
+        User.objects.create_user(
+            "ivan", email="ivan@example.com", password="x", is_active=False
+        )
+        for email in [
+            "carol@example.com",
+            "nobody@example.com",
+            "gina@gmail.com",
+            "ivan@example.com",
+        ]:
+            with self.subTest(email):
+                res = self.ask(email)
+                self.assertEqual(res.status_code, 202)
+                self.assertEqual(res.json(), SENT)
+        [sent] = mail.outbox
+        self.assertEqual(sent.to, ["carol@example.com"])
+
+    def test_the_email_names_the_username_and_links_to_the_site(self):
+        self.ask("Carol@Example.com")  # any case
+        [sent] = mail.outbox
+        self.assertIn("Your username is carol.", sent.body)
+        self.assertIn(f"{settings.SITE_URL}/reset-password?uid=", sent.body)
+        self.assertIn("carol", sent.alternatives[0][0])
+
+    def test_a_link_sets_the_password_logs_out_everywhere_and_sends_a_notice(self):
+        token = Token.objects.create(user=self.carol)
+        self.ask("carol@example.com")
+
+        res = self.reset(self.link())
+        self.assertEqual(res.status_code, 204, res.content)
+        self.assertFalse(Token.objects.filter(key=token.key).exists())
+        self.assertFalse(Token.objects.filter(user=self.carol).exists())  # no log-in
+        self.assertTrue(self.logs_in("a new passphrase"))
+        self.assertFalse(self.logs_in("a long passphrase"))
+        notice = mail.outbox[-1]
+        self.assertEqual(notice.to, ["carol@example.com"])
+        self.assertEqual(notice.subject, "Your PC Flipper Toolkit password was changed")
+
+    def test_a_link_works_once(self):
+        self.ask("carol@example.com")
+        link = self.link()
+        self.assertEqual(self.reset(link).status_code, 204)
+        res = self.reset(link, "another passphrase")
+        self.assertEqual(res.status_code, 400)
+        self.assertEqual(res.json(), {"token": ["This link no longer works."]})
+
+    def test_a_link_works_for_an_hour(self):
+        self.ask("carol@example.com")
+        link = self.link()
+        later = datetime.now() + timedelta(hours=1, seconds=1)
+        with mock.patch(
+            "django.contrib.auth.tokens.PasswordResetTokenGenerator._now",
+            return_value=later,
+        ):
+            res = self.reset(link)
+        self.assertEqual(res.json(), {"token": ["This link no longer works."]})
+        self.assertEqual(self.reset(link).status_code, 204)  # within the hour
+
+    def test_a_link_stops_working_once_the_password_changes(self):
+        self.ask("carol@example.com")
+        link = self.link()
+        self.carol.set_password("changed elsewhere")
+        self.carol.save()
+        self.assertEqual(self.reset(link).status_code, 400)
+
+    def test_a_changed_or_someone_elses_link_is_refused(self):
+        dave = User.objects.create_user("dave", email="dave@example.com", password="x")
+        self.ask("carol@example.com")
+        link = self.link()
+        for why, bad in [
+            (
+                "another account's uid",
+                {**link, "uid": urlsafe_base64_encode(b"%d" % dave.pk)},
+            ),
+            ("a changed token", {**link, "token": link["token"][:-1] + "x"}),
+            ("a uid that isn't one", {**link, "uid": "!!"}),
+            ("no such account", {**link, "uid": urlsafe_base64_encode(b"999999")}),
+            (
+                "an id too big for the column",
+                {**link, "uid": urlsafe_base64_encode(b"9" * 30)},
+            ),
+        ]:
+            with self.subTest(why):
+                res = self.reset(bad)
+                self.assertEqual(res.status_code, 400)
+                self.assertEqual(list(res.json()), ["token"])
+        self.assertTrue(self.logs_in("a long passphrase"))
+
+    def test_the_new_password_must_pass_the_validators(self):
+        self.ask("carol@example.com")
+        res = self.reset(self.link(), "123")
+        self.assertEqual(res.status_code, 400)
+        self.assertEqual(list(res.json()), ["new_password"])
+        self.assertTrue(self.logs_in("a long passphrase"))
+
+    def test_one_email_per_address_per_15_minutes_and_never_a_lockout(self):
+        self.ask("carol@example.com")
+        res = self.ask("CAROL@example.com")
+        self.assertEqual(res.json(), SENT)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertTrue(self.logs_in("a long passphrase"))
+        # The first link still works.
+        self.assertEqual(self.reset(self.link()).status_code, 204)
+
+    def test_the_wait_ends_after_15_minutes(self):
+        self.ask("carol@example.com")
+        later = time.time() + 15 * 60 + 1
+        with mock.patch("time.time", return_value=later):
+            self.ask("carol@example.com")
+        self.assertEqual(len(mail.outbox), 2)
+
+    def test_made_up_addresses_dont_push_out_the_wait(self):
+        # The in-memory cache drops its oldest entries past 300.
+        self.ask("carol@example.com")
+        with mock.patch.object(ResetRequestView, "throttle_classes", []):
+            for i in range(300):
+                self.ask(f"nobody{i}@example.com")
+        self.ask("carol@example.com")
+        self.assertEqual(len(mail.outbox), 1)
+
+    def test_asking_shares_the_auth_rate_limit(self):
+        codes = [self.ask(f"x{i}@example.com").status_code for i in range(11)]
+        self.assertEqual(codes, [202] * 10 + [429])
 
 
 class DemoTests(APITestCase):

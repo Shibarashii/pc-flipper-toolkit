@@ -1527,7 +1527,7 @@ Spec: [docs/specs/account-management.md](../docs/specs/account-management.md). O
 Spec: [docs/specs/account-management.md](../docs/specs/account-management.md). No migration, no
 new dependencies.
 
-### - [ ] T51: Reset API
+### - [x] T51: Reset API
 
 **Description:**
 - `POST /api/auth/password-reset/ {email}` (public, `auth` rate limit): always `202` with
@@ -1539,18 +1539,24 @@ new dependencies.
   `default_token_generator`, `PASSWORD_RESET_TIMEOUT = 3600`, the password validators; sets the
   password, deletes the token, emails "Your password was changed", `204`. No log-in.
 - SPEC.md's auth table. Tests first.
+- Built 2026-11-18: the 15-minute wait is marked only when an email goes out, under a keyed hash
+  of the address (never the address itself); the review found that marking every address let
+  300 made-up ones push real marks out of the 300-entry cache. The answer never differs. The wait lives
+  in each process's memory, like the rate limit (a `ponytail:` comment). The email's subject
+  names both ("Your PC Flipper Toolkit username, and a link to set a new password"). A uid too
+  big for the id column is a 400 on `token` (a test; CI's Postgres runs it).
 
 **Acceptance criteria:**
-- [ ] A known email, an unknown one, a Google-only account and an inactive one get the same
+- [x] A known email, an unknown one, a Google-only account and an inactive one get the same
   status and body; only the first gets an email
-- [ ] The email names the username, and its link starts with `SITE_URL`
-- [ ] A link works once, not after an hour, and not after the password changes; a reset
+- [x] The email names the username, and its link starts with `SITE_URL`
+- [x] A link works once, not after an hour, and not after the password changes; a reset
   deletes the token and sends the notice
-- [ ] A second request for the same address within 15 minutes sends nothing; the account still
+- [x] A second request for the same address within 15 minutes sends nothing; the account still
   logs in
 
 **Verification:**
-- [ ] Standard verification, plus `spectacular --validate --fail-on-warn`
+- [x] Standard verification, plus `spectacular --validate --fail-on-warn`
 
 **Dependencies:** Phase 21
 **Files:** `backend/config/settings.py`, `backend/builds/auth.py`, `backend/config/urls.py`, `backend/builds/emails.py`, `backend/builds/tests.py`, `SPEC.md`

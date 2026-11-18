@@ -74,3 +74,40 @@ def email_changed(username: str, old: str, new: str) -> None:
             ("Log in", f"{settings.SITE_URL}/login"),
         ],
     )
+
+
+def reset_password(username: str, email: str, uid: str, token: str) -> None:
+    # Forgot your username is the same email: it names the username.
+    send(
+        email,
+        "Your PC Flipper Toolkit username, and a link to set a new password",
+        [
+            f"Hi {username},",
+            f"Your username is {username}.",
+            "If you forgot your password, open this link to set a new one:",
+            (
+                "Set a new password",
+                f"{settings.SITE_URL}/reset-password?uid={uid}&token={token}",
+            ),
+            (
+                "The link works once, for 1 hour. If you didn’t ask for this, you can "
+                "ignore this email; your password stays as it is."
+            ),
+        ],
+    )
+
+
+def password_changed(username: str, email: str) -> None:
+    send(
+        email,
+        "Your PC Flipper Toolkit password was changed",
+        [
+            f"Hi {username},",
+            (
+                "The password on your PC Flipper Toolkit account was just changed, and "
+                "every device was logged out."
+            ),
+            "If this wasn’t you, set a new one from the log-in page right away:",
+            ("Log in", f"{settings.SITE_URL}/login"),
+        ],
+    )
