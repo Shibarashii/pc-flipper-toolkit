@@ -1498,6 +1498,9 @@ Spec: [docs/specs/account-management.md](../docs/specs/account-management.md). O
   link). `google.verify` returns an `Identity(sub, email, vouched)`; only `email_verified` of
   `true` (not the text "true") counts. The builds list shows the sign-up notice once (a session
   notice, cleared when the list opens), as plain text: the design's bold email is left out.
+- Sign-up's emails share only the `auth` limit (10 a minute per IP), so one IP could use up
+  Brevo's 300 a day. The author chose on 2026-11-18 to leave it; an hourly limit on sign-up is
+  the fix if it's ever seen (it would also slow local e2e runs).
 
 **Acceptance criteria:**
 - [x] Sign-up without a valid email is refused on `email`; with one, the link is sent
