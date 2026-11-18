@@ -7,7 +7,8 @@ export type Session = { token: string; username: string };
 
 type State = {
   session: Session | null;
-  /** Shown on the log-in page, e.g. after the server ended the session. */
+  /** Shown once by the next page: the log-in page after the server ended the session,
+   * or the builds list after sign-up. */
   notice: string;
 };
 
@@ -58,8 +59,13 @@ export const getToken = () => state.session?.token ?? "";
 export const isDemo = (session: Session) =>
   session.username.startsWith("demo-");
 
-export const saveSession = (session: Session) =>
-  update({ session, notice: "" });
+export const saveSession = (session: Session, notice = "") =>
+  update({ session, notice });
+
+/** Once a page has shown the notice. */
+export function clearNotice() {
+  if (state.notice) update({ ...state, notice: "" });
+}
 
 /** After a rename or a new token. Does nothing once logged out, e.g. if Log out beat
  * the answer. */

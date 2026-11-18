@@ -1481,7 +1481,7 @@ Spec: [docs/specs/account-management.md](../docs/specs/account-management.md). O
 **Files:** `frontend/src/api.ts`, `frontend/src/pages/Account.tsx`, `frontend/src/pages/VerifyEmail.tsx`, `frontend/src/App.tsx`, `frontend/src/pages/Privacy.tsx`, `frontend/vercel.json`, `frontend/src/App.test.tsx`, `frontend/src/csp.test.ts`
 **Scope:** S
 
-### - [ ] T50: Sign-up needs an email; new Google accounts take a verified Gmail
+### - [x] T50: Sign-up needs an email; new Google accounts take a verified Gmail
 
 **Description:**
 - `SignupSerializer` gains a required `email`; sign-up sends the confirmation link and the
@@ -1493,16 +1493,22 @@ Spec: [docs/specs/account-management.md](../docs/specs/account-management.md). O
   builds list it opens says "We sent a link to … to confirm your email. If it doesn’t arrive,
   check your spam folder."
 - The e2e flip test fills in an email. Tests first.
+- Built 2026-11-18: sign-up with an email another account has creates the account but sends
+  no link, with the same answer (sign-up is public, and the owner would only get a confusing
+  link). `google.verify` returns an `Identity(sub, email, vouched)`; only `email_verified` of
+  `true` (not the text "true") counts. The builds list shows the sign-up notice once (a session
+  notice, cleared when the list opens), as plain text: the design's bold email is left out.
 
 **Acceptance criteria:**
-- [ ] Sign-up without a valid email is refused on `email`; with one, the link is sent
-- [ ] A new Google account with a verified Gmail address has it on Account; an unverified,
+- [x] Sign-up without a valid email is refused on `email`; with one, the link is sent
+- [x] A new Google account with a verified Gmail address has it on Account; an unverified,
   non-Gmail or taken one starts with none
-- [ ] An existing account with the same email is never logged into through Google
+- [x] An existing account with the same email is never logged into through Google
 
 **Verification:**
-- [ ] Standard verification, plus `spectacular --validate --fail-on-warn`
-- [ ] Manual: sign up locally and confirm with the console backend's link
+- [x] Standard verification, plus `spectacular --validate --fail-on-warn`
+- [x] Manual: sign up locally and confirm (the link's token minted in a Django shell, since
+  the console backend prints in runserver's own terminal)
 
 **Dependencies:** T49
 **Files:** `backend/builds/auth.py`, `backend/builds/google.py`, `backend/builds/tests.py`, `backend/builds/test_google.py`, `frontend/src/pages/Login.tsx`, `frontend/e2e/flip.spec.ts`, `SPEC.md`

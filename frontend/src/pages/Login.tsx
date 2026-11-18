@@ -18,14 +18,12 @@ const MODES = {
   login: {
     title: "Log in",
     submit: "Log in",
-    request: logIn,
     password: "current-password",
     other: { text: "No account yet?", link: "Sign up", to: "/signup" },
   },
   signup: {
     title: "Sign up",
     submit: "Create account",
-    request: signUp,
     password: "new-password",
     other: { text: "Already have an account?", link: "Log in", to: "/login" },
   },
@@ -33,23 +31,24 @@ const MODES = {
 
 /** Log in (`/login`) or sign up (`/signup`). Logged out, every other page sends you here. */
 export function Login({ mode }: { mode: keyof typeof MODES }) {
-  const { title, submit, request, password, other } = MODES[mode];
+  const { title, submit, password, other } = MODES[mode];
   const { notice } = useAuth();
   // The page that sent you here: kept when switching between log in and sign up, and
   // App goes back to it once the session is saved.
   const from = (useLocation().state as { from?: string } | null)?.from ?? "/";
-  const [form, setForm] = useState({ username: "", password: "" });
+  const [form, setForm] = useState({ username: "", email: "", password: "" });
+  const signingUp = mode === "signup";
   const [errors, setErrors] = useState<FieldErrors>({});
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
   // The form and "Try the demo" both end in a session, with the same errors.
-  async function start(session: () => Promise<Session>) {
+  async function start(session: () => Promise<Session>, notice = "") {
     setSaving(true);
     setErrors({});
     setError("");
     try {
-      saveSession(await session());
+      saveSession(await session(), notice);
     } catch (err) {
       const fieldErrors = err instanceof ApiError ? err.fieldErrors : {};
       setErrors(fieldErrors);
@@ -60,7 +59,14 @@ export function Login({ mode }: { mode: keyof typeof MODES }) {
 
   function submitForm(e: SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
-    start(() => request({ ...form, username: form.username.trim() }));
+    const username = form.username.trim();
+    const email = form.email.trim();
+    if (!signingUp) start(() => logIn({ username, password: form.password }));
+    else
+      start(
+        () => signUp({ username, email, password: form.password }),
+        `We sent a link to ${email} to confirm your email. If it doesn’t arrive, check your spam folder.`,
+      );
   }
 
   return (
@@ -98,6 +104,21 @@ export function Login({ mode }: { mode: keyof typeof MODES }) {
             className={input(!!errors.username)}
           />
         </Field>
+        {signingUp && (
+          <Field label="Email" errors={errors.email}>
+            <input
+              type="email"
+              autoComplete="email"
+              autoCapitalize="none"
+              spellCheck={false}
+              maxLength={254}
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              aria-invalid={!!errors.email}
+              className={input(!!errors.email)}
+            />
+          </Field>
+        )}
         <Field label="Password" errors={errors.password}>
           <input
             type="password"
@@ -115,7 +136,12 @@ export function Login({ mode }: { mode: keyof typeof MODES }) {
         )}
         <button
           type="submit"
-          disabled={saving || !form.username.trim() || !form.password}
+          disabled={
+            saving ||
+            !form.username.trim() ||
+            !form.password ||
+            (signingUp && !form.email.trim())
+          }
           className={`mt-2 ${buttonPrimary}`}
         >
           {submit}

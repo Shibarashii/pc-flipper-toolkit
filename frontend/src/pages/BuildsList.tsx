@@ -12,6 +12,7 @@ import { NewBuildDialog } from "../components/NewBuildDialog";
 import { Bone, Skeleton } from "../components/Skeleton";
 import { StatusTag } from "../components/StatusTag";
 import { formatMoney, formatSignedMoney, profitColor } from "../money";
+import { clearNotice, useAuth } from "../auth";
 import { buttonPrimary } from "../ui";
 
 // Insets the first and last columns, so text doesn't touch the hovered row's edges.
@@ -24,6 +25,9 @@ export function BuildsList() {
   const [summary, setSummary] = useState<Summary | null>(null);
   // A failed summary is just left out; the list has its own error.
   const [summaryFailed, setSummaryFailed] = useState(false);
+  // After sign-up: kept for this visit, gone the next time the list opens.
+  const [notice] = useState(useAuth().notice);
+  useEffect(clearNotice, []);
 
   useEffect(() => {
     listBuilds().then(setBuilds, () => setError(true));
@@ -57,6 +61,14 @@ export function BuildsList() {
           New build
         </button>
       </div>
+      {notice && (
+        <p
+          role="status"
+          className="mt-6 border-t border-line-strong pt-3 text-[15px] leading-[22px]"
+        >
+          {notice}
+        </p>
+      )}
       {creating && <NewBuildDialog onClose={() => setCreating(false)} />}
 
       {error && (

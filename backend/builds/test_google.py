@@ -26,9 +26,12 @@ CLIENT_ID = "test-client.apps.googleusercontent.com"
 SIGN_IN = "/api/auth/google/"
 
 
-def signs_in_as(sub="1234567890", email="seanrei.ethan23@gmail.com"):
-    """Stands in for Google's check: every credential is this Google account."""
-    return mock.patch.object(google, "verify", return_value=(sub, email))
+def signs_in_as(sub="1234567890", email="seanrei.ethan23@gmail.com", vouched=False):
+    """Stands in for Google's check: every credential is this Google account. `vouched`:
+    Google says the email is verified and its own (a Gmail or Workspace address)."""
+    return mock.patch.object(
+        google, "verify", return_value=google.Identity(sub, email, vouched)
+    )
 
 
 @override_settings(GOOGLE_CLIENT_ID=CLIENT_ID)
@@ -57,6 +60,34 @@ class GoogleSignInTests(APITestCase):
         self.assertEqual(res.json()["username"], "seanrei.ethan23")
         self.assertEqual(User.objects.count(), 1)
         self.assertEqual(GoogleAccount.objects.get().email, "renamed@gmail.com")
+
+    def test_a_new_account_takes_an_email_google_vouches_for(self):
+        with signs_in_as(vouched=True):
+            self.assertEqual(self.sign_in().status_code, 201)
+        self.assertEqual(User.objects.get().email, "seanrei.ethan23@gmail.com")
+
+    def test_a_new_account_starts_without_an_email_google_doesnt_vouch_for(self):
+        with signs_in_as(vouched=False):
+            self.assertEqual(self.sign_in().status_code, 201)
+        self.assertEqual(User.objects.get().email, "")
+
+    def test_an_existing_account_with_the_same_email_is_never_logged_into(self):
+        carol = User.objects.create_user("carol", email="Rei@Gmail.com", password="x")
+        with signs_in_as(email="rei@gmail.com", vouched=True):
+            res = self.sign_in()
+        # A new account, without the email another account has.
+        self.assertEqual(res.status_code, 201)
+        self.assertNotEqual(res.json()["username"], "carol")
+        self.assertFalse(Token.objects.filter(user=carol).exists())
+        self.assertEqual(User.objects.get(username=res.json()["username"]).email, "")
+
+    def test_a_signed_in_account_keeps_its_email_whatever_google_says(self):
+        with signs_in_as(vouched=False):
+            self.sign_in()
+        with signs_in_as(vouched=True):
+            self.assertEqual(self.sign_in().status_code, 200)
+        # Only a new account takes Google's email; later, Account adds one.
+        self.assertEqual(User.objects.get().email, "")
 
     def test_a_connected_password_account_is_who_you_sign_in_as(self):
         carol = User.objects.create_user("carol", password="x-Long-enough-1")
@@ -225,8 +256,29 @@ class RealVerificationTests(TestCase):
 
     def test_a_good_token_gives_its_sub_and_email(self):
         self.assertEqual(
-            google.verify(self.token()), ("1234567890", "seanrei.ethan23@gmail.com")
+            google.verify(self.token()),
+            google.Identity("1234567890", "seanrei.ethan23@gmail.com", False),
         )
+
+    def test_google_vouches_only_for_a_verified_gmail_or_workspace_address(self):
+        for why, claims, vouched in [
+            ("a verified Gmail", {"email_verified": True}, True),
+            ("in any case", {"email": "Rei@GMail.com", "email_verified": True}, True),
+            ("an unverified Gmail", {"email_verified": False}, False),
+            (
+                "a verified Workspace address",
+                {"email": "rei@school.edu", "email_verified": True, "hd": "school.edu"},
+                True,
+            ),
+            (
+                "another provider's, verified",
+                {"email": "rei@yahoo.com", "email_verified": True},
+                False,
+            ),
+            ('"true" as text', {"email_verified": "true"}, False),
+        ]:
+            with self.subTest(why):
+                self.assertEqual(google.verify(self.token(**claims)).vouched, vouched)
 
     @override_settings(GOOGLE_CLIENT_ID="")
     def test_never_verifies_without_a_client_id(self):
@@ -311,7 +363,7 @@ class ConnectTests(APITestCase):
             GoogleAccount.objects.create(
                 user=self.carol, sub="777", email="c@gmail.com"
             )
-            return "777", "c@gmail.com"
+            return google.Identity("777", "c@gmail.com", True)
 
         with mock.patch.object(
             google, "verify", side_effect=first_request_saves_meanwhile

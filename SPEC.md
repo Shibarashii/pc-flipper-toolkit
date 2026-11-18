@@ -121,7 +121,7 @@ a 404, and in a body it's a 400 under the field ([public ids spec](docs/specs/pu
 
 | Method | Path | Purpose |
 |---|---|---|
-| POST | `/api/auth/signup/` | Create an account (`username`, `password`) → `{token, username}` |
+| POST | `/api/auth/signup/` | Create an account (`username`, `email`, `password`) → `{token, username}`, and email a link to confirm `email` (saved once it's opened). An email another account has gets no link; the answer is the same ([spec](docs/specs/account-management.md)) |
 | POST | `/api/auth/login/` | Log in → `{token, username}` |
 | POST | `/api/auth/logout/` | Delete the current token |
 | POST | `/api/auth/demo/` | Create a demo account with the sample builds → `{token, username}` (201) |
@@ -130,7 +130,7 @@ a 404, and in a body it's a 400 under the field ([public ids spec](docs/specs/pu
 | POST | `/api/auth/password/` | Change your password `{current_password, new_password}` → a new `{token, username}`; the old token is deleted, so every other device is logged out. 400 for a wrong current password (on `current_password`), one that fails Django's validators (on `new_password`), or an account without a password; 403 for a demo. Rate-limited like log-in |
 | POST | `/api/auth/email/` | Add or change your email `{email}`: emails a confirmation link (202); nothing is saved until it's opened. 400 for another account's email (in any case) or your own again; 403 for a demo. 5 an hour per account, since each is an email ([spec](docs/specs/account-management.md)) |
 | POST | `/api/auth/email/confirm/` | No log-in. Saves the email from a link's `{token}` → `{email}`; a replaced email gets a notice. 400 on `token` when the link is over 24 hours old, used, outdated or changed; 400 on `email` if another account took it meanwhile. Rate-limited like log-in |
-| POST | `/api/auth/google/` | Sign in with Google's ID token (`credential`) → `{token, username}`; 201 when it makes the account ([spec](docs/specs/google-sign-in.md)) |
+| POST | `/api/auth/google/` | Sign in with Google's ID token (`credential`) → `{token, username}`; 201 when it makes the account ([spec](docs/specs/google-sign-in.md)). A new account takes Google's email only when Google marks it verified, it's a Gmail or Workspace address, and no other account has it; accounts are never matched by email ([spec](docs/specs/account-management.md)) |
 | POST | `/api/auth/google/connect/` | Connect the Google account in `credential` to the logged-in user → `{google: {email}}`; 400 for a demo, a second one, or one connected elsewhere |
 | DELETE | `/api/auth/google/connect/` | Disconnect it (204); 400 without a password, the only other way in |
 | GET, POST | `/api/builds/` | List builds (with totals) / create a build |
@@ -182,7 +182,7 @@ another user's build (400). A part, bundle or cost can't be moved to another bui
 
 ## Screens
 
-0. **Log in** (`/login`) and **Sign up** (`/signup`): username and password, linking to each other. Logged out, every other page redirects here; logging in goes to the builds list. **Privacy** (`/privacy`) is the one page that opens logged in or out.
+0. **Log in** (`/login`) and **Sign up** (`/signup`): username and password (sign-up also an email), linking to each other. Logged out, every other page redirects here; logging in goes to the builds list, which after sign-up says once where the confirmation link went. **Privacy** (`/privacy`) and `/verify-email` open logged in or out.
    - Every page ends with a **footer** ([spec](docs/specs/footer.md)): "© 2026 Seanrei Valdeabella" and links to Privacy, the GitHub repo and the author's LinkedIn; at the bottom of the window on short pages, after the content on long ones.
    - The header shows the username and "Log out" when logged in. It starts with the logo and
      the name, one link home; logged in and below 410px wide the logo shows alone, so the header fits

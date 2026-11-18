@@ -53,9 +53,14 @@ test("flip a PC: sign up, add parts and a bundle, price it, delete it", async ({
   await page.goto("/signup");
   await expectFooterAtTheEnd(page);
   await page.getByLabel("Username").fill(username);
+  await page.getByLabel("Email").fill(`${username}@example.com`);
   await page.getByLabel("Password").fill("correct-horse-battery-staple");
   await page.getByRole("button", { name: "Create account" }).click();
   await expect(page.getByText("No builds yet")).toBeVisible();
+  // The link goes to the console locally and in CI; the email is saved once it's opened.
+  await expect(page.getByRole("status")).toContainText(
+    `We sent a link to ${username}@example.com`,
+  );
   await expectFooterAtTheEnd(page);
 
   await page.getByRole("button", { name: "New build" }).click();
