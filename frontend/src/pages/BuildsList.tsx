@@ -26,7 +26,8 @@ export function BuildsList() {
   // A failed summary is just left out; the list has its own error.
   const [summaryFailed, setSummaryFailed] = useState(false);
   // After sign-up: kept for this visit, gone the next time the list opens.
-  const [notice] = useState(useAuth().notice);
+  const { notice: pending } = useAuth();
+  const [notice] = useState(pending);
   useEffect(clearNotice, []);
 
   useEffect(() => {

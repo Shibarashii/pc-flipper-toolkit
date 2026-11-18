@@ -140,6 +140,20 @@ class GoogleSignInTests(APITestCase):
         self.assertEqual(res.status_code, 201, res.content)
         self.assertEqual(res.json()["username"], "carol2")
 
+    def test_an_email_taken_meanwhile_starts_the_account_without_it(self):
+        dave = User.objects.create_user("dave", email="seanrei.ethan23@gmail.com")
+        # As if the "taken" check ran just before dave took the email: the database
+        # refuses it, and the retry makes the account without it.
+        with (
+            signs_in_as(vouched=True),
+            mock.patch("builds.auth.email_taken", side_effect=[False, True]),
+        ):
+            res = self.sign_in()
+        self.assertEqual(res.status_code, 201, res.content)
+        self.assertEqual(User.objects.get(username=res.json()["username"]).email, "")
+        dave.refresh_from_db()
+        self.assertEqual(dave.email, "seanrei.ethan23@gmail.com")
+
     def test_three_lost_races_is_400_and_creates_nothing_more(self):
         User.objects.create_user("carol")
         with (
