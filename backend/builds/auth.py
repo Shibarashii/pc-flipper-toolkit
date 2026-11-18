@@ -398,13 +398,13 @@ class PasswordView(APIView):
 
 class EmailView(APIView):
     throttle_classes = [ScopedRateThrottle]
-    throttle_scope = "auth"
+    throttle_scope = "email"  # 5 an hour per user: each send is an email
 
     @extend_schema(
         summary="Add or change your email",
         description="Emails a confirmation link to the address (202); nothing is saved "
         "until it's opened. Another account's email, or your own again, is a 400 on "
-        "`email`; a demo is a 403.",
+        "`email`; a demo is a 403. 5 an hour per account.",
         request=EmailSerializer,
         responses={202: None},
         tags=["auth"],

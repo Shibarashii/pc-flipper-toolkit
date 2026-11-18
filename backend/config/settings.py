@@ -116,7 +116,8 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
     # ponytail: counted in each process's memory, so the limit is per worker and
     # resets on restart. Move to a shared cache if guessing becomes a real threat.
-    "DEFAULT_THROTTLE_RATES": {"auth": "10/min"},
+    # "email": each send is an email, and Brevo's free plan has 300 a day for everyone.
+    "DEFAULT_THROTTLE_RATES": {"auth": "10/min", "email": "5/hour"},
     # How many proxies sit in front of Django and add to X-Forwarded-For. The limit
     # counts per client IP, taken that many entries from the end; 0 uses the
     # connection's address. Unset, DRF would trust the whole header, which clients
@@ -165,8 +166,10 @@ if EMAIL_HOST:
     EMAIL_TIMEOUT = 10
 else:
     EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
-DEFAULT_FROM_EMAIL = os.environ.get(
-    "DEFAULT_FROM_EMAIL", "PC Flipper Toolkit <noreply@localhost>"
+# `or`, not a default: .env.example leaves these empty, which would mean no sender and
+# relative links.
+DEFAULT_FROM_EMAIL = (
+    os.environ.get("DEFAULT_FROM_EMAIL") or "PC Flipper Toolkit <noreply@localhost>"
 )
 # Where links in emails point: the frontend, never the request's host.
-SITE_URL = os.environ.get("SITE_URL", "http://localhost:5173").rstrip("/")
+SITE_URL = (os.environ.get("SITE_URL") or "http://localhost:5173").rstrip("/")

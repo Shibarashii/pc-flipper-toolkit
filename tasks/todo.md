@@ -1425,8 +1425,9 @@ Spec: [docs/specs/account-management.md](../docs/specs/account-management.md). O
 - Built 2026-11-18: the token carries a keyed hash of the account's current email, not the
   email itself (a token can be decoded, and its address isn't confirmed yet), and the
   confirmation email says "Hi," without the username for the same reason. Sending again to
-  your own email is a 400; sending shares the `auth` rate limit (10 a minute per user), since
-  each send is an email. Production still has no `EMAIL_HOST`, so until Render's environment
+  your own email is a 400; sending has its own limit, 5 an hour per user (review: 10 a minute
+  could use up Brevo's 300 a day), and an empty `DEFAULT_FROM_EMAIL` or `SITE_URL` falls back
+  to the default. Production still has no `EMAIL_HOST`, so until Render's environment
   is set (S1), any email prints in Render's log instead of being sent.
 
 **Acceptance criteria:**

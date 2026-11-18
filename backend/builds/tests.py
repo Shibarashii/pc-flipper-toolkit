@@ -1265,9 +1265,11 @@ class EmailTests(APITestCase):
         self.assertEqual(self.send("carol@example.com").status_code, 401)
         self.assertEqual(mail.outbox, [])
 
-    def test_sending_shares_the_auth_rate_limit(self):
-        codes = [self.send(f"c{i}@example.com").status_code for i in range(11)]
-        self.assertEqual(codes, [202] * 10 + [429])
+    def test_sending_is_limited_to_5_an_hour(self):
+        # Each send is an email, and Brevo's free plan sends 300 a day for everyone.
+        codes = [self.send(f"c{i}@example.com").status_code for i in range(6)]
+        self.assertEqual(codes, [202] * 5 + [429])
+        self.assertEqual(len(mail.outbox), 5)
 
     def test_the_database_refuses_one_email_on_two_accounts_in_any_case(self):
         User.objects.create_user("dave", email="same@example.com")

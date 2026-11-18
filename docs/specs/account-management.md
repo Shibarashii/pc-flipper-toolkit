@@ -86,7 +86,7 @@ Demo users get `403` from every endpoint that changes their account.
 | Endpoint | Body | Result |
 |---|---|---|
 | `POST /api/auth/signup/` | + `email` (required) | As today, then a confirmation link goes to the email. The account works at once; the email is saved when the link is opened. |
-| `POST /api/auth/email/` | `{email}` | Logged in. Sends a confirmation link to that address: `202`. If another account already has it: `400` on `email` ("That email is used by another account."); you're logged in, so this tells you nothing about strangers. If the account already had an email, a notice goes to the old address once the new one is confirmed. |
+| `POST /api/auth/email/` | `{email}` | Logged in. Sends a confirmation link to that address: `202`. If another account already has it: `400` on `email` ("That email is used by another account."); you're logged in, so this tells you nothing about strangers. If the account already had an email, a notice goes to the old address once the new one is confirmed. 5 sends an hour per account (`429` after), since each is an email and Brevo's free plan sends 300 a day for everyone. |
 | `POST /api/auth/email/confirm/` | `{token}` | Public (the link may be opened on another device). Saves the email and returns `{email}`. Expired, already used or tampered: `400` on `token`. If another account confirmed the same address in between: `400` on `email`. |
 | `GET /api/auth/me/` | | + `email` (`""` when none). |
 | `POST /api/auth/google/` | | A **new** Google account takes Google's email when Google marks it verified and it's a Gmail or Workspace (`hd`) address, and no other account has it. Otherwise it starts with none and Account asks for one. Existing users are never matched by email. |
