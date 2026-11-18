@@ -276,6 +276,7 @@ class ConnectTests(APITestCase):
                 "google": None,
                 "has_password": True,
                 "is_demo": False,
+                "email": "",
             },
         )
 

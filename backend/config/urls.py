@@ -4,7 +4,9 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from rest_framework.routers import DefaultRouter
 
 from builds.auth import (
+    ConfirmEmailView,
     DemoView,
+    EmailView,
     GoogleConnectView,
     GoogleView,
     LoginView,
@@ -39,6 +41,8 @@ urlpatterns = [
     path("api/auth/google/connect/", GoogleConnectView.as_view()),
     path("api/auth/me/", MeView.as_view()),
     path("api/auth/password/", PasswordView.as_view()),
+    path("api/auth/email/", EmailView.as_view()),
+    path("api/auth/email/confirm/", ConfirmEmailView.as_view()),
     path("api/prices/", PriceSearchView.as_view()),
     path("api/", include(router.urls)),
 ]
