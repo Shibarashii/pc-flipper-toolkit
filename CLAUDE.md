@@ -13,7 +13,8 @@ which also has the commands (setup, tests, lint) and the project structure.
   that gets a spec moves out of the list ("Moved to …").
 - [tasks/plan.md](tasks/plan.md) and [tasks/todo.md](tasks/todo.md): every phase so far,
   with acceptance criteria and checkpoints. A new feature adds a phase at the end. Never
-  overwrite them.
+  overwrite them. They're long and the old phases are done: read only the last phase (find it
+  with `grep -n '^#* Phase' tasks/*.md`) and any unticked `- [ ]`.
 - [docs/brand-guidelines.md](docs/brand-guidelines.md): the look (warm paper and ink, green
   accent, hairlines rather than cards).
 - [docs/figma.md](docs/figma.md): the design file, its pages and components, and how to build a
