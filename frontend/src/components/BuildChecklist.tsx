@@ -28,10 +28,11 @@ const SLOT_STYLE: Record<SlotState, string> = {
   optional: "border-dotted border-line-strong text-faint",
 };
 
-const MARK: Record<SlotState, { src: string; size: number }> = {
-  filled: { src: check, size: 16 },
-  missing: { src: slotMissing, size: 12 },
-  optional: { src: dash, size: 16 },
+// `title` is the tooltip; screen readers skip the mark, since the row's text says it.
+const MARK: Record<SlotState, { src: string; size: number; title: string }> = {
+  filled: { src: check, size: 16, title: "Added" },
+  missing: { src: slotMissing, size: 12, title: "Missing" },
+  optional: { src: dash, size: 16, title: "Optional" },
 };
 
 const VALUE_COLOR: Record<SlotState, string> = {
@@ -111,6 +112,7 @@ export function BuildChecklist({
                 <img
                   src={MARK[slot.state].src}
                   alt=""
+                  title={MARK[slot.state].title}
                   width={MARK[slot.state].size}
                   height={MARK[slot.state].size}
                 />

@@ -46,10 +46,12 @@ Small fixes to controls and words before the app goes in the author's portfolio,
   side where the text buttons were, still lined up with the inputs' bottom edge.
   - 38px square (the height of the buttons they replace), the secondary button's border and
     surface, a 16px icon, the brand's focus ring.
-  - **Copy listing:** a new `listing.svg` (a sheet with text lines, the same 16px stroke style
-    as `pencil.svg`) in ink. Named "Copy listing". Opens the listing dialog, unchanged.
-  - **Delete build:** `trash.svg`, in the loss colour as today. Named "Delete build". Opens the
-    delete dialog, unchanged.
+  - **Copy listing:** a sheet with text lines (the same 16px stroke style as `pencil.svg`), in
+    ink. Named "Copy listing". Opens the listing dialog, unchanged.
+  - **Delete build:** the bin from `trash.svg`, in the loss colour as today. Named "Delete
+    build". Opens the delete dialog, unchanged.
+  - Both are drawn inline with `currentColor`, so ink and loss follow the theme (`trash.svg`
+    and `pencil.svg` carry the light theme's colours; built 2026-11-19).
   - Same icons and size on desktop and phones.
 - **One way to name an icon:** `IconButton` (`form.tsx`) already sets `aria-label` and `title`
   from one `label`. It takes the listing icon and a 38px bordered look for the header, so
@@ -118,7 +120,6 @@ Same as [SPEC.md](../../SPEC.md#commands): `npm test`, `npm run lint`, `npx tsc 
 
 ```
 frontend/src/
-  assets/listing.svg            new icon
   components/form.tsx           IconButton: the listing icon and the 38px bordered look
   components/BuildHeader.tsx    the two icon buttons
   components/BuildChecklist.tsx titles on the marks

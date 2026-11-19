@@ -4,7 +4,7 @@ import { ApiError, type FieldErrors } from "../api";
 import chevron from "../assets/chevron.svg";
 import pencil from "../assets/pencil.svg";
 import trash from "../assets/trash.svg";
-import { iconButton, input } from "../ui";
+import { iconButton, iconButtonBordered, input } from "../ui";
 
 /** "₱12,500" → "12500": people type (or paste from shops) the peso sign and
  * thousands separators; the API accepts neither. */
@@ -64,17 +64,48 @@ export function RowActions({
   );
 }
 
-/** A 28×28 pencil or trash button. `label` is its accessible name. */
+// Drawn inline so they take the text colour, which follows the theme (the row icons are
+// files with the light theme's colours).
+const svgProps = {
+  width: 16,
+  height: 16,
+  viewBox: "0 0 16 16",
+  fill: "none",
+  stroke: "currentColor",
+  strokeLinecap: "round",
+  strokeLinejoin: "round",
+  "aria-hidden": true,
+} as const;
+
+/** A sheet with lines: the listing. */
+const listingIcon = (
+  <svg {...svgProps}>
+    <rect x="3" y="1.333" width="10" height="13.333" rx="1.333" />
+    <path d="M5.667 5.333h4.666M5.667 8h4.666M5.667 10.667h2.666" />
+  </svg>
+);
+
+/** The same bin as trash.svg. */
+const trashIcon = (
+  <svg {...svgProps}>
+    <path d="M2 4h12M12.667 4v9.333c0 .667-.667 1.334-1.334 1.334H4.667c-.667 0-1.334-.667-1.334-1.334V4M5.333 4V2.667c0-.667.667-1.334 1.334-1.334h2.666c.667 0 1.334.667 1.334 1.334V4" />
+  </svg>
+);
+
+/** A 16px icon button: 28×28 in a row, or 38×38 with a border (`bordered`) in the build
+ * header. `label` is its accessible name and its tooltip. */
 export function IconButton({
   action,
   label,
   onClick,
   disabled = false,
+  bordered = false,
 }: {
-  action: "edit" | "delete";
+  action: "edit" | "delete" | "listing";
   label: string;
   onClick: () => void;
   disabled?: boolean;
+  bordered?: boolean;
 }) {
   return (
     <button
@@ -83,14 +114,24 @@ export function IconButton({
       title={label}
       onClick={onClick}
       disabled={disabled}
-      className={iconButton}
+      className={
+        bordered
+          ? `${iconButtonBordered} ${action === "delete" ? "text-loss" : "text-ink"}`
+          : iconButton
+      }
     >
-      <img
-        src={action === "edit" ? pencil : trash}
-        alt=""
-        width={16}
-        height={16}
-      />
+      {action === "listing" ? (
+        listingIcon
+      ) : bordered && action === "delete" ? (
+        trashIcon
+      ) : (
+        <img
+          src={action === "edit" ? pencil : trash}
+          alt=""
+          width={16}
+          height={16}
+        />
+      )}
     </button>
   );
 }

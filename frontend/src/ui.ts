@@ -18,6 +18,9 @@ export const link = `rounded text-[13px] leading-[18px] font-medium text-accent 
 /** 28×28 ghost button around a 16px icon. Needs an aria-label. */
 export const iconButton = `flex size-7 items-center justify-center rounded hover:bg-sunken disabled:opacity-45 ${focusRing}`;
 
+/** 38×38, a button's height, with the secondary button's border: the build header's icons. */
+export const iconButtonBordered = `flex size-[38px] shrink-0 items-center justify-center rounded border border-line-strong bg-surface hover:bg-sunken disabled:opacity-45 ${focusRing}`;
+
 /** Text input / select. Pass `error` to switch the border to the loss color. 16px on phones:
  * iOS Safari zooms into any smaller input on focus, and doesn't zoom back out. */
 export const input = (error = false) =>

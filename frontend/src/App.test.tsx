@@ -1243,3 +1243,16 @@ test("logged in, the footer is there too, so Privacy is reachable", async () => 
   await screen.findByRole("heading", { name: "Builds" });
   expectFooter();
 });
+
+test("the header's username shows in full on hover, since it can be cut off", async () => {
+  saveSession({ token: "abc", username: "a-rather-long-username" });
+  stubFetch(
+    () => Response.json([]),
+    () => Response.json(EMPTY_SUMMARY),
+  );
+  renderAt("/");
+  await screen.findByRole("heading", { name: "Builds" });
+
+  const link = screen.getByRole("link", { name: "a-rather-long-username" });
+  expect(link.title).toBe("a-rather-long-username");
+});

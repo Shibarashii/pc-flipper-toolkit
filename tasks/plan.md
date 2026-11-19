@@ -301,7 +301,7 @@ once and for an hour, token deleted); the pages follow.
 email.
 
 ### Phase 23: Portfolio polish ([docs/specs/portfolio-polish.md](../docs/specs/portfolio-polish.md))
-- [ ] T53: Icon buttons and tooltips
+- [x] T53: Icon buttons and tooltips
 - [ ] T54: Summary words
 - [ ] T55: Account page regrouped
 
