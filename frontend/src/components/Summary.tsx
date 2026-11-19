@@ -46,11 +46,11 @@ export function Summary({
         : "text-[length:min(60px,15cqi)]";
 
   // Selling above shop prices makes below_market negative; say "Over shop prices" instead.
-  const aboveMarket = below_market !== null && Number(below_market) < 0;
-  let market = "—";
+  const overShopPrices = below_market !== null && Number(below_market) < 0;
+  let shopGap = "—";
   if (below_market !== null) {
-    market = formatMoney(below_market.replace("-", ""));
-    if (below_market_pct !== null) market += ` · ${pct(below_market_pct)}`;
+    shopGap = formatMoney(below_market.replace("-", ""));
+    if (below_market_pct !== null) shopGap += ` · ${pct(below_market_pct)}`;
   }
 
   return (
@@ -97,8 +97,8 @@ export function Summary({
         <dl className="flex flex-col gap-2.5 border-t border-line px-3 pt-2.5">
           <Item label="Selling price" value={formatMoney(sellingPrice)} />
           <Item
-            label={aboveMarket ? "Over shop prices" : "Under shop prices"}
-            value={market}
+            label={overShopPrices ? "Over shop prices" : "Under shop prices"}
+            value={shopGap}
           />
           <Item
             label="Saved on parts"
