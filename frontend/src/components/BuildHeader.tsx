@@ -9,7 +9,7 @@ import {
 } from "../api";
 import { buildNo } from "../buildNo";
 import { formatMoney } from "../money";
-import { buttonDanger, buttonSecondary, input } from "../ui";
+import { input } from "../ui";
 import { DeleteBuildDialog } from "./DeleteBuildDialog";
 import {
   cleanMoney,
@@ -248,20 +248,18 @@ export function BuildHeader({
         </div>
         {/* Lines up with the inputs' bottom edge, even when a field shows an error. */}
         <div className="flex shrink-0 gap-2 self-end">
-          <button
-            type="button"
+          <IconButton
+            action="listing"
+            label="Copy listing"
             onClick={() => setListing(true)}
-            className={buttonSecondary}
-          >
-            Copy listing
-          </button>
-          <button
-            type="button"
+            bordered
+          />
+          <IconButton
+            action="delete"
+            label="Delete build"
             onClick={() => setConfirmingDelete(true)}
-            className={buttonDanger}
-          >
-            Delete build
-          </button>
+            bordered
+          />
         </div>
       </div>
       {listing && (

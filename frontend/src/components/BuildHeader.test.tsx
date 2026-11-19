@@ -191,3 +191,14 @@ test("Esc on a rejected price also clears its error", async () => {
   expect(screen.queryByText("Must be 0 or more.")).toBeNull();
   expect(price.className).not.toContain("border-loss");
 });
+
+test.each(["Copy listing", "Delete build"])(
+  "%s is an icon with its name as a tooltip",
+  (name) => {
+    renderHeader(makeBuild());
+
+    const button = screen.getByRole("button", { name });
+    expect(button.textContent).toBe("");
+    expect(button.title).toBe(name);
+  },
+);

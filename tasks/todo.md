@@ -1603,28 +1603,33 @@ Spec: [docs/specs/portfolio-polish.md](../docs/specs/portfolio-polish.md). Desig
 Portfolio polish section on Figma's Ready for development (approved 2026-11-19). Frontend only: no
 migration, no API change, no new dependencies.
 
-### - [ ] T53: Icon buttons and tooltips
+### - [x] T53: Icon buttons and tooltips
 
 **Description:**
-- `IconButton` (`form.tsx`): the `listing` icon (new `assets/listing.svg`, from the Figma
-  component) and a `bordered` 38px look; `aria-label` and `title` from one `label`, as today.
+- `IconButton` (`form.tsx`): the `listing` icon and a `bordered` 38px look; `aria-label` and
+  `title` from one `label`, as today.
 - Build header: Copy listing and Delete build become those icon buttons, on desktop and phones,
   opening the same dialogs.
 - `title` on the header's username link (the full name) and on the build checklist's marks
   ("Added", "Missing", "Optional"). Tests first.
+- Built 2026-11-19: every `IconButton` icon is drawn inline in `currentColor` (`text-muted`,
+  `text-loss`, `text-ink`), so it follows the theme; `pencil.svg` and `trash.svg` carried the
+  light theme's colours (a dim red bin in dark mode) and are deleted. The review moved the row
+  icons over too, so `bordered` only sets the size and border. Opening the dialogs stays covered by their own tests. Checked locally on a
+  demo build at desktop and 375px, light and dark.
 
 **Acceptance criteria:**
-- [ ] Buttons named "Copy listing" and "Delete build" show no text, have a matching `title`,
+- [x] Buttons named "Copy listing" and "Delete build" show no text, have a matching `title`,
   and open their dialogs
-- [ ] The username link and the checklist marks have their `title`
-- [ ] Matches the Figma header at desktop and 375px, light and dark
+- [x] The username link and the checklist marks have their `title`
+- [x] Matches the Figma header at desktop and 375px, light and dark
 
 **Verification:**
-- [ ] Standard verification, `npx playwright test`
-- [ ] Manual: hover each icon locally; tab to each and press Enter
+- [x] Standard verification, `npx playwright test`
+- [x] Manual: hover each icon locally; tab to each and press Enter
 
 **Dependencies:** None
-**Files:** `frontend/src/assets/listing.svg`, `frontend/src/components/form.tsx`, `frontend/src/components/BuildHeader.tsx`, `frontend/src/components/BuildChecklist.tsx`, `frontend/src/App.tsx`, + their tests
+**Files:** `frontend/src/ui.ts`, `frontend/src/components/form.tsx`, `frontend/src/components/BuildHeader.tsx`, `frontend/src/components/BuildChecklist.tsx`, `frontend/src/App.tsx`, `frontend/src/assets/{pencil,trash}.svg` (deleted), + their tests
 **Scope:** S
 
 ### - [ ] T54: Summary words

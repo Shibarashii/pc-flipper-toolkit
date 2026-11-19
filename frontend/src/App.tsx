@@ -68,6 +68,7 @@ export default function App() {
               {/* Opens Account: the username from 640px, an icon on phones. */}
               <Link
                 to="/account"
+                title={session.username}
                 className={`hidden truncate text-[13px] font-medium text-muted hover:text-ink sm:block ${focusRing}`}
               >
                 {session.username}

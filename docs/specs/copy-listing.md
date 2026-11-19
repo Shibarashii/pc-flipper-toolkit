@@ -70,7 +70,8 @@ Price: ₱32,000
 
 **Build page header** (`frontend/src/components/BuildHeader.tsx`). A **Copy listing** button
 (secondary style) sits beside **Delete build**, on the same line on desktop and below the fields
-on phones.
+on phones. (Changed 2026-11-19: both are icon buttons with tooltips, see
+[portfolio-polish.md](portfolio-polish.md).)
 
 **Copy listing dialog** (a new `ListingDialog`, built like `NewBuildDialog`: a native
 `<dialog>` opened with the existing `useModal()`):

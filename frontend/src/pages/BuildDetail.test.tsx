@@ -180,3 +180,25 @@ test("a checklist Add link opens the add-part row with its category picked", asy
   expect((form.querySelector("select") as HTMLSelectElement).value).toBe("psu");
   expect(screen.getByText("0 of 6 required parts")).toBeTruthy();
 });
+
+test("each checklist mark says what it means on hover", async () => {
+  const cpu: Part = {
+    id: "7",
+    build: "3",
+    name: "Ryzen 5 7600",
+    category: "cpu",
+    shop: "",
+    condition: "",
+    listed_price: "1.00",
+    bought_for: "1.00",
+    bundle: null,
+  };
+  renderAt("/builds/3", Response.json(makeBuild({ parts: [cpu] })));
+  await screen.findAllByText("Ryzen 5 7600");
+
+  // The marks are hidden from screen readers (the row's text says it), so no role finds them.
+  const titles = [...document.querySelectorAll("li img[title]")].map(
+    (img) => (img as HTMLImageElement).title,
+  );
+  expect(new Set(titles)).toEqual(new Set(["Added", "Missing", "Optional"]));
+});
