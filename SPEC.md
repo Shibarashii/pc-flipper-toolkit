@@ -17,14 +17,15 @@ market the PC is priced. It replaces the author's spreadsheet.
 3. I can add extra costs to a build: a label and an amount (shipping, platform fee, thermal paste, cables).
 4. I can set a selling price and a status (planning → building → listed → sold).
 5. On a build, I see these totals:
-   - **Listed total:** sum of the parts' listed prices
+   - **Parts at shop prices** (`listed_total`): sum of the parts' listed prices
    - **Parts cost:** sum of the bought-for prices of parts not in a bundle, plus each bundle's price
    - **Extra costs:** sum of the extra costs
    - **Total cost:** parts cost + extra costs
    - **Profit:** selling price − total cost (blank if there's no selling price yet)
    - **Profit margin:** profit ÷ selling price, as a %
-   - **Below market:** listed total − selling price, in ₱ and as % of the listed total
-   - **Voucher savings:** listed total − parts cost
+   - **Under shop prices** (`below_market`): listed total − selling price, in ₱ and as % of the
+     listed total; "Over shop prices" when it's negative
+   - **Saved on parts** (`voucher_savings`): listed total − parts cost
 6. On the builds list, I see each build's status, total cost, selling price and profit.
 7. I can edit and delete builds, parts and extra costs.
 8. Everything works on a phone-sized screen.

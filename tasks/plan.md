@@ -302,7 +302,7 @@ email.
 
 ### Phase 23: Portfolio polish ([docs/specs/portfolio-polish.md](../docs/specs/portfolio-polish.md))
 - [x] T53: Icon buttons and tooltips
-- [ ] T54: Summary words
+- [x] T54: Summary words
 - [ ] T55: Account page regrouped
 
 ```

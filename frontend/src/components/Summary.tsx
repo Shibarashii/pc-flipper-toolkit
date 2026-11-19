@@ -45,12 +45,12 @@ export function Summary({
         ? "text-[length:min(60px,16.5cqi)]"
         : "text-[length:min(60px,15cqi)]";
 
-  // Selling above market makes below_market negative; say "Above market" instead.
-  const aboveMarket = below_market !== null && Number(below_market) < 0;
-  let market = "—";
+  // Selling above shop prices makes below_market negative; say "Over shop prices" instead.
+  const overShopPrices = below_market !== null && Number(below_market) < 0;
+  let shopGap = "—";
   if (below_market !== null) {
-    market = formatMoney(below_market.replace("-", ""));
-    if (below_market_pct !== null) market += ` · ${pct(below_market_pct)}`;
+    shopGap = formatMoney(below_market.replace("-", ""));
+    if (below_market_pct !== null) shopGap += ` · ${pct(below_market_pct)}`;
   }
 
   return (
@@ -82,7 +82,10 @@ export function Summary({
 
       <div className="flex flex-col gap-2.5 border-t border-line pt-4">
         <dl className="flex flex-col gap-2.5 px-3">
-          <Item label="Listed total" value={formatMoney(totals.listed_total)} />
+          <Item
+            label="Parts at shop prices"
+            value={formatMoney(totals.listed_total)}
+          />
           <Item label="Parts cost" value={formatMoney(totals.parts_cost)} />
           <Item label="Extra costs" value={formatMoney(totals.extra_costs)} />
           <Item
@@ -94,11 +97,11 @@ export function Summary({
         <dl className="flex flex-col gap-2.5 border-t border-line px-3 pt-2.5">
           <Item label="Selling price" value={formatMoney(sellingPrice)} />
           <Item
-            label={aboveMarket ? "Above market" : "Below market"}
-            value={market}
+            label={overShopPrices ? "Over shop prices" : "Under shop prices"}
+            value={shopGap}
           />
           <Item
-            label="Voucher savings"
+            label="Saved on parts"
             value={formatMoney(totals.voucher_savings)}
           />
         </dl>

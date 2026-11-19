@@ -140,7 +140,7 @@ test("flip a PC: sign up, add parts and a bundle, price it, delete it", async ({
     summary.locator(`dt:text-is("${label}") + dd`);
   await expect(summary.getByText("+₱3,500.00")).toBeVisible();
   await expect(summary.getByText("9.21% margin")).toBeVisible();
-  await expect(value("Listed total")).toHaveText("₱40,500.00");
+  await expect(value("Parts at shop prices")).toHaveText("₱40,500.00");
   await expect(value("Parts cost")).toHaveText("₱34,000.00");
   await expect(value("Extra costs")).toHaveText("₱500.00");
   await expect(value("Total cost")).toHaveText("₱34,500.00");

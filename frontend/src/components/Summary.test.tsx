@@ -15,13 +15,13 @@ test("renders every total from the server", () => {
 
   expect(screen.getByText("+₱3,700.00").className).toContain("text-profit");
   expect(screen.getByText("7.40% margin")).toBeTruthy();
-  expect(row("Listed total")).toBe("₱52,000.00");
+  expect(row("Parts at shop prices")).toBe("₱52,000.00");
   expect(row("Parts cost")).toBe("₱45,500.00");
   expect(row("Extra costs")).toBe("₱800.00");
   expect(row("Total cost")).toBe("₱46,300.00");
   expect(row("Selling price")).toBe("₱50,000.00");
-  expect(row("Below market")).toBe("₱2,000.00 · 3.85%");
-  expect(row("Voucher savings")).toBe("₱6,500.00");
+  expect(row("Under shop prices")).toBe("₱2,000.00 · 3.85%");
+  expect(row("Saved on parts")).toBe("₱6,500.00");
 });
 
 test("null totals show a dash and a prompt to set a price", () => {
@@ -29,7 +29,7 @@ test("null totals show a dash and a prompt to set a price", () => {
 
   expect(screen.getByText("Set a selling price to see profit")).toBeTruthy();
   expect(row("Selling price")).toBe("—");
-  expect(row("Below market")).toBe("—");
+  expect(row("Under shop prices")).toBe("—");
   expect(row("Total cost")).toBe("₱0.00");
 });
 
@@ -41,7 +41,7 @@ test("a loss is red with a true minus sign", () => {
   expect(screen.getByText("-7.78% margin")).toBeTruthy();
 });
 
-test("selling above market reads as 'Above market', unsigned", () => {
+test("selling above shop prices reads as 'Over shop prices', unsigned", () => {
   const totals = {
     ...SPEC_TOTALS,
     below_market: "-20000.00",
@@ -49,6 +49,6 @@ test("selling above market reads as 'Above market', unsigned", () => {
   };
   render(<Summary totals={totals} sellingPrice="50000.00" />);
 
-  expect(screen.queryByText("Below market")).toBeNull();
-  expect(row("Above market")).toBe("₱20,000.00 · 66.67%");
+  expect(screen.queryByText("Under shop prices")).toBeNull();
+  expect(row("Over shop prices")).toBe("₱20,000.00 · 66.67%");
 });
