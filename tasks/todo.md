@@ -1654,7 +1654,7 @@ migration, no API change, no new dependencies.
 **Files:** `frontend/src/components/Summary.tsx`, `frontend/src/components/BundleRow.tsx`, `frontend/src/components/Summary.test.tsx`, `frontend/src/components/PartsTable.test.tsx`, `frontend/e2e/flip.spec.ts`, `SPEC.md`
 **Scope:** XS
 
-### - [ ] T55: Account page regrouped
+### - [x] T55: Account page regrouped
 
 **Description:**
 - `/account` as in the spec's Part 3: "Logged in as" goes; Username; Ways to log in (Password
@@ -1663,15 +1663,20 @@ migration, no API change, no new dependencies.
   line and the new sent and password-changed messages. One verb: "log in".
 - No API change: `me.has_password`, `me.google` and `me.email` already say everything.
   Tests first, one per state.
+- Built 2026-11-19: each state's test reads its section word for word (which also catches
+  anything said twice) and checks the page for "sign in" and "Logged in as". The rows share
+  one `Row` (label left, action right). Google's load error keeps "Google sign-in", as the
+  spec says ("as today"). Checked locally on a password account (Google connected, then
+  disconnected), a Google-only one and the demo, at 375px and desktop, light and dark.
 
 **Acceptance criteria:**
-- [ ] Every state reads word for word as in the spec and the Figma states frame
-- [ ] No "sign in" on the page outside Google's own button, and nothing said twice
-- [ ] Fits 375px, light and dark
+- [x] Every state reads word for word as in the spec and the Figma states frame
+- [x] No "sign in" on the page outside Google's own button, and nothing said twice
+- [x] Fits 375px, light and dark
 
 **Verification:**
-- [ ] Standard verification, `npx playwright test`
-- [ ] Manual: a password account, a Google-only one and the demo, locally
+- [x] Standard verification, `npx playwright test`
+- [x] Manual: a password account, a Google-only one and the demo, locally
 
 **Dependencies:** None
 **Files:** `frontend/src/pages/Account.tsx`, `frontend/src/App.test.tsx` (or a new `Account.test.tsx`)
