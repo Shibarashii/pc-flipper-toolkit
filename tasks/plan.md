@@ -316,6 +316,21 @@ each is its own PR. Built from the Portfolio polish section on Ready for develop
 **Checkpoint 21:** the spec's success criteria 1–4 pass on the live site, at desktop and 375px,
 light and dark.
 
+### Phase 24: A password for Google-only accounts ([docs/specs/google-only-password.md](../docs/specs/google-only-password.md))
+- [ ] T56: Reset link for Google-only accounts
+- [ ] T57: Set password on Account
+
+```
+T56 reset link ── T57 Set password ── Checkpoint 22
+```
+No new endpoint, no migration, no new dependency. T56 alone already lets a Google-only account
+set a password from "Forgot your username or password?"; T57 adds the button on Account, which
+calls the same endpoint. Each is its own PR. Built from the Google-only password section on
+Ready for development (approved 2026-11-19).
+
+**Checkpoint 22:** the spec's success criteria 1–4 pass on the live site, with a real email to
+a Google-only account.
+
 ## Risks and Mitigations
 
 | Risk | Impact | Mitigation |
@@ -358,6 +373,9 @@ light and dark.
 | Brevo's emails land in spam when sent from a free address | High (parts 2–3 don't work for users) | S1 tests delivery to Gmail and one other provider before T49 merges; stop and decide (a domain of our own, another sender) if they land in spam. 2026-11-18: Gmail inbox, mail-tester 5.5/10; accepted, "check your spam folder" in the messages, a domain parked |
 | An email sent from a background thread is lost when Render restarts | Low (the user asks again) | A `ponytail:` comment in `emails.py`; a task queue only if it's ever seen (T48) |
 | Sign-up needing an email breaks the e2e flow | Med | T50 fills in the email in the flip test; the demo doesn't use sign-up |
+| Whoever reads a Google-only account's recovery email can add a password to it | Med | The same as a reset for any password account today; the email is confirmed before it's saved, and setting the password emails a notice and logs every device out (T56) |
+| The public reset endpoint gives away which accounts are Google-only | Med | The same 202 answer and timing for every address; the existing "same answer" test now includes a Google-only account (T56) |
+| A demo account gets a reset link | Low | Demos can't have an email; a test asks with a demo's (empty) email (T56) |
 
 ## Open Questions
 
