@@ -275,15 +275,26 @@ pc-flipper-toolkit/
 │   ├── config/            Django project: settings.py, urls.py
 │   └── builds/            The one Django app: models, serializers, views, tests.py;
 │                          auth.py (accounts), authentication.py (token checks), demo.py (sample builds),
-│                          prices.py + test_prices.py (price lookup), google.py + test_google.py (Google sign-in)
+│                          prices.py + test_prices.py (price lookup), google.py + test_google.py (Google sign-in),
+│                          emails.py (account emails, text + HTML),
+│                          management/commands/refresh_shop_prices.py (the daily shop price refresh)
 ├── frontend/
 │   ├── vite.config.ts     Includes the /api dev proxy
 │   ├── e2e/               Playwright: the main flow, trying the demo, and the price lookup
 │   └── src/
+│       ├── App.tsx        Routes, header and footer
 │       ├── api.ts         fetch helpers and TS types matching the API
+│       ├── auth.ts        The logged-in session, saved in the browser
+│       ├── ui.ts          Shared class strings for Button and Field (the brand's sizes)
 │       ├── money.ts       ₱ formatting
-│       ├── pages/         BuildsList.tsx, BuildDetail.tsx, Login.tsx, Account.tsx, Privacy.tsx
-│       └── components/    PartsTable.tsx, ExtraCosts.tsx, Summary.tsx, ...
+│       ├── buildNo.ts     Build numbers, zero-padded ("01")
+│       ├── slots.ts       Which part categories a build has filled, is missing, or may skip
+│       ├── listing.ts     The copy-listing text
+│       ├── google.tsx     Google's sign-in button
+│       ├── test/          Vitest setup and fixtures
+│       ├── pages/         BuildsList, BuildDetail, Login, Account, Forgot, ResetPassword,
+│       │                  VerifyEmail, Privacy
+│       └── components/    PartsTable.tsx, ExtraCosts.tsx, Summary.tsx, ... (tests sit beside them)
 ├── docs/brand-guidelines.md  The look: warm paper and ink, green accent, hairlines
 ├── docs/ideas/            Idea one-pagers, and backlog.md: rough ideas and parked decisions
 ├── docs/intent/           Confirmed statements of intent (the app, e2e tests, demo account)
@@ -327,7 +338,7 @@ class Build(models.Model):
   can't quietly break them); a demo user older than 24 hours gets 401 and is deleted by the
   next demo request; a real user named `demo-…` with a password is never deleted; sign-up
   refuses `demo-`; demo creation counts toward the shared rate limit.
-- **Frontend:** a small set of Vitest tests: `₱` formatting, and the Summary component rendering the totals it's given (including `null` → "—").
+- **Frontend:** Vitest tests beside the code they test (`Summary.test.tsx` next to `Summary.tsx`): `₱` formatting, the Summary component rendering the totals it's given (including `null` → "—"), and each later feature's components and helpers.
 - **Manual check per task:** run both servers and click through the flow on desktop and at phone width.
 - No coverage % target. The profit calculation must be fully tested.
 
