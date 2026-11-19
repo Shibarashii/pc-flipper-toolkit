@@ -730,9 +730,10 @@ WAI-ARIA 1.2 combobox with a listbox pop-up.
 **Scope:** M
 
 ### Checkpoint 8: Part search pop-up
-- [ ] part 2's success criteria 1–5 pass on the live site
+- [x] part 2's success criteria 1–5 pass on the live site (by the author, 2026-11-19; for
+  criterion 3, the keyboard alone, with the screen reader left to the box below)
 - [ ] Manual, by the author: with Orca on, typing in Part announces the rows found, and Down reads each row (criterion 3)
-- [ ] All tests pass on `main`
+- [x] All tests pass on `main` (CI on 7d511d6)
 
 ## Phase 11: Builds summary
 
