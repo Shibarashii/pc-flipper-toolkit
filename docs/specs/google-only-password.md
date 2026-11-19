@@ -134,7 +134,8 @@ if user and cache.add(f"reset:{email_mark(email.lower())}", True, RESET_WAIT):
 
 ## Open Questions
 
-1. Figma: one new state (the Google-only row with "Set password"). Draw it on Flow — in
-   review first, or build straight from this table?
+1. Figma: the three states are drawn on **Flow — in review**, section "Google-only password
+   — in review" (`150:4`), light and dark. Approve them to move the section to Ready for
+   development.
 
 The words above are approved as written (2026-11-19).
