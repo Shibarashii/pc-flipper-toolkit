@@ -624,24 +624,70 @@ test("Google's button failing to load says so, still in one verb", async () => {
   expectOneVerb();
 });
 
-test("a Google-only account has no password to change and keeps Google", async () => {
+const googleOnly = (fields: object = {}) =>
+  me({
+    google: { email: "c@gmail.com" },
+    has_password: false,
+    email: "carol@example.com",
+    ...fields,
+  });
+
+test("a Google-only account can set a password and keeps Google", async () => {
   saveSession({ token: "abc", username: "carol" });
-  stubFetch(
-    me({
-      google: { email: "c@gmail.com" },
-      has_password: false,
-      email: "carol@example.com",
-    }),
-  );
+  stubFetch(googleOnly());
   renderAt("/account");
 
   expect(await wordsIn("Ways to log in")).toBe(
-    "Ways to log inPasswordNot setGooglec@gmail.comGoogle is your only way to log in, so it stays connected.",
+    "Ways to log inPasswordNot setSet passwordGooglec@gmail.comGoogle is your only way to log in, so it stays connected.",
   );
   // Without a password there's nothing to reset, so the email only finds the username.
   expect(await wordsIn("Recovery email")).toBe(
     "Recovery emailcarol@example.comChangeUsed if you forget your username.",
   );
+  expectOneVerb();
+});
+
+test("Set password emails the recovery address a link", async () => {
+  saveSession({ token: "abc", username: "carol" });
+  const fetchMock = stubFetch(googleOnly(), () =>
+    Response.json({ detail: "sent" }, { status: 202 }),
+  );
+  renderAt("/account");
+
+  fireEvent.click(await screen.findByRole("button", { name: "Set password" }));
+  await screen.findByRole("status");
+  expect(await wordsIn("Ways to log in")).toBe(
+    "Ways to log inWe sent a link to carol@example.com. Open it within 1 hour to set your password. Not there? Check your spam folder.PasswordNot setSet passwordGooglec@gmail.comGoogle is your only way to log in, so it stays connected.",
+  );
+  const { url, body } = requestTo(fetchMock, 1);
+  expect(url).toBe("/api/auth/password-reset/");
+  expect(JSON.parse(body as string)).toEqual({ email: "carol@example.com" });
+  expectOneVerb();
+});
+
+test("too many Set password tries says to wait, under the heading", async () => {
+  saveSession({ token: "abc", username: "carol" });
+  stubFetch(googleOnly(), () => Response.json({}, { status: 429 }));
+  renderAt("/account");
+
+  fireEvent.click(await screen.findByRole("button", { name: "Set password" }));
+  expect((await screen.findByRole("alert")).textContent).toBe(
+    "Too many attempts. Wait a minute and try again.",
+  );
+  expect(await wordsIn("Ways to log in")).toMatch(
+    /^Ways to log inToo many attempts.*PasswordNot setSet password/,
+  );
+});
+
+test("a Google-only account without a recovery email is told to add one", async () => {
+  saveSession({ token: "abc", username: "carol" });
+  stubFetch(googleOnly({ email: "" }));
+  renderAt("/account");
+
+  expect(await wordsIn("Ways to log in")).toBe(
+    "Ways to log inPasswordNot setGooglec@gmail.comGoogle is your only way to log in, so it stays connected. Add a recovery email to set a password.",
+  );
+  expect(screen.queryByRole("button", { name: "Set password" })).toBeNull();
   expectOneVerb();
 });
 

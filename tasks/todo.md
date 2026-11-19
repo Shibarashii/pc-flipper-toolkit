@@ -1729,7 +1729,7 @@ migration, no new endpoint, no new dependencies.
 **Files:** `backend/builds/auth.py`, `backend/builds/emails.py`, `backend/builds/tests.py`, `SPEC.md`, `docs/specs/google-sign-in.md`, `docs/specs/account-management.md`
 **Scope:** XS
 
-### - [ ] T57: Set password on Account
+### - [x] T57: Set password on Account
 
 **Description:**
 - The Google-only Password row (`Account.tsx`): "Password" over muted "Not set", and "Set
@@ -1739,15 +1739,19 @@ migration, no new endpoint, no new dependencies.
 - Without a recovery email: no button, and the hint adds "Add a recovery email to set a
   password."
 - SPEC.md's Account screen mentions Set password. Tests first, one per state.
+- Built 2026-11-19: four Account tests (with an email, after Set password, a 429 under the
+  heading, without an email). Checked locally at 375px: Set password, the console email's
+  link, log-in with the new password (then Change and Disconnect), and the no-email hint in
+  dark.
 
 **Acceptance criteria:**
-- [ ] The three states read word for word as in the spec and the Figma section
-- [ ] "Set password" posts `{email}` to `/auth/password-reset/`; a 429 shows under the heading
-- [ ] Still one verb on the page; fits 375px, light and dark
+- [x] The three states read word for word as in the spec and the Figma section
+- [x] "Set password" posts `{email}` to `/auth/password-reset/`; a 429 shows under the heading
+- [x] Still one verb on the page; fits 375px, light and dark
 
 **Verification:**
-- [ ] Standard verification, `npx playwright test`
-- [ ] Manual: a local Google-only account, with and without a recovery email
+- [x] Standard verification, `npx playwright test`
+- [x] Manual: a local Google-only account, with and without a recovery email
 
 **Dependencies:** T56
 **Files:** `frontend/src/pages/Account.tsx`, `frontend/src/App.test.tsx`, `SPEC.md`
