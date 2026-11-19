@@ -44,6 +44,22 @@ the part as it was, because the page refetches the build after the save returns.
 is usually slower than the refetch. Fix if it's ever seen: build the post from the saved
 part, like the header's price already does.
 
+### Get ready for a portfolio (added 2026-11-19)
+
+The app is feature-complete enough to show; more features wouldn't make it more convincing.
+Before sharing it, after the author's own nits and wording fixes:
+
+- **README:** "Known limits" still says "No email or password reset (out of scope for v1)",
+  which is wrong since account management. Add accounts (Google sign-in, a confirmed email,
+  changing the username and password, "Forgot your username or password?") and email
+  (Brevo) to what it describes and its Stack table.
+- **The first load:** Render's free plan sleeps after 15 minutes idle, so a first click can take
+  up to a minute. The README warns about it; open the site a minute before sharing the link at
+  a set time.
+- **A 30-second story:** the problem it solves, and two or three choices worth pointing at, e.g.
+  exact money (`Decimal`, strings in JSON), polite shop-price fetching, and a reset that never
+  says whether an account exists.
+
 ## Parked
 
 - **A domain of our own for email** (parked 2026-11-18). Emails go through Brevo from
