@@ -46,12 +46,13 @@ Small fixes to controls and words before the app goes in the author's portfolio,
   side where the text buttons were, still lined up with the inputs' bottom edge.
   - 38px square (the height of the buttons they replace), the secondary button's border and
     surface, a 16px icon, the brand's focus ring.
-  - **Copy listing:** a sheet with text lines (the same 16px stroke style as `pencil.svg`), in
+  - **Copy listing:** a sheet with text lines (the same 16px stroke style as the pencil), in
     ink. Named "Copy listing". Opens the listing dialog, unchanged.
-  - **Delete build:** the bin from `trash.svg`, in the loss colour as today. Named "Delete
+  - **Delete build:** the rows' bin, in the loss colour as today. Named "Delete
     build". Opens the delete dialog, unchanged.
-  - Both are drawn inline with `currentColor`, so ink and loss follow the theme (`trash.svg`
-    and `pencil.svg` carry the light theme's colours; built 2026-11-19).
+  - Every `IconButton` icon (pencil, bin, sheet) is drawn inline in `currentColor`, so muted,
+    loss and ink follow the theme. `pencil.svg` and `trash.svg` carried the light theme's
+    colours and are gone (built 2026-11-19, from the review).
   - Same icons and size on desktop and phones.
 - **One way to name an icon:** `IconButton` (`form.tsx`) already sets `aria-label` and `title`
   from one `label`. It takes the listing icon and a 38px bordered look for the header, so

@@ -196,6 +196,7 @@ test("each checklist mark says what it means on hover", async () => {
   renderAt("/builds/3", Response.json(makeBuild({ parts: [cpu] })));
   await screen.findAllByText("Ryzen 5 7600");
 
+  // The marks are hidden from screen readers (the row's text says it), so no role finds them.
   const titles = [...document.querySelectorAll("li img[title]")].map(
     (img) => (img as HTMLImageElement).title,
   );

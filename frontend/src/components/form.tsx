@@ -2,8 +2,6 @@
 import { useState, type ComponentProps, type ReactNode } from "react";
 import { ApiError, type FieldErrors } from "../api";
 import chevron from "../assets/chevron.svg";
-import pencil from "../assets/pencil.svg";
-import trash from "../assets/trash.svg";
 import { iconButton, iconButtonBordered, input } from "../ui";
 
 /** "₱12,500" → "12500": people type (or paste from shops) the peso sign and
@@ -64,8 +62,7 @@ export function RowActions({
   );
 }
 
-// Drawn inline so they take the text colour, which follows the theme (the row icons are
-// files with the light theme's colours).
+// Drawn inline in `currentColor`, so each takes its button's text colour in both themes.
 const svgProps = {
   width: 16,
   height: 16,
@@ -77,20 +74,34 @@ const svgProps = {
   "aria-hidden": true,
 } as const;
 
-/** A sheet with lines: the listing. */
-const listingIcon = (
-  <svg {...svgProps}>
-    <rect x="3" y="1.333" width="10" height="13.333" rx="1.333" />
-    <path d="M5.667 5.333h4.666M5.667 8h4.666M5.667 10.667h2.666" />
-  </svg>
-);
-
-/** The same bin as trash.svg. */
-const trashIcon = (
-  <svg {...svgProps}>
-    <path d="M2 4h12M12.667 4v9.333c0 .667-.667 1.334-1.334 1.334H4.667c-.667 0-1.334-.667-1.334-1.334V4M5.333 4V2.667c0-.667.667-1.334 1.334-1.334h2.666c.667 0 1.334.667 1.334 1.334V4" />
-  </svg>
-);
+const ICONS = {
+  edit: {
+    color: "text-muted",
+    svg: (
+      <svg {...svgProps}>
+        <path d="pencil" />
+      </svg>
+    ),
+  },
+  delete: {
+    color: "text-loss",
+    svg: (
+      <svg {...svgProps}>
+        <path d="M2 4h12M12.667 4v9.333c0 .667-.667 1.334-1.334 1.334H4.667c-.667 0-1.334-.667-1.334-1.334V4M5.333 4V2.667c0-.667.667-1.334 1.334-1.334h2.666c.667 0 1.334.667 1.334 1.334V4" />
+      </svg>
+    ),
+  },
+  // A sheet with lines: the listing.
+  listing: {
+    color: "text-ink",
+    svg: (
+      <svg {...svgProps}>
+        <rect x="3" y="1.333" width="10" height="13.333" rx="1.333" />
+        <path d="M5.667 5.333h4.666M5.667 8h4.666M5.667 10.667h2.666" />
+      </svg>
+    ),
+  },
+};
 
 /** A 16px icon button: 28×28 in a row, or 38×38 with a border (`bordered`) in the build
  * header. `label` is its accessible name and its tooltip. */
@@ -101,7 +112,7 @@ export function IconButton({
   disabled = false,
   bordered = false,
 }: {
-  action: "edit" | "delete" | "listing";
+  action: keyof typeof ICONS;
   label: string;
   onClick: () => void;
   disabled?: boolean;
@@ -114,24 +125,9 @@ export function IconButton({
       title={label}
       onClick={onClick}
       disabled={disabled}
-      className={
-        bordered
-          ? `${iconButtonBordered} ${action === "delete" ? "text-loss" : "text-ink"}`
-          : iconButton
-      }
+      className={`${bordered ? iconButtonBordered : iconButton} ${ICONS[action].color}`}
     >
-      {action === "listing" ? (
-        listingIcon
-      ) : bordered && action === "delete" ? (
-        trashIcon
-      ) : (
-        <img
-          src={action === "edit" ? pencil : trash}
-          alt=""
-          width={16}
-          height={16}
-        />
-      )}
+      {ICONS[action].svg}
     </button>
   );
 }

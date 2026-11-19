@@ -1612,10 +1612,10 @@ migration, no API change, no new dependencies.
   opening the same dialogs.
 - `title` on the header's username link (the full name) and on the build checklist's marks
   ("Added", "Missing", "Optional"). Tests first.
-- Built 2026-11-19: the header's two icons are drawn inline with `currentColor` (`text-ink`,
-  `text-loss`), not as files, so they follow the theme: `trash.svg` carries the light theme's
-  red, which looked dim in dark mode where the old "Delete build" text didn't. The row icons
-  are unchanged. Opening the dialogs stays covered by their own tests. Checked locally on a
+- Built 2026-11-19: every `IconButton` icon is drawn inline in `currentColor` (`text-muted`,
+  `text-loss`, `text-ink`), so it follows the theme; `pencil.svg` and `trash.svg` carried the
+  light theme's colours (a dim red bin in dark mode) and are deleted. The review moved the row
+  icons over too, so `bordered` only sets the size and border. Opening the dialogs stays covered by their own tests. Checked locally on a
   demo build at desktop and 375px, light and dark.
 
 **Acceptance criteria:**
@@ -1629,7 +1629,7 @@ migration, no API change, no new dependencies.
 - [x] Manual: hover each icon locally; tab to each and press Enter
 
 **Dependencies:** None
-**Files:** `frontend/src/ui.ts`, `frontend/src/components/form.tsx`, `frontend/src/components/BuildHeader.tsx`, `frontend/src/components/BuildChecklist.tsx`, `frontend/src/App.tsx`, + their tests
+**Files:** `frontend/src/ui.ts`, `frontend/src/components/form.tsx`, `frontend/src/components/BuildHeader.tsx`, `frontend/src/components/BuildChecklist.tsx`, `frontend/src/App.tsx`, `frontend/src/assets/{pencil,trash}.svg` (deleted), + their tests
 **Scope:** S
 
 ### - [ ] T54: Summary words
