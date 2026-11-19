@@ -1758,6 +1758,12 @@ migration, no new endpoint, no new dependencies.
 **Scope:** XS
 
 ### Checkpoint 22: A password for Google-only accounts
-- [ ] The spec's success criteria 1–4 pass on the live site, with a real email to a
+- [x] The spec's success criteria 1–4 pass on the live site, with a real email to a
   Google-only account
-- [ ] All tests pass on `main`
+- [x] All tests pass on `main`
+
+Checked 2026-11-19 on the live site (`07c8bf3`) by the author, with a new Google-only account:
+first without a recovery email (the hint, no Set password), then with one: Set password, the
+email's new words, the link, log-in with the new password, then Password with Change and
+Google with Disconnect. A Forgot right after Set password for the same address sent nothing:
+the two share the 15-minute wait per address, as specced.
