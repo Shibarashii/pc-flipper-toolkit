@@ -129,9 +129,10 @@ export function Account() {
               <p className={hint}>
                 {me.has_password
                   ? "Keep at least one way to log in."
-                  : `Google is your only way to log in, so it stays connected.${
-                      me.email ? "" : " Add a recovery email to set a password."
-                    }`}
+                  : "Google is your only way to log in, so it stays connected."}
+                {!me.has_password &&
+                  !me.email &&
+                  " Add a recovery email to set a password."}
               </p>
             </Section>
 
