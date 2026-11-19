@@ -505,8 +505,9 @@ class ResetRequestView(PublicAuthView):
     @extend_schema(
         summary="Forgot your username or password",
         description="Always 202 with the same message, whether or not an account has the "
-        "email. An active account with that email (any case) and a password gets its "
-        "username and a link to set a new one, valid for 1 hour. One email per address "
+        "email. An active account with that email (any case) gets its username and a "
+        "link to set a new password, valid for 1 hour; a Google-only account sets its "
+        "first one this way. One email per address "
         "per 15 minutes; asking again within that sends nothing, and nothing is locked.",
         request=ResetRequestSerializer,
         responses={202: ResetSentSerializer},
@@ -517,15 +518,13 @@ class ResetRequestView(PublicAuthView):
         serializer.is_valid(raise_exception=True)
         email = serializer.validated_data["email"]
         user = User.objects.filter(email__iexact=email, is_active=True).first()
+        # A Google-only account gets the link too: it's how one adds a password. Demo
+        # accounts never have an email, so they never match.
         # The wait is marked only when an email goes out, so made-up addresses can't fill
         # the cache and push real marks out. add() is False while a mark is still there.
         # ponytail: in each process's memory, like the rate limit; a shared cache if
         # there's ever more than one worker.
-        if (
-            user
-            and user.has_usable_password()
-            and cache.add(f"reset:{email_mark(email.lower())}", True, RESET_WAIT)
-        ):
+        if user and cache.add(f"reset:{email_mark(email.lower())}", True, RESET_WAIT):
             emails.reset_password(
                 user.username,
                 user.email,
