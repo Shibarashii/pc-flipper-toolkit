@@ -1596,3 +1596,79 @@ new dependencies.
 - [x] The spec's success criteria 3–5 pass on the live site, with a real reset email
   (by the author, 2026-11-18)
 - [x] All tests pass on `main` (CI on c10bd1c)
+
+## Phase 23: Portfolio polish
+
+Spec: [docs/specs/portfolio-polish.md](../docs/specs/portfolio-polish.md). Designs: the
+Portfolio polish section on Figma's Ready for development (approved 2026-11-19). Frontend only: no
+migration, no API change, no new dependencies.
+
+### - [ ] T53: Icon buttons and tooltips
+
+**Description:**
+- `IconButton` (`form.tsx`): the `listing` icon (new `assets/listing.svg`, from the Figma
+  component) and a `bordered` 38px look; `aria-label` and `title` from one `label`, as today.
+- Build header: Copy listing and Delete build become those icon buttons, on desktop and phones,
+  opening the same dialogs.
+- `title` on the header's username link (the full name) and on the build checklist's marks
+  ("Added", "Missing", "Optional"). Tests first.
+
+**Acceptance criteria:**
+- [ ] Buttons named "Copy listing" and "Delete build" show no text, have a matching `title`,
+  and open their dialogs
+- [ ] The username link and the checklist marks have their `title`
+- [ ] Matches the Figma header at desktop and 375px, light and dark
+
+**Verification:**
+- [ ] Standard verification, `npx playwright test`
+- [ ] Manual: hover each icon locally; tab to each and press Enter
+
+**Dependencies:** None
+**Files:** `frontend/src/assets/listing.svg`, `frontend/src/components/form.tsx`, `frontend/src/components/BuildHeader.tsx`, `frontend/src/components/BuildChecklist.tsx`, `frontend/src/App.tsx`, + their tests
+**Scope:** S
+
+### - [ ] T54: Summary words
+
+**Description:**
+- Build summary: Listed total → Parts at shop prices, Below/Above market → Under/Over shop
+  prices, Voucher savings → Saved on parts. Bundle row: Listed total → Parts at shop prices.
+  "Tied up" stays.
+- SPEC.md's definitions take the new names. Tests first (rename the labels the tests look for).
+
+**Acceptance criteria:**
+- [ ] The summary and bundle row show the new labels with the same values and edge cases
+- [ ] SPEC.md uses the new names; no "Listed total", "market" or "Voucher savings" left in the UI
+
+**Verification:**
+- [ ] Standard verification, `npx playwright test`
+
+**Dependencies:** None
+**Files:** `frontend/src/components/Summary.tsx`, `frontend/src/components/BundleRow.tsx`, `frontend/src/components/Summary.test.tsx`, `SPEC.md`
+**Scope:** XS
+
+### - [ ] T55: Account page regrouped
+
+**Description:**
+- `/account` as in the spec's Part 3: "Logged in as" goes; Username; Ways to log in (Password
+  and Google rows, "Keep at least one way to log in." or the Google-only line); Recovery email
+  (with its muted line, which drops "or password" for Google-only accounts); the new demo
+  line and the new sent and password-changed messages. One verb: "log in".
+- No API change: `me.has_password`, `me.google` and `me.email` already say everything.
+  Tests first, one per state.
+
+**Acceptance criteria:**
+- [ ] Every state reads word for word as in the spec and the Figma states frame
+- [ ] No "sign in" on the page outside Google's own button, and nothing said twice
+- [ ] Fits 375px, light and dark
+
+**Verification:**
+- [ ] Standard verification, `npx playwright test`
+- [ ] Manual: a password account, a Google-only one and the demo, locally
+
+**Dependencies:** None
+**Files:** `frontend/src/pages/Account.tsx`, `frontend/src/App.test.tsx` (or a new `Account.test.tsx`)
+**Scope:** S
+
+### Checkpoint 21: Portfolio polish
+- [ ] The spec's success criteria 1–4 pass on the live site, at desktop and 375px, light and dark
+- [ ] All tests pass on `main`

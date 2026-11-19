@@ -300,6 +300,22 @@ once and for an hour, token deleted); the pages follow.
 **Checkpoint 20:** the spec's success criteria 3–5 pass on the live site, with a real reset
 email.
 
+### Phase 23: Portfolio polish ([docs/specs/portfolio-polish.md](../docs/specs/portfolio-polish.md))
+- [ ] T53: Icon buttons and tooltips
+- [ ] T54: Summary words
+- [ ] T55: Account page regrouped
+
+```
+T53 icon buttons ─┐
+T54 summary words ├── Checkpoint 21
+T55 account page ─┘
+```
+Frontend only, no API change. The three tasks touch different files and can go in any order;
+each is its own PR. Built from the Portfolio polish section on Ready for development (approved 2026-11-19).
+
+**Checkpoint 21:** the spec's success criteria 1–4 pass on the live site, at desktop and 375px,
+light and dark.
+
 ## Risks and Mitigations
 
 | Risk | Impact | Mitigation |

@@ -62,7 +62,7 @@ with `set.children.find(v => v.name === "session=in, size=desktop")`) and set th
 | Button | `17:1264` | `variant` primary / secondary / danger, `state` default / hover / focus / disabled, `Label` |
 | Field | `29:2282` | `state` default / focus / disabled, `Label`, `Value`, `Show label`, `Select`, `Error`, `Error text` |
 | Textarea | `20:1071` | `Value` |
-| IconButton | `17:1282` | `action` edit / delete, `state` default / hover / focus |
+| IconButton | `17:1282` | `action` edit / delete / listing, `size` row (28px, ghost) / header (38px, bordered; listing and delete only), `state` default / hover / focus |
 | Status | `17:1273` | `status` planning / building / listed / sold |
 | ProfitHero | `17:1289` | `Value`, `Caption` |
 | BuildRow / BuildCard | `17:1293` / `17:1302` | name, cost, selling, profit texts (row also `No.`) |
