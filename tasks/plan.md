@@ -311,7 +311,7 @@ T54 summary words ├── Checkpoint 21
 T55 account page ─┘
 ```
 Frontend only, no API change. The three tasks touch different files and can go in any order;
-each is its own PR. Built from the Portfolio polish section once it's on Ready for development.
+each is its own PR. Built from the Portfolio polish section on Ready for development (approved 2026-11-19).
 
 **Checkpoint 21:** the spec's success criteria 1–4 pass on the live site, at desktop and 375px,
 light and dark.

@@ -1600,7 +1600,7 @@ new dependencies.
 ## Phase 23: Portfolio polish
 
 Spec: [docs/specs/portfolio-polish.md](../docs/specs/portfolio-polish.md). Designs: the
-Portfolio polish section in Figma (on Ready for development once approved). Frontend only: no
+Portfolio polish section on Figma's Ready for development (approved 2026-11-19). Frontend only: no
 migration, no API change, no new dependencies.
 
 ### - [ ] T53: Icon buttons and tooltips
