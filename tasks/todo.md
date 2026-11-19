@@ -1692,3 +1692,64 @@ control, the username link and the checklist marks, the new summary and bundle-c
 the demo's Account line, at desktop and 375px, light and dark, with no sideways scrolling.
 Account's other states (Password, Google, Recovery email) need a real account, so they were
 checked locally before the merge (a password account, a Google-only one), as the author agreed.
+
+## Phase 24: A password for Google-only accounts
+
+Spec: [docs/specs/google-only-password.md](../docs/specs/google-only-password.md). Designs: the
+Google-only password section on Figma's Ready for development (approved 2026-11-19). No
+migration, no new endpoint, no new dependencies.
+
+### - [ ] T56: Reset link for Google-only accounts
+
+**Description:**
+- `ResetRequestView` (`builds/auth.py`): drop `user.has_usable_password()` from the condition,
+  with the spec's comment; its API description stops saying "and a password".
+- `emails.reset_password`: "To set a new password, open this link:" and "…you can ignore this
+  email; nothing changes."
+- SPEC.md's `/api/auth/password-reset/` row; a "(Changed 2026-11-19 …)" note on the
+  out-of-scope line in google-sign-in.md and account-management.md. Tests first.
+
+**Acceptance criteria:**
+- [ ] A Google-only account with an email gets the reset email; the answer is the same 202 for
+  every address, and inactive or unknown ones still get nothing
+- [ ] The link sets its first password; it then logs in with it, Google stays connected,
+  Disconnect works, and the link doesn't work twice
+- [ ] The email reads right for an account that never had a password
+
+**Verification:**
+- [ ] `python manage.py test` and `ruff check .` in `backend/`
+- [ ] Manual: a local Google-only account with an email asks at `/forgot`, opens the link from
+  the console email, sets a password and logs in with it
+
+**Dependencies:** None
+**Files:** `backend/builds/auth.py`, `backend/builds/emails.py`, `backend/builds/tests.py`, `SPEC.md`, `docs/specs/google-sign-in.md`, `docs/specs/account-management.md`
+**Scope:** XS
+
+### - [ ] T57: Set password on Account
+
+**Description:**
+- The Google-only Password row (`Account.tsx`): "Password" over muted "Not set", and "Set
+  password" when there's a recovery email; it calls `askForResetLink(me.email)`.
+- After it: "We sent a link to x@y.com. Open it within 1 hour to set your password. Not
+  there? Check your spam folder." above the row; errors (429, server down) under the heading.
+- Without a recovery email: no button, and the hint adds "Add a recovery email to set a
+  password."
+- SPEC.md's Account screen mentions Set password. Tests first, one per state.
+
+**Acceptance criteria:**
+- [ ] The three states read word for word as in the spec and the Figma section
+- [ ] "Set password" posts `{email}` to `/auth/password-reset/`; a 429 shows under the heading
+- [ ] Still one verb on the page; fits 375px, light and dark
+
+**Verification:**
+- [ ] Standard verification, `npx playwright test`
+- [ ] Manual: a local Google-only account, with and without a recovery email
+
+**Dependencies:** T56
+**Files:** `frontend/src/pages/Account.tsx`, `frontend/src/App.test.tsx`, `SPEC.md`
+**Scope:** XS
+
+### Checkpoint 22: A password for Google-only accounts
+- [ ] The spec's success criteria 1–4 pass on the live site, with a real email to a
+  Google-only account
+- [ ] All tests pass on `main`
