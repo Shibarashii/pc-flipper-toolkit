@@ -74,7 +74,7 @@ export function BundleItem({
         </div>
         <div className="flex gap-3 tabular-nums">
           <div className="flex-1 text-muted">
-            <p className="text-[13px] leading-[18px]">Listed total</p>
+            <p className="text-[13px] leading-[18px]">Parts at shop prices</p>
             <p className="text-[15px] leading-[22px]">
               {formatMoney(bundle.listed_total)}
             </p>

@@ -1632,23 +1632,26 @@ migration, no API change, no new dependencies.
 **Files:** `frontend/src/ui.ts`, `frontend/src/components/form.tsx`, `frontend/src/components/BuildHeader.tsx`, `frontend/src/components/BuildChecklist.tsx`, `frontend/src/App.tsx`, `frontend/src/assets/{pencil,trash}.svg` (deleted), + their tests
 **Scope:** S
 
-### - [ ] T54: Summary words
+### - [x] T54: Summary words
 
 **Description:**
 - Build summary: Listed total → Parts at shop prices, Below/Above market → Under/Over shop
   prices, Voucher savings → Saved on parts. Bundle row: Listed total → Parts at shop prices.
   "Tied up" stays.
 - SPEC.md's definitions take the new names. Tests first (rename the labels the tests look for).
+- Built 2026-11-19: SPEC.md keeps each API field's name beside its new label
+  (`listed_total`, `below_market`, `voucher_savings`), since the API doesn't change. The flip
+  e2e test reads the renamed label, and the bundle test now checks the phone card's label.
 
 **Acceptance criteria:**
-- [ ] The summary and bundle row show the new labels with the same values and edge cases
-- [ ] SPEC.md uses the new names; no "Listed total", "market" or "Voucher savings" left in the UI
+- [x] The summary and bundle row show the new labels with the same values and edge cases
+- [x] SPEC.md uses the new names; no "Listed total", "market" or "Voucher savings" left in the UI
 
 **Verification:**
-- [ ] Standard verification, `npx playwright test`
+- [x] Standard verification, `npx playwright test`
 
 **Dependencies:** None
-**Files:** `frontend/src/components/Summary.tsx`, `frontend/src/components/BundleRow.tsx`, `frontend/src/components/Summary.test.tsx`, `SPEC.md`
+**Files:** `frontend/src/components/Summary.tsx`, `frontend/src/components/BundleRow.tsx`, `frontend/src/components/Summary.test.tsx`, `frontend/src/components/PartsTable.test.tsx`, `frontend/e2e/flip.spec.ts`, `SPEC.md`
 **Scope:** XS
 
 ### - [ ] T55: Account page regrouped

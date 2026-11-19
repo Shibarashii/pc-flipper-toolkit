@@ -45,7 +45,7 @@ export function Summary({
         ? "text-[length:min(60px,16.5cqi)]"
         : "text-[length:min(60px,15cqi)]";
 
-  // Selling above market makes below_market negative; say "Above market" instead.
+  // Selling above shop prices makes below_market negative; say "Over shop prices" instead.
   const aboveMarket = below_market !== null && Number(below_market) < 0;
   let market = "—";
   if (below_market !== null) {
@@ -82,7 +82,10 @@ export function Summary({
 
       <div className="flex flex-col gap-2.5 border-t border-line pt-4">
         <dl className="flex flex-col gap-2.5 px-3">
-          <Item label="Listed total" value={formatMoney(totals.listed_total)} />
+          <Item
+            label="Parts at shop prices"
+            value={formatMoney(totals.listed_total)}
+          />
           <Item label="Parts cost" value={formatMoney(totals.parts_cost)} />
           <Item label="Extra costs" value={formatMoney(totals.extra_costs)} />
           <Item
@@ -94,11 +97,11 @@ export function Summary({
         <dl className="flex flex-col gap-2.5 border-t border-line px-3 pt-2.5">
           <Item label="Selling price" value={formatMoney(sellingPrice)} />
           <Item
-            label={aboveMarket ? "Above market" : "Below market"}
+            label={aboveMarket ? "Over shop prices" : "Under shop prices"}
             value={market}
           />
           <Item
-            label="Voucher savings"
+            label="Saved on parts"
             value={formatMoney(totals.voucher_savings)}
           />
         </dl>

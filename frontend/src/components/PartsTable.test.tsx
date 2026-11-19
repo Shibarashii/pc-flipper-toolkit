@@ -377,6 +377,8 @@ test("bundled parts sit under their bundle, with its price and what's not assign
   );
   expect(screen.getAllByText("₱7,500.00")).toHaveLength(2);
   expect(screen.getAllByText("₱4,000.00 not assigned")).toHaveLength(2);
+  // The phone card names its shop-price total; the desktop row has a column for it.
+  expect(screen.getByText("Parts at shop prices")).toBeTruthy();
 });
 
 test("a fully assigned bundle shows no remainder", () => {
