@@ -7,6 +7,7 @@ import {
 } from "react";
 import {
   ApiError,
+  askForResetLink,
   changePassword,
   connectGoogle,
   disconnectGoogle,
@@ -106,7 +107,7 @@ export function Account() {
                   {error}
                 </p>
               )}
-              <PasswordRow me={me} />
+              <PasswordRow me={me} onError={setError} />
               <GoogleRow
                 me={me}
                 saving={saving}
@@ -129,6 +130,9 @@ export function Account() {
                 {me.has_password
                   ? "Keep at least one way to log in."
                   : "Google is your only way to log in, so it stays connected."}
+                {!me.has_password &&
+                  !me.email &&
+                  " Add a recovery email to set a password."}
               </p>
             </Section>
 
@@ -386,17 +390,62 @@ function EmailForm({
   );
 }
 
-/** "Password" and Change, which opens Current and New password; "Not set" for an account
- * that logs in only with Google. */
-function PasswordRow({ me }: { me: Me }) {
+/** "Password" and Change, which opens Current and New password. An account that logs in
+ * only with Google has "Not set" and Set password, which emails it the reset link (the
+ * link proves the recovery email, docs/specs/google-only-password.md). */
+function PasswordRow({
+  me,
+  onError,
+}: {
+  me: Me;
+  onError: (message: string) => void;
+}) {
   const [editing, setEditing] = useState(false);
   const [changed, setChanged] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [sending, setSending] = useState(false);
+
+  async function sendLink() {
+    setSending(true);
+    setSent(false);
+    onError("");
+    try {
+      await askForResetLink(me.email);
+      setSent(true);
+    } catch (err) {
+      onError(generalError(err, {}));
+    }
+    setSending(false);
+  }
 
   if (!me.has_password)
     return (
-      <Row action={<p className="shrink-0 text-muted">Not set</p>}>
-        <p className="font-medium">Password</p>
-      </Row>
+      <>
+        {sent && (
+          <p role="status" className="mt-3">
+            We sent a link to <span className="font-medium">{me.email}</span>.
+            Open it within 1 hour to set your password. Not there? Check your
+            spam folder.
+          </p>
+        )}
+        <Row
+          action={
+            me.email ? (
+              <button
+                type="button"
+                onClick={sendLink}
+                disabled={sending}
+                className={`shrink-0 ${buttonSecondary}`}
+              >
+                Set password
+              </button>
+            ) : null
+          }
+        >
+          <p className="font-medium">Password</p>
+          <p className="text-muted">Not set</p>
+        </Row>
+      </>
     );
 
   if (editing)

@@ -318,7 +318,7 @@ light and dark.
 
 ### Phase 24: A password for Google-only accounts ([docs/specs/google-only-password.md](../docs/specs/google-only-password.md))
 - [x] T56: Reset link for Google-only accounts
-- [ ] T57: Set password on Account
+- [x] T57: Set password on Account
 
 ```
 T56 reset link ── T57 Set password ── Checkpoint 22
