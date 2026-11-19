@@ -1683,5 +1683,12 @@ migration, no API change, no new dependencies.
 **Scope:** S
 
 ### Checkpoint 21: Portfolio polish
-- [ ] The spec's success criteria 1–4 pass on the live site, at desktop and 375px, light and dark
-- [ ] All tests pass on `main`
+- [x] The spec's success criteria 1–4 pass on the live site, at desktop and 375px, light and dark
+- [x] All tests pass on `main`
+
+Checked 2026-11-19 on the live site (`541c29f`) with a demo build: the two header icons (38px,
+named, matching titles, opening Copy listing and Delete this build?), titles on every icon-only
+control, the username link and the checklist marks, the new summary and bundle-card labels, and
+the demo's Account line, at desktop and 375px, light and dark, with no sideways scrolling.
+Account's other states (Password, Google, Recovery email) need a real account, so they were
+checked locally before the merge (a password account, a Google-only one), as the author agreed.
