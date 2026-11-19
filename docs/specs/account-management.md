@@ -50,7 +50,8 @@ It follows three sources, checked on 2026-11-17:
 ### Out of scope
 
 - A password for Google-only accounts (out of scope in the Google sign-in spec too); they log
-  in with Google. (Changed 2026-11-19: now possible through the reset link; see [google-only-password.md](google-only-password.md).)
+  in with Google. (Changed 2026-11-19: now possible through the reset link; see
+  [google-only-password.md](google-only-password.md).)
 - Deleting an account, two-factor authentication, CAPTCHA, an email on every log-in.
 - Logging in with the email instead of the username.
 - Choosing the currency (the other half of the backlog's Account page idea; it stays there).

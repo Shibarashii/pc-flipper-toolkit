@@ -518,13 +518,17 @@ class ResetRequestView(PublicAuthView):
         serializer.is_valid(raise_exception=True)
         email = serializer.validated_data["email"]
         user = User.objects.filter(email__iexact=email, is_active=True).first()
-        # A Google-only account gets the link too: it's how one adds a password. Demo
-        # accounts never have an email, so they never match.
+        # A Google-only account gets the link too: it's how one adds a password. A demo
+        # never does: a password would make it a normal account that cleanup never deletes.
         # The wait is marked only when an email goes out, so made-up addresses can't fill
         # the cache and push real marks out. add() is False while a mark is still there.
         # ponytail: in each process's memory, like the rate limit; a shared cache if
         # there's ever more than one worker.
-        if user and cache.add(f"reset:{email_mark(email.lower())}", True, RESET_WAIT):
+        if (
+            user
+            and not is_demo(user)
+            and cache.add(f"reset:{email_mark(email.lower())}", True, RESET_WAIT)
+        ):
             emails.reset_password(
                 user.username,
                 user.email,

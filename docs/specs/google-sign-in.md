@@ -53,7 +53,8 @@ stays the source of truth for everything else. Intent agreed in conversation on 
 - Other providers (Facebook and others).
 - Editing the profile, changing the username, choosing a currency: these go to the backlog as
   the Account page's next step.
-- Setting a password on a Google-only account. (Changed 2026-11-19: now possible through the reset link; see [google-only-password.md](google-only-password.md).)
+- Setting a password on a Google-only account. (Changed 2026-11-19: now possible through
+  the reset link; see [google-only-password.md](google-only-password.md).)
 - On the log-in page, asking "already have an account?" before creating a new one.
 - Google One Tap and automatic sign-in; preview deployments (their URLs change, so Google
   can't list them).

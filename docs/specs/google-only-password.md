@@ -41,7 +41,8 @@ Approved 2026-11-19 as written.
 email; it just stops skipping accounts without a password.
 
 - **Backend** (`builds/auth.py`, `ResetRequestView`): drop `user.has_usable_password()`
-  from the condition. Demo accounts can't have an email, so they still never match.
+  from the condition. A demo is skipped explicitly: a password would make it a normal
+  account that cleanup never deletes.
   `ResetView` already works on an unusable password: the link's token is made from the
   password hash, which changes once the password is set, so the link works once.
 - **The email** (`builds/emails.py`, `reset_password`): two lines say "your password" as if
@@ -90,13 +91,17 @@ docs/specs/google-sign-in.md, account-management.md  a "(Changed …)" note on t
 
 ## Code Style
 
-The backend change is a deletion:
+The backend change swaps one condition for another:
 
 ```python
 user = User.objects.filter(email__iexact=email, is_active=True).first()
-# A Google-only account gets the link too: it's how one adds a password. Demo accounts
-# never have an email, so they never match.
-if user and cache.add(f"reset:{email_mark(email.lower())}", True, RESET_WAIT):
+# A Google-only account gets the link too: it's how one adds a password. A demo
+# never does: a password would make it a normal account that cleanup never deletes.
+if (
+    user
+    and not is_demo(user)
+    and cache.add(f"reset:{email_mark(email.lower())}", True, RESET_WAIT)
+):
 ```
 
 ## Testing Strategy

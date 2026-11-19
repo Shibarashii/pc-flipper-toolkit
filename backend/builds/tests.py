@@ -1560,9 +1560,12 @@ class ResetTests(APITestCase):
         )
 
     def test_a_demo_never_gets_a_link(self):
-        # Demos can't have an email, and an empty one isn't an address.
-        create_demo_user()
-        self.assertEqual(self.ask("").status_code, 400)
+        # Demos can't add an email, but if one ever had it, a password would make it a
+        # normal account that cleanup never deletes.
+        demo = create_demo_user()
+        demo.email = "demo@example.com"
+        demo.save()
+        self.assertEqual(self.ask("demo@example.com").json(), SENT)
         self.assertEqual(mail.outbox, [])
 
     def test_a_link_sets_the_password_logs_out_everywhere_and_sends_a_notice(self):
