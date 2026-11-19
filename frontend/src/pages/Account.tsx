@@ -24,8 +24,10 @@ import { buttonPrimary, buttonSecondary, input } from "../ui";
 
 const section = "border-t border-line-strong pt-4";
 const heading = "font-serif text-[22px] leading-7 font-medium";
+const hint = "mt-3 text-[13px] leading-[18px] text-muted";
 
-/** Who you're logged in as, your username, email and password, and Google (`/account`). */
+/** Your username, the ways you log in (password and Google) and your recovery email
+ * (`/account`). */
 export function Account() {
   const [me, setMe] = useState<Me | "loading" | "error">("loading");
   const [error, setError] = useState("");
@@ -65,9 +67,8 @@ export function Account() {
       </h1>
 
       {me === "loading" && (
-        <Skeleton label="Loading your account" className="mt-3">
-          <Bone className="h-[18px] w-32" />
-          <Bone className="mt-12 h-7 w-24" />
+        <Skeleton label="Loading your account" className="mt-8 sm:mt-12">
+          <Bone className="h-7 w-24" />
           <Bone className="mt-3 h-10 w-full max-w-[400px]" />
         </Skeleton>
       )}
@@ -84,64 +85,58 @@ export function Account() {
         </div>
       )}
 
-      {typeof me === "object" && (
-        <>
-          <p className="mt-1.5 text-[13px] leading-[18px] text-muted">
-            Logged in as{" "}
-            <span className="font-medium text-ink">{me.username}</span>
+      {typeof me === "object" &&
+        (me.is_demo ? (
+          <p className={`mt-8 sm:mt-12 ${section}`}>
+            This is a demo account, so its settings can’t be changed. Sign up to
+            get your own.
           </p>
+        ) : (
+          <>
+            <Section title="Username" className="mt-8 sm:mt-12">
+              <UsernameRow me={me} onRenamed={setMe} />
+            </Section>
 
-          {me.is_demo ? (
-            <p className={`mt-8 sm:mt-12 ${section}`}>
-              Demo accounts can’t change their account. Sign up for your own
-              account first.
-            </p>
-          ) : (
-            <>
-              <Section title="Username" className="mt-8 sm:mt-12">
-                <UsernameRow me={me} onRenamed={setMe} />
-              </Section>
+            <Section title="Ways to log in" className="mt-8">
+              {error && (
+                <p
+                  role="alert"
+                  className="mt-3 text-[13px] leading-[18px] text-loss"
+                >
+                  {error}
+                </p>
+              )}
+              <PasswordRow me={me} />
+              <GoogleRow
+                me={me}
+                saving={saving}
+                onConnect={(credential) =>
+                  change(async () => (await connectGoogle(credential)).google)
+                }
+                onDisconnect={() =>
+                  change(async () => {
+                    await disconnectGoogle();
+                    return null;
+                  })
+                }
+                onError={() =>
+                  setError(
+                    "Couldn’t load Google’s button. Check your connection and reload.",
+                  )
+                }
+              />
+              <p className={hint}>
+                {me.has_password
+                  ? "Keep at least one way to log in."
+                  : "Google is your only way to log in, so it stays connected."}
+              </p>
+            </Section>
 
-              <Section title="Email" className="mt-8">
-                <EmailRow me={me} />
-              </Section>
-
-              <Section title="Password" className="mt-8">
-                <PasswordRow me={me} />
-              </Section>
-
-              <Section title="Google" className="mt-8">
-                {error && (
-                  <p
-                    role="alert"
-                    className="mt-3 text-[13px] leading-[18px] text-loss"
-                  >
-                    {error}
-                  </p>
-                )}
-                <GoogleRow
-                  me={me}
-                  saving={saving}
-                  onConnect={(credential) =>
-                    change(async () => (await connectGoogle(credential)).google)
-                  }
-                  onDisconnect={() =>
-                    change(async () => {
-                      await disconnectGoogle();
-                      return null;
-                    })
-                  }
-                  onError={() =>
-                    setError(
-                      "Couldn’t load Google sign-in. Check your connection and reload.",
-                    )
-                  }
-                />
-              </Section>
-            </>
-          )}
-        </>
-      )}
+            <Section title="Recovery email" className="mt-8">
+              <EmailRow me={me} />
+            </Section>
+          </>
+        ))}
     </main>
   );
 }
@@ -164,6 +159,22 @@ function Section({
       </h2>
       {children}
     </section>
+  );
+}
+
+/** One line of a section: what's true on the left, its action (if any) on the right. */
+function Row({
+  action,
+  children,
+}: {
+  action?: ReactNode;
+  children: ReactNode;
+}) {
+  return (
+    <div className="mt-3 flex items-center justify-between gap-4">
+      <div className="min-w-0 break-words">{children}</div>
+      {action}
+    </div>
   );
 }
 
@@ -191,16 +202,21 @@ function UsernameRow({
     );
 
   return (
-    <div className="mt-3 flex items-center justify-between gap-4">
-      <p className="min-w-0 break-words">{me.username}</p>
-      <button
-        type="button"
-        onClick={() => setEditing(true)}
-        className={`shrink-0 ${buttonSecondary}`}
-      >
-        Change
-      </button>
-    </div>
+    <Row action={<ChangeButton onClick={() => setEditing(true)} />}>
+      {me.username}
+    </Row>
+  );
+}
+
+function ChangeButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`shrink-0 ${buttonSecondary}`}
+    >
+      Change
+    </button>
   );
 }
 
@@ -258,8 +274,8 @@ function UsernameForm({
   );
 }
 
-/** The email and Change, or a prompt and Add email; either opens one field. Nothing changes
- * until the emailed link is opened, so sending only says where the link went. */
+/** The email and Change, or "No recovery email yet." and Add email; either opens one field.
+ * Nothing changes until the emailed link is opened, so sending only says where it went. */
 function EmailRow({ me }: { me: Me }) {
   const [editing, setEditing] = useState(false);
   const [sentTo, setSentTo] = useState("");
@@ -285,31 +301,29 @@ function EmailRow({ me }: { me: Me }) {
     <>
       {sentTo && (
         <p role="status" className="mt-3">
-          We sent a link to <span className="font-medium">{sentTo}</span>. It
-          works for 24 hours. If it doesn’t arrive, check your spam folder.
+          We sent a link to <span className="font-medium">{sentTo}</span>. Open
+          it within 24 hours to confirm. Not there? Check your spam folder.
         </p>
       )}
       {me.email ? (
-        <div className="mt-3 flex items-center justify-between gap-4">
-          <p className="min-w-0 break-words">{me.email}</p>
-          <button
-            type="button"
-            onClick={open}
-            className={`shrink-0 ${buttonSecondary}`}
-          >
-            Change
-          </button>
-        </div>
+        <Row action={<ChangeButton onClick={open} />}>{me.email}</Row>
       ) : (
-        <div className="mt-3 flex flex-col items-start gap-3">
-          <p>
-            No email yet. Add one so you can get back in if you forget your
-            password.
-          </p>
-          <button type="button" onClick={open} className={buttonSecondary}>
-            Add email
-          </button>
-        </div>
+        <p className="mt-3">No recovery email yet.</p>
+      )}
+      {/* Without a password there's nothing to reset, only a username to find. */}
+      <p className={hint}>
+        {me.has_password
+          ? "Used if you forget your username or password."
+          : "Used if you forget your username."}
+      </p>
+      {!me.email && (
+        <button
+          type="button"
+          onClick={open}
+          className={`mt-3 ${buttonSecondary}`}
+        >
+          Add email
+        </button>
       )}
     </>
   );
@@ -372,12 +386,18 @@ function EmailForm({
   );
 }
 
-/** "You log in with a password." and Change, which opens Current and New password. */
+/** "Password" and Change, which opens Current and New password; "Not set" for an account
+ * that logs in only with Google. */
 function PasswordRow({ me }: { me: Me }) {
   const [editing, setEditing] = useState(false);
   const [changed, setChanged] = useState(false);
 
-  if (!me.has_password) return <p className="mt-3">You log in with Google.</p>;
+  if (!me.has_password)
+    return (
+      <Row action={<p className="shrink-0 text-muted">Not set</p>}>
+        <p className="font-medium">Password</p>
+      </Row>
+    );
 
   if (editing)
     return (
@@ -396,23 +416,22 @@ function PasswordRow({ me }: { me: Me }) {
     <>
       {changed && (
         <p role="status" className="mt-3">
-          <span className="font-medium">Password changed.</span> Your other
-          devices are logged out.
+          <span className="font-medium">Password changed.</span> You’re logged
+          out on your other devices.
         </p>
       )}
-      <div className="mt-3 flex items-center justify-between gap-4">
-        <p className="min-w-0">You log in with a password.</p>
-        <button
-          type="button"
-          onClick={() => {
-            setChanged(false);
-            setEditing(true);
-          }}
-          className={`shrink-0 ${buttonSecondary}`}
-        >
-          Change
-        </button>
-      </div>
+      <Row
+        action={
+          <ChangeButton
+            onClick={() => {
+              setChanged(false);
+              setEditing(true);
+            }}
+          />
+        }
+      >
+        <p className="font-medium">Password</p>
+      </Row>
     </>
   );
 }
@@ -493,44 +512,29 @@ function GoogleRow({
   onDisconnect: () => void;
   onError: () => void;
 }) {
-  if (me.google)
-    return (
-      <div className="mt-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
-        <p className="min-w-0 break-words">
-          Connected as <span className="font-medium">{me.google.email}</span>
-        </p>
-        {me.has_password ? (
-          <button
-            type="button"
-            onClick={onDisconnect}
-            disabled={saving}
-            className={`shrink-0 ${buttonSecondary}`}
-          >
-            Disconnect
-          </button>
-        ) : (
-          <p className="w-full text-[13px] leading-[18px] text-muted">
-            This account signs in only with Google, so it stays connected.
-          </p>
-        )}
-      </div>
-    );
+  // Disconnect only when the password is left to log in with.
+  const disconnect = me.google && me.has_password && (
+    <button
+      type="button"
+      onClick={onDisconnect}
+      disabled={saving}
+      className={`shrink-0 ${buttonSecondary}`}
+    >
+      Disconnect
+    </button>
+  );
 
   return (
-    <div className="mt-3 flex flex-col gap-3">
-      <div>
-        <p className="font-medium">Not connected</p>
-        {googleClientId() && (
-          <p className="text-[13px] leading-[18px] text-muted">
-            Connect your Google account to sign in with it too.
-          </p>
-        )}
-      </div>
-      {googleClientId() && (
-        <div className="max-w-[400px]">
+    <>
+      <Row action={disconnect}>
+        <p className="font-medium">Google</p>
+        <p className="text-muted">{me.google?.email ?? "Not connected"}</p>
+      </Row>
+      {!me.google && googleClientId() && (
+        <div className="mt-3 max-w-[400px]">
           <GoogleButton onCredential={onConnect} onError={onError} />
         </div>
       )}
-    </div>
+    </>
   );
 }

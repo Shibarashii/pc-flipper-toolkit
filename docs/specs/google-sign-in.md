@@ -144,6 +144,7 @@ class GoogleAccount(models.Model):
   - A "Google" row: "Connect Google" (Google's button) or "Connected as …" with "Disconnect".
   - A demo user sees the "sign up first" line instead of the button.
   - It follows the brand guidelines: hairlines, no cards.
+  - (Changed 2026-11-19: the page is regrouped into Username, Ways to log in and Recovery email, with new words; see [portfolio-polish.md](portfolio-polish.md#part-3-account-page).)
 - **CSP** (`vercel.json`): add Google's documented origins for GIS:
   - `script-src https://accounts.google.com/gsi/client`
   - `frame-src https://accounts.google.com/gsi/`

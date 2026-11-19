@@ -525,6 +525,19 @@ const me =
       ...fields,
     });
 
+/** All of an Account section's words, in order, so a test can check them word for word. */
+const wordsIn = async (section: string) =>
+  (await screen.findByRole("region", { name: section })).textContent;
+
+/** Account says "log in" throughout: no "sign in" outside Google's own button, and the
+ * username isn't repeated under the title. */
+function expectOneVerb() {
+  const words = screen
+    .getByRole("main")
+    .textContent.replace("Sign in with Google", "");
+  expect(words).not.toMatch(/sign.?in|logged in as/i);
+}
+
 test("the username in the header opens Account, which connects Google", async () => {
   vi.stubEnv("VITE_GOOGLE_CLIENT_ID", "client.apps.googleusercontent.com");
   stubGoogle();
@@ -539,13 +552,18 @@ test("the username in the header opens Account, which connects Google", async ()
 
   fireEvent.click(screen.getAllByRole("link", { name: /carol|Account/ })[0]);
   expect(await screen.findByRole("heading", { name: "Account" })).toBeTruthy();
-  expect(await screen.findByText("Not connected")).toBeTruthy();
-
-  fireEvent.click(
-    await screen.findByRole("button", { name: "Sign in with Google" }),
+  await screen.findByRole("button", { name: "Sign in with Google" });
+  expect(await wordsIn("Ways to log in")).toBe(
+    "Ways to log inPasswordChangeGoogleNot connectedSign in with GoogleKeep at least one way to log in.",
   );
-  expect(await screen.findByText("c@gmail.com")).toBeTruthy();
-  expect(screen.queryByText("Not connected")).toBeNull();
+  expectOneVerb();
+
+  fireEvent.click(screen.getByRole("button", { name: "Sign in with Google" }));
+  await screen.findByText("c@gmail.com");
+  expect(await wordsIn("Ways to log in")).toBe(
+    "Ways to log inPasswordChangeGooglec@gmail.comDisconnectKeep at least one way to log in.",
+  );
+  expectOneVerb();
   const { url, body } = requestTo(fetchMock, 2);
   expect(url).toBe("/api/auth/google/connect/");
   expect(JSON.parse(body as string)).toEqual({ credential: "google-id-token" });
@@ -583,16 +601,48 @@ test("Disconnect unlinks Google when there's a password", async () => {
   expect(init?.method).toBe("DELETE");
 });
 
-test("a Google-only account isn't offered Disconnect", async () => {
+test("Google's button failing to load says so, still in one verb", async () => {
+  vi.stubEnv("VITE_GOOGLE_CLIENT_ID", "client.apps.googleusercontent.com");
+  // A script that loads but won't start, as when something blocks Google.
+  vi.stubGlobal("google", {
+    accounts: {
+      id: {
+        initialize: () => {
+          throw new Error("blocked");
+        },
+        renderButton: vi.fn(),
+      },
+    },
+  });
   saveSession({ token: "abc", username: "carol" });
-  stubFetch(me({ google: { email: "c@gmail.com" }, has_password: false }));
+  stubFetch(me());
   renderAt("/account");
 
-  expect(await screen.findByText("c@gmail.com")).toBeTruthy();
-  expect(screen.queryByRole("button", { name: "Disconnect" })).toBeNull();
-  expect(
-    screen.getByText(/signs in only with Google, so it stays connected/),
-  ).toBeTruthy();
+  expect((await screen.findByRole("alert")).textContent).toBe(
+    "Couldn’t load Google’s button. Check your connection and reload.",
+  );
+  expectOneVerb();
+});
+
+test("a Google-only account has no password to change and keeps Google", async () => {
+  saveSession({ token: "abc", username: "carol" });
+  stubFetch(
+    me({
+      google: { email: "c@gmail.com" },
+      has_password: false,
+      email: "carol@example.com",
+    }),
+  );
+  renderAt("/account");
+
+  expect(await wordsIn("Ways to log in")).toBe(
+    "Ways to log inPasswordNot setGooglec@gmail.comGoogle is your only way to log in, so it stays connected.",
+  );
+  // Without a password there's nothing to reset, so the email only finds the username.
+  expect(await wordsIn("Recovery email")).toBe(
+    "Recovery emailcarol@example.comChangeUsed if you forget your username.",
+  );
+  expectOneVerb();
 });
 
 test("a demo is told to sign up first, with nothing to change", async () => {
@@ -604,11 +654,12 @@ test("a demo is told to sign up first, with nothing to change", async () => {
 
   expect(
     await screen.findByText(
-      "Demo accounts can’t change their account. Sign up for your own account first.",
+      "This is a demo account, so its settings can’t be changed. Sign up to get your own.",
     ),
   ).toBeTruthy();
   expect(screen.queryByRole("button", { name: "Change" })).toBeNull();
-  expect(screen.queryByRole("heading", { name: "Google" })).toBeNull();
+  expect(screen.queryByRole("region")).toBeNull();
+  expectOneVerb();
   expect(google.renderButton).not.toHaveBeenCalled();
 });
 
@@ -723,7 +774,7 @@ test("Change password keeps this browser logged in with a new token", async () =
   );
   renderAt("/account");
 
-  fireEvent.click(await changeIn("Password"));
+  fireEvent.click(await changeIn("Ways to log in"));
   // Password managers update the saved login named by the (hidden) username field.
   expect(screen.getByDisplayValue("carol").getAttribute("autocomplete")).toBe(
     "username",
@@ -744,8 +795,9 @@ test("Change password keeps this browser logged in with a new token", async () =
   fireEvent.click(screen.getByRole("button", { name: "Change password" }));
 
   expect((await screen.findByRole("status")).textContent).toBe(
-    "Password changed. Your other devices are logged out.",
+    "Password changed. You’re logged out on your other devices.",
   );
+  expectOneVerb();
   expect(screen.queryByLabelText("New password")).toBeNull();
   expect(getToken()).toBe("new");
   const { url, body } = requestTo(fetchMock, 1);
@@ -766,7 +818,7 @@ test("a wrong current password shows under its field", async () => {
   );
   renderAt("/account");
 
-  fireEvent.click(await changeIn("Password"));
+  fireEvent.click(await changeIn("Ways to log in"));
   for (const label of ["Current password", "New password"])
     fireEvent.change(screen.getByLabelText(label), {
       target: { value: "a passphrase" },
@@ -783,7 +835,7 @@ test("too many password attempts says to wait", async () => {
   stubFetch(me(), () => Response.json({}, { status: 429 }));
   renderAt("/account");
 
-  fireEvent.click(await changeIn("Password"));
+  fireEvent.click(await changeIn("Ways to log in"));
   for (const label of ["Current password", "New password"])
     fireEvent.change(screen.getByLabelText(label), {
       target: { value: "a passphrase" },
@@ -793,18 +845,6 @@ test("too many password attempts says to wait", async () => {
     "Too many attempts. Wait a minute and try again.",
   );
   expect(getToken()).toBe("abc");
-});
-
-test("a Google-only account has no password to change", async () => {
-  saveSession({ token: "abc", username: "carol" });
-  stubFetch(me({ google: { email: "c@gmail.com" }, has_password: false }));
-  renderAt("/account");
-
-  const password = within(
-    await screen.findByRole("region", { name: "Password" }),
-  );
-  expect(password.getByText("You log in with Google.")).toBeTruthy();
-  expect(password.queryByRole("button")).toBeNull();
 });
 
 test("a session changed in another tab is followed here", () => {
@@ -838,9 +878,6 @@ test("Account says so when it can't load", async () => {
   );
 });
 
-const NO_EMAIL =
-  "No email yet. Add one so you can get back in if you forget your password.";
-
 test("an account without an email adds one, and sees the link was sent", async () => {
   saveSession({ token: "abc", username: "carol" });
   const fetchMock = stubFetch(me({ email: "" }), () =>
@@ -848,8 +885,11 @@ test("an account without an email adds one, and sees the link was sent", async (
   );
   renderAt("/account");
 
-  const email = await screen.findByRole("region", { name: "Email" });
-  expect(within(email).getByText(NO_EMAIL)).toBeTruthy();
+  const email = await screen.findByRole("region", { name: "Recovery email" });
+  expect(await wordsIn("Recovery email")).toBe(
+    "Recovery emailNo recovery email yet.Used if you forget your username or password.Add email",
+  );
+  expectOneVerb();
   fireEvent.click(within(email).getByRole("button", { name: "Add email" }));
   const field = within(email).getByRole("textbox", { name: "Email" });
   expect(field.getAttribute("type")).toBe("email");
@@ -858,8 +898,9 @@ test("an account without an email adds one, and sees the link was sent", async (
   fireEvent.click(within(email).getByRole("button", { name: "Send link" }));
 
   expect((await within(email).findByRole("status")).textContent).toBe(
-    "We sent a link to carol@example.com. It works for 24 hours. If it doesn’t arrive, check your spam folder.",
+    "We sent a link to carol@example.com. Open it within 24 hours to confirm. Not there? Check your spam folder.",
   );
+  expectOneVerb();
   // Nothing is saved until the link is opened, so the form just closes.
   expect(within(email).queryByRole("textbox")).toBeNull();
   const { url, body } = requestTo(fetchMock, 1);
@@ -872,9 +913,12 @@ test("an account with an email shows it, and Change starts from it", async () =>
   stubFetch(me({ email: "carol@example.com" }));
   renderAt("/account");
 
-  const email = await screen.findByRole("region", { name: "Email" });
-  expect(within(email).getByText("carol@example.com")).toBeTruthy();
-  fireEvent.click(await changeIn("Email"));
+  const email = await screen.findByRole("region", { name: "Recovery email" });
+  expect(await wordsIn("Recovery email")).toBe(
+    "Recovery emailcarol@example.comChangeUsed if you forget your username or password.",
+  );
+  expectOneVerb();
+  fireEvent.click(await changeIn("Recovery email"));
   const field = within(email).getByRole("textbox", { name: "Email" });
   expect((field as HTMLInputElement).value).toBe("carol@example.com");
   fireEvent.click(within(email).getByRole("button", { name: "Cancel" }));

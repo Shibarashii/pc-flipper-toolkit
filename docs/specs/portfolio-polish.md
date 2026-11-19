@@ -100,7 +100,9 @@ with Google"). The page, top to bottom:
     - Not connected: "Google" and "Not connected", then Google's Sign in button.
   - Under the rows, muted: "Keep at least one way to log in." When Google is the only way, it
     reads "Google is your only way to log in, so it stays connected." instead.
-  - Errors (Google couldn't load) show under the section's heading, as today.
+  - Errors show under the section's heading, as today. Google's button failing to load reads
+    "Couldn't load Google's button. Check your connection and reload." (was "Google sign-in";
+    changed in the review, for one verb).
 - **Recovery email:**
   - Set: the email and Change. Under it, muted: "Used if you forget your username or password."
     (Google-only: "Used if you forget your username.")

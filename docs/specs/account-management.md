@@ -138,7 +138,7 @@ mobile, and every row's states),
 ### Account page (`/account`)
 
 Under "Logged in as …", three sections with hairlines, like the Google one, each a row that
-opens an edit form in place:
+opens an edit form in place. (Changed 2026-11-19: the page is regrouped into Username, Ways to log in and Recovery email, with new words; see [portfolio-polish.md](portfolio-polish.md#part-3-account-page).)
 
 - **Username:** the name, "Change". The form: one field, Save and Cancel.
 - **Email:** the email and "Change", or "No email yet. Add one so you can get back in if
@@ -180,6 +180,8 @@ that username already exists.", "This password is too common.").
   changed. Your other devices are logged out."; Google-only: "You log in with Google."
 - **Account, demo:** "Demo accounts can't change their account. Sign up for your own account
   first." (replaces today's Google-only line).
+- (Changed 2026-11-19: the Account words above are replaced; see
+  [portfolio-polish.md](portfolio-polish.md#part-3-account-page).)
 - **Log in:** the link "Forgot your username or password?". **Sign-up:** the field "Email";
   on the builds list after: "We sent a link to {email} to confirm your email. If it doesn’t
   arrive, check your spam folder."
