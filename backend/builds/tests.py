@@ -21,7 +21,8 @@ from rest_framework.authtoken.models import Token
 from rest_framework.test import APITestCase
 
 from .auth import CONFIRM_SALT, TAKEN, TAKEN_EMAIL, ResetRequestView
-from .models import Build, Bundle, ExtraCost, Part
+from .demo import create_demo_user
+from .models import Build, Bundle, ExtraCost, GoogleAccount, Part
 
 
 def alice() -> User:
@@ -1505,7 +1506,9 @@ class ResetTests(APITestCase):
         return res.status_code == 200
 
     def test_every_address_gets_the_same_answer_and_only_a_real_one_an_email(self):
-        User.objects.create_user("gina", email="gina@gmail.com")  # Google-only
+        # A Google-only account gets one too: it's how it adds a password
+        # (docs/specs/google-only-password.md).
+        User.objects.create_user("gina", email="gina@gmail.com")
         User.objects.create_user(
             "ivan", email="ivan@example.com", password="x", is_active=False
         )
@@ -1519,8 +1522,10 @@ class ResetTests(APITestCase):
                 res = self.ask(email)
                 self.assertEqual(res.status_code, 202)
                 self.assertEqual(res.json(), SENT)
-        [sent] = mail.outbox
-        self.assertEqual(sent.to, ["carol@example.com"])
+        self.assertEqual(
+            [sent.to for sent in mail.outbox],
+            [["carol@example.com"], ["gina@gmail.com"]],
+        )
 
     def test_the_email_names_the_username_and_links_to_the_site(self):
         self.ask("Carol@Example.com")  # any case
@@ -1528,6 +1533,40 @@ class ResetTests(APITestCase):
         self.assertIn("Your username is carol.", sent.body)
         self.assertIn(f"{settings.SITE_URL}/reset-password?uid=", sent.body)
         self.assertIn("carol", sent.alternatives[0][0])
+        # Its words fit an account that never had a password too.
+        self.assertIn("To set a new password, open this link:", sent.body)
+        self.assertIn("you can ignore this email; nothing changes.", sent.body)
+        self.assertNotIn("If you forgot your password", sent.body)
+
+    def test_a_google_only_account_sets_its_first_password_from_the_link(self):
+        gina = User.objects.create_user("gina", email="gina@gmail.com")
+        GoogleAccount.objects.create(user=gina, sub="gina-sub", email="gina@gmail.com")
+        self.ask("gina@gmail.com")
+        link = self.link()
+
+        self.assertEqual(self.reset(link).status_code, 204)
+        self.assertEqual(self.reset(link).status_code, 400)  # once
+        res = self.client.post(
+            "/api/auth/login/",
+            {"username": "gina", "password": "a new passphrase"},
+            format="json",
+        )
+        self.assertEqual(res.status_code, 200)
+        self.assertTrue(GoogleAccount.objects.filter(user=gina).exists())
+        # With a password to fall back on, Google can go.
+        self.client.credentials(HTTP_AUTHORIZATION=f"Token {res.json()['token']}")
+        self.assertEqual(
+            self.client.delete("/api/auth/google/connect/").status_code, 204
+        )
+
+    def test_a_demo_never_gets_a_link(self):
+        # Demos can't add an email, but if one ever had it, a password would make it a
+        # normal account that cleanup never deletes.
+        demo = create_demo_user()
+        demo.email = "demo@example.com"
+        demo.save()
+        self.assertEqual(self.ask("demo@example.com").json(), SENT)
+        self.assertEqual(mail.outbox, [])
 
     def test_a_link_sets_the_password_logs_out_everywhere_and_sends_a_notice(self):
         token = Token.objects.create(user=self.carol)

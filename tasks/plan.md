@@ -317,7 +317,7 @@ each is its own PR. Built from the Portfolio polish section on Ready for develop
 light and dark.
 
 ### Phase 24: A password for Google-only accounts ([docs/specs/google-only-password.md](../docs/specs/google-only-password.md))
-- [ ] T56: Reset link for Google-only accounts
+- [x] T56: Reset link for Google-only accounts
 - [ ] T57: Set password on Account
 
 ```

@@ -1699,7 +1699,7 @@ Spec: [docs/specs/google-only-password.md](../docs/specs/google-only-password.md
 Google-only password section on Figma's Ready for development (approved 2026-11-19). No
 migration, no new endpoint, no new dependencies.
 
-### - [ ] T56: Reset link for Google-only accounts
+### - [x] T56: Reset link for Google-only accounts
 
 **Description:**
 - `ResetRequestView` (`builds/auth.py`): drop `user.has_usable_password()` from the condition,
@@ -1708,17 +1708,21 @@ migration, no new endpoint, no new dependencies.
   email; nothing changes."
 - SPEC.md's `/api/auth/password-reset/` row; a "(Changed 2026-11-19 …)" note on the
   out-of-scope line in google-sign-in.md and account-management.md. Tests first.
+- Built 2026-11-19: the reset tests now expect a Google-only account's email, its first
+  password set from the link (once), log-in with it, Google still connected and Disconnect
+  allowed, the email's new words, and no link for a demo. Checked locally: `/forgot` for a
+  Google-only account, the console email, the link, then log-in with the new password.
 
 **Acceptance criteria:**
-- [ ] A Google-only account with an email gets the reset email; the answer is the same 202 for
+- [x] A Google-only account with an email gets the reset email; the answer is the same 202 for
   every address, and inactive or unknown ones still get nothing
-- [ ] The link sets its first password; it then logs in with it, Google stays connected,
+- [x] The link sets its first password; it then logs in with it, Google stays connected,
   Disconnect works, and the link doesn't work twice
-- [ ] The email reads right for an account that never had a password
+- [x] The email reads right for an account that never had a password
 
 **Verification:**
-- [ ] `python manage.py test` and `ruff check .` in `backend/`
-- [ ] Manual: a local Google-only account with an email asks at `/forgot`, opens the link from
+- [x] `python manage.py test` and `ruff check .` in `backend/`
+- [x] Manual: a local Google-only account with an email asks at `/forgot`, opens the link from
   the console email, sets a password and logs in with it
 
 **Dependencies:** None

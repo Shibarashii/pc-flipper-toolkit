@@ -84,14 +84,14 @@ def reset_password(username: str, email: str, uid: str, token: str) -> None:
         [
             f"Hi {username},",
             f"Your username is {username}.",
-            "If you forgot your password, open this link to set a new one:",
+            "To set a new password, open this link:",
             (
                 "Set a new password",
                 f"{settings.SITE_URL}/reset-password?uid={uid}&token={token}",
             ),
             (
                 "The link works once, for 1 hour. If you didn’t ask for this, you can "
-                "ignore this email; your password stays as it is."
+                "ignore this email; nothing changes."
             ),
         ],
     )
