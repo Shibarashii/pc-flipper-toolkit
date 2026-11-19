@@ -121,7 +121,7 @@ export function Account() {
                 }
                 onError={() =>
                   setError(
-                    "Couldn’t load Google sign-in. Check your connection and reload.",
+                    "Couldn’t load Google’s button. Check your connection and reload.",
                   )
                 }
               />

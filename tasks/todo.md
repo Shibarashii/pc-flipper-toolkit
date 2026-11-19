@@ -1665,8 +1665,8 @@ migration, no API change, no new dependencies.
   Tests first, one per state.
 - Built 2026-11-19: each state's test reads its section word for word (which also catches
   anything said twice) and checks the page for "sign in" and "Logged in as". The rows share
-  one `Row` (label left, action right). Google's load error keeps "Google sign-in", as the
-  spec says ("as today"). Checked locally on a password account (Google connected, then
+  one `Row` (label left, action right). From the review: Google's load error reads "Couldn't load
+  Google's button." (was "Google sign-in"), and the older specs say their Account words changed. Checked locally on a password account (Google connected, then
   disconnected), a Google-only one and the demo, at 375px and desktop, light and dark.
 
 **Acceptance criteria:**

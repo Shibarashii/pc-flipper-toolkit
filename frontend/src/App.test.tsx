@@ -601,6 +601,29 @@ test("Disconnect unlinks Google when there's a password", async () => {
   expect(init?.method).toBe("DELETE");
 });
 
+test("Google's button failing to load says so, still in one verb", async () => {
+  vi.stubEnv("VITE_GOOGLE_CLIENT_ID", "client.apps.googleusercontent.com");
+  // A script that loads but won't start, as when something blocks Google.
+  vi.stubGlobal("google", {
+    accounts: {
+      id: {
+        initialize: () => {
+          throw new Error("blocked");
+        },
+        renderButton: vi.fn(),
+      },
+    },
+  });
+  saveSession({ token: "abc", username: "carol" });
+  stubFetch(me());
+  renderAt("/account");
+
+  expect((await screen.findByRole("alert")).textContent).toBe(
+    "Couldn’t load Google’s button. Check your connection and reload.",
+  );
+  expectOneVerb();
+});
+
 test("a Google-only account has no password to change and keeps Google", async () => {
   saveSession({ token: "abc", username: "carol" });
   stubFetch(
@@ -774,6 +797,7 @@ test("Change password keeps this browser logged in with a new token", async () =
   expect((await screen.findByRole("status")).textContent).toBe(
     "Password changed. You’re logged out on your other devices.",
   );
+  expectOneVerb();
   expect(screen.queryByLabelText("New password")).toBeNull();
   expect(getToken()).toBe("new");
   const { url, body } = requestTo(fetchMock, 1);
@@ -876,6 +900,7 @@ test("an account without an email adds one, and sees the link was sent", async (
   expect((await within(email).findByRole("status")).textContent).toBe(
     "We sent a link to carol@example.com. Open it within 24 hours to confirm. Not there? Check your spam folder.",
   );
+  expectOneVerb();
   // Nothing is saved until the link is opened, so the form just closes.
   expect(within(email).queryByRole("textbox")).toBeNull();
   const { url, body } = requestTo(fetchMock, 1);
