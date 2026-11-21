@@ -25,7 +25,7 @@ class OwnedViewSet(viewsets.ModelViewSet):
     # The SPEC only supports partial updates; PUT is left out so the docs don't offer it.
     http_method_names = ["get", "post", "patch", "delete", "head", "options"]
     # Looked up by the public UUID, still called `id` in paths. Anything else, an
-    # integer id included, is a 404 (docs/specs/public-ids.md).
+    # integer id included, is a 404 (specs/public-ids.md).
     lookup_field = "public_id"
     lookup_url_kwarg = "id"
 

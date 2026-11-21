@@ -1,4 +1,4 @@
-// Shared class strings for the brand's Button and Field components (docs/brand-guidelines.md).
+// Shared class strings for the brand's Button and Field components (specs/design/brand.md).
 
 export const focusRing =
   "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent";

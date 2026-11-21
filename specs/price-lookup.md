@@ -1,6 +1,6 @@
 # Spec: Price lookup (v1: PC shops)
 
-A separate feature on top of [SPEC.md](../../SPEC.md), which stays the source of truth for
+A separate feature on top of [specs/app.md](app.md), which stays the source of truth for
 everything else (stack, auth, money rules, code style).
 
 [Part 2](#part-2-part-search-pop-up) adds a search pop-up to the Part box that uses the same
@@ -134,7 +134,7 @@ The part form (`PartForm` in `components/PartRow.tsx`) on desktop and at 375px:
   (`updated_at` null: "Prices aren't loaded yet.").
 - Esc or a Close button closes the panel without changing anything. Esc in the panel must not
   also cancel the part edit.
-- Follows [docs/brand-guidelines.md](../brand-guidelines.md).
+- Follows [specs/design/brand.md](design/brand.md).
 
 ## Commands
 

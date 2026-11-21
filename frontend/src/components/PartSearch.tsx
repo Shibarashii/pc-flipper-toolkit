@@ -17,7 +17,7 @@ const MAX_ROWS = 8;
 const optionId = (listId: string, row: number) => `${listId}-${row}`;
 
 /** The part form's Part box: typing searches the shops' copy and offers a pop-up of products
- * (docs/specs/price-lookup.md, part 2). A combobox with a listbox pop-up, in the WAI-ARIA
+ * (specs/price-lookup.md, part 2). A combobox with a listbox pop-up, in the WAI-ARIA
  * pattern. The pop-up is only a suggestion, so it stays out of the way of plain typing: a
  * failed search shows nothing, and Enter saves the part unless a row is active.
  *

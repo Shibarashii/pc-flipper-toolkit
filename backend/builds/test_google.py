@@ -1,4 +1,4 @@
-"""Sign in with Google (docs/specs/google-sign-in.md). Nothing here calls Google."""
+"""Sign in with Google (specs/google-sign-in.md). Nothing here calls Google."""
 
 import json
 import time

@@ -1,7 +1,7 @@
 """The app's emails, each with a text and an HTML version, sent in the background.
 
 Both versions, because Brevo turns a text-only email into HTML with a tracking image, which
-spam filters mark down (docs/specs/account-management.md, S1's test).
+spam filters mark down (specs/account-management.md, S1's test).
 """
 
 from threading import Thread

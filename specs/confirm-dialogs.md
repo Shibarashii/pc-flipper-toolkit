@@ -1,7 +1,7 @@
 # Spec: Ask before every action that can't be taken back
 
 Four one-click actions ask first, in the same dialog that already asks before deleting a
-build or a bundle. On top of [SPEC.md](../../SPEC.md), which stays the source of truth.
+build or a bundle. On top of [specs/app.md](app.md), which stays the source of truth.
 Approved 2026-11-21 as written.
 
 ## Objective
@@ -32,7 +32,7 @@ Approved 2026-11-21 as written.
 ## The dialogs
 
 The look and behavior of today's delete dialog
-([DeleteDialog.tsx](../../frontend/src/components/DeleteDialog.tsx)): a title, a muted message,
+([DeleteDialog.tsx](../frontend/src/components/DeleteDialog.tsx)): a title, a muted message,
 Cancel first (so Esc and Enter never act by accident), the action in red on the right. While the
 request runs, the action reads "…ing" and is disabled; if it fails, the dialog stays open with
 the error under the message.
@@ -63,7 +63,7 @@ the error under the message.
 
 ## Commands
 
-Same as [SPEC.md](../../SPEC.md#commands): `npm test`, `npm run lint`, `npx tsc -b` and
+Same as [specs/app.md](app.md#commands): `npm test`, `npm run lint`, `npx tsc -b` and
 `npm run e2e` in `frontend/`.
 
 ## Project Structure
@@ -76,7 +76,7 @@ frontend/src/pages/Account.tsx             Disconnect's dialog
 frontend/src/App.tsx                       Exit demo's dialog
 frontend/src/*.test.tsx                    the tests that delete, disconnect or exit
 frontend/e2e/demo.spec.ts                  Exit demo, if a test clicks it
-SPEC.md                                    the Build detail and header lines
+specs/app.md                                    the Build detail and header lines
 ```
 
 ## Code Style
@@ -103,7 +103,7 @@ One dialog, named by what it asks:
   with the error (not for Exit demo). Existing tests that delete a part or a cost, disconnect or
   exit click through the dialog.
 - **E2E:** the existing tests that delete or exit click through the dialog; none new
-  ([e2e intent](../intent/e2e-tests.md)).
+  ([e2e intent](intent/e2e-tests.md)).
 - **Manual:** each dialog at desktop and 375px, light and dark.
 
 ## Boundaries

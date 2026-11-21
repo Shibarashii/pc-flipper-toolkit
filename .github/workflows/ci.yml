@@ -11,7 +11,7 @@ permissions:
 
 concurrency:
   # One run per PR: a new push cancels the older one. Runs on main are never grouped, so
-  # every merged commit gets its own run and Render can deploy it (docs/specs/ci-speedups.md).
+  # every merged commit gets its own run and Render can deploy it (specs/ci-speedups.md).
   group: ci-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
   cancel-in-progress: true
 

@@ -72,7 +72,7 @@ Add `tabular-nums` to every element that shows money.
 - Hairlines: rows use `line`, table heads and section tops use `line-strong`.
 - Rows inset their content 12px (`px-3`) from both ends of their hairlines, at every width;
   a table pads its first and last cells instead. Section headings, the buttons beside them
-  and inline edit boxes stay on the edge ([row inset](specs/row-inset.md)).
+  and inline edit boxes stay on the edge ([row inset](../row-inset.md)).
 - Spacing: Tailwind's 4px scale. Sections are separated by 48px on desktop and 32px on mobile.
 - No shadows, gradients or blur. Focus: 2px `accent` ring with a 2px offset.
 

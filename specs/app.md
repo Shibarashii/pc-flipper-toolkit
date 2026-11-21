@@ -1,6 +1,6 @@
 # Spec: PC Flipper Toolkit (v1: Build Profit Tracker)
 
-Source of intent: [docs/intent/pc-flipper-toolkit.md](docs/intent/pc-flipper-toolkit.md)
+Source of intent: [specs/intent/pc-flipper-toolkit.md](intent/pc-flipper-toolkit.md)
 
 ## Objective
 
@@ -32,13 +32,13 @@ market the PC is priced. It replaces the author's spreadsheet.
 9. I can add a **bundle**: parts bought together for one price (e.g. motherboard + CPU + RAM
    for ₱7,500). Each part in it has its own name, category and listed price, but its
    bought-for is optional, typed in only if I know it. The bundle's price counts once in the
-   totals. ([docs/ideas/part-bundles.md](docs/ideas/part-bundles.md))
+   totals. ([specs/ideas/part-bundles.md](ideas/part-bundles.md))
 10. Without signing up, I can **try a demo**: one click logs me into my own throwaway account
     with two sample builds, which I can change freely. Nobody else sees my changes, and the
-    account is deleted after 24 hours. ([docs/intent/demo-account.md](docs/intent/demo-account.md))
+    account is deleted after 24 hours. ([specs/intent/demo-account.md](intent/demo-account.md))
 
 ### Out of scope (v1)
-Price scraping (a price lookup from PC shops came later: [docs/specs/price-lookup.md](docs/specs/price-lookup.md)), voucher detection, buyer-only build mode, part compatibility checks,
+Price scraping (a price lookup from PC shops came later: [specs/price-lookup.md](price-lookup.md)), voucher detection, buyer-only build mode, part compatibility checks,
 multiple currencies (amounts are in PHP ₱ only). For accounts: email, password reset,
 sharing a build with another user, turning a demo account into a real one, and social login.
 
@@ -61,7 +61,7 @@ Exact versions get pinned in `requirements.txt` / `package.json` when the projec
 
 Build, Part, Bundle and ExtraCost also each have a `public_id`, a random UUID made by
 Postgres. It's the record's only name outside the database; the integer ids stay inside it
-([public ids spec](docs/specs/public-ids.md)).
+([public ids spec](public-ids.md)).
 
 ```
 Build
@@ -114,7 +114,7 @@ All endpoints are under `/api/`. JSON in, JSON out. Only `PATCH` is supported fo
 
 **Ids:** a build's, part's, bundle's or extra cost's `id` is a UUID (its `public_id`), and
 so are the `build` and `bundle` fields that point at one. An integer or malformed `{id}` is
-a 404, and in a body it's a 400 under the field ([public ids spec](docs/specs/public-ids.md)).
+a 404, and in a body it's a 400 under the field ([public ids spec](public-ids.md)).
 
 **Reference docs:** an OpenAPI 3 schema is generated from the code with drf-spectacular. Interactive docs (Swagger UI) are at `/api/docs/` and the raw schema at `/api/schema/`. This table is the overview, and `/api/docs/` is the source of truth for fields and examples.
 
@@ -122,18 +122,18 @@ a 404, and in a body it's a 400 under the field ([public ids spec](docs/specs/pu
 
 | Method | Path | Purpose |
 |---|---|---|
-| POST | `/api/auth/signup/` | Create an account (`username`, `email`, `password`) → `{token, username}`, and email a link to confirm `email` (saved once it's opened). An email another account has gets no link; the answer is the same ([spec](docs/specs/account-management.md)) |
+| POST | `/api/auth/signup/` | Create an account (`username`, `email`, `password`) → `{token, username}`, and email a link to confirm `email` (saved once it's opened). An email another account has gets no link; the answer is the same ([spec](account-management.md)) |
 | POST | `/api/auth/login/` | Log in → `{token, username}` |
 | POST | `/api/auth/logout/` | Delete the current token |
 | POST | `/api/auth/demo/` | Create a demo account with the sample builds → `{token, username}` (201) |
 | GET | `/api/auth/me/` | The logged-in user: `{username, google, has_password, is_demo, email}`, where `google` is `{email}` or `null` and `email` is the confirmed email or `""` |
-| PATCH | `/api/auth/me/` | Change your username `{username}`: the sign-up rules, except that changing only the case of your own name is allowed. Returns the same as GET. A demo gets `403`. Rate-limited like log-in. ([spec](docs/specs/account-management.md)) |
+| PATCH | `/api/auth/me/` | Change your username `{username}`: the sign-up rules, except that changing only the case of your own name is allowed. Returns the same as GET. A demo gets `403`. Rate-limited like log-in. ([spec](account-management.md)) |
 | POST | `/api/auth/password/` | Change your password `{current_password, new_password}` → a new `{token, username}`; the old token is deleted, so every other device is logged out. 400 for a wrong current password (on `current_password`), one that fails Django's validators (on `new_password`), or an account without a password; 403 for a demo. Rate-limited like log-in |
-| POST | `/api/auth/email/` | Add or change your email `{email}`: emails a confirmation link (202); nothing is saved until it's opened. 400 for another account's email (in any case) or your own again; 403 for a demo. 5 an hour per account, since each is an email ([spec](docs/specs/account-management.md)) |
+| POST | `/api/auth/email/` | Add or change your email `{email}`: emails a confirmation link (202); nothing is saved until it's opened. 400 for another account's email (in any case) or your own again; 403 for a demo. 5 an hour per account, since each is an email ([spec](account-management.md)) |
 | POST | `/api/auth/email/confirm/` | No log-in. Saves the email from a link's `{token}` → `{email}`; a replaced email gets a notice. 400 on `token` when the link is over 24 hours old, used, outdated or changed; 400 on `email` if another account took it meanwhile. Rate-limited like log-in |
-| POST | `/api/auth/password-reset/` | No log-in. Forgot your username or password `{email}`: always 202 with the same `{detail}`. An active account with that email (any case) gets its username and a link to set a new password (1 hour); a Google-only account sets its first one this way ([spec](docs/specs/google-only-password.md)). One email per address per 15 minutes, silently; never a lockout. Rate-limited like log-in ([spec](docs/specs/account-management.md)) |
+| POST | `/api/auth/password-reset/` | No log-in. Forgot your username or password `{email}`: always 202 with the same `{detail}`. An active account with that email (any case) gets its username and a link to set a new password (1 hour); a Google-only account sets its first one this way ([spec](google-only-password.md)). One email per address per 15 minutes, silently; never a lockout. Rate-limited like log-in ([spec](account-management.md)) |
 | POST | `/api/auth/password-reset/confirm/` | No log-in. `{uid, token, new_password}` from the link → 204: sets the password, deletes the token (every device logged out) and emails a notice; it doesn't log in. 400 on `token` when the link is over an hour old, used or changed; 400 on `new_password` from the validators. Rate-limited like log-in |
-| POST | `/api/auth/google/` | Sign in with Google's ID token (`credential`) → `{token, username}`; 201 when it makes the account ([spec](docs/specs/google-sign-in.md)). A new account takes Google's email only when Google marks it verified, it's a Gmail or Workspace address, and no other account has it; accounts are never matched by email ([spec](docs/specs/account-management.md)) |
+| POST | `/api/auth/google/` | Sign in with Google's ID token (`credential`) → `{token, username}`; 201 when it makes the account ([spec](google-sign-in.md)). A new account takes Google's email only when Google marks it verified, it's a Gmail or Workspace address, and no other account has it; accounts are never matched by email ([spec](account-management.md)) |
 | POST | `/api/auth/google/connect/` | Connect the Google account in `credential` to the logged-in user → `{google: {email}}`; 400 for a demo, a second one, or one connected elsewhere |
 | DELETE | `/api/auth/google/connect/` | Disconnect it (204); 400 without a password, the only other way in |
 | GET, POST | `/api/builds/` | List builds (with totals) / create a build |
@@ -144,8 +144,8 @@ a 404, and in a body it's a 400 under the field ([public ids spec](docs/specs/pu
 | PATCH, DELETE | `/api/bundles/{id}/` | Edit / remove a bundle (removing it removes its parts) |
 | POST | `/api/extra-costs/` | Add an extra cost (`build` id in the body) |
 | PATCH, DELETE | `/api/extra-costs/{id}/` | Edit / remove an extra cost |
-| GET | `/api/prices/?q=` | Search the PC shops' prices ([price lookup spec](docs/specs/price-lookup.md)) |
-| GET | `/api/builds/summary/` | This month's and all-time profit, and money tied up in unsold builds ([builds summary spec](docs/specs/builds-summary.md)) |
+| GET | `/api/prices/?q=` | Search the PC shops' prices ([price lookup spec](price-lookup.md)) |
+| GET | `/api/builds/summary/` | This month's and all-time profit, and money tied up in unsold builds ([builds summary spec](builds-summary.md)) |
 
 `totals` is computed on the server and read-only:
 ```json
@@ -185,18 +185,18 @@ another user's build (400). A part, bundle or cost can't be moved to another bui
 
 ## Screens
 
-0. **Landing page** (`/`, logged out; [spec](docs/specs/landing-page.md)): what the app is, with **Try the demo** and **Sign up**, beside a picture of the demo's sold build (the build diagram with price tags and its profit) made from the app's own components. The header gets a **Log in** button on every logged-out page but Log in and Sign up. Once a session ends in the tab (Log out, Exit demo, an expired token), `/` goes to Log in instead, where that is explained.
-   **Log in** (`/login`) and **Sign up** (`/signup`): username and password (sign-up also an email), linking to each other; Log in also links to "Forgot your username or password?" (`/forgot`), which emails the username and a link to `/reset-password` to set a new one, then log in ([spec](docs/specs/account-management.md)). Logged out, every other page but `/` redirects here; logging in goes to the builds list, which after sign-up says once where the confirmation link went. **Privacy** (`/privacy`), `/verify-email`, `/forgot` and `/reset-password` open logged in or out.
-   - Every page ends with a **footer** ([spec](docs/specs/footer.md)): "© 2026 Seanrei Valdeabella" and links to Privacy, the GitHub repo and the author's LinkedIn; at the bottom of the window on short pages, after the content on long ones.
+0. **Landing page** (`/`, logged out; [spec](landing-page.md)): what the app is, with **Try the demo** and **Sign up**, beside a picture of the demo's sold build (the build diagram with price tags and its profit) made from the app's own components. The header gets a **Log in** button on every logged-out page but Log in and Sign up. Once a session ends in the tab (Log out, Exit demo, an expired token), `/` goes to Log in instead, where that is explained.
+   **Log in** (`/login`) and **Sign up** (`/signup`): username and password (sign-up also an email), linking to each other; Log in also links to "Forgot your username or password?" (`/forgot`), which emails the username and a link to `/reset-password` to set a new one, then log in ([spec](account-management.md)). Logged out, every other page but `/` redirects here; logging in goes to the builds list, which after sign-up says once where the confirmation link went. **Privacy** (`/privacy`), `/verify-email`, `/forgot` and `/reset-password` open logged in or out.
+   - Every page ends with a **footer** ([spec](footer.md)): "© 2026 Seanrei Valdeabella" and links to Privacy, the GitHub repo and the author's LinkedIn; at the bottom of the window on short pages, after the content on long ones.
    - The header shows the username and "Log out" when logged in. It starts with the logo and
      the name, one link home; logged in and below 410px wide the logo shows alone, so the header fits
      a 320px phone without scrolling sideways. Logged out, the name always shows (the log-in
-     page has it nowhere else). The username (an icon on phones) opens **Account** (`/account`), in three sections ([spec](docs/specs/portfolio-polish.md#part-3-account-page)): **Username**; **Ways to log in**, the password (change it, or set one from an emailed link when Google is the only way in; [spec](docs/specs/google-only-password.md)) and Google (connect it, or disconnect it when the account has a password, after "Disconnect Google?"; [spec](docs/specs/google-sign-in.md)); and the **Recovery email** ([spec](docs/specs/account-management.md)). A recovery email is saved only once its emailed link is opened at `/verify-email`, logged in or out.
+     page has it nowhere else). The username (an icon on phones) opens **Account** (`/account`), in three sections ([spec](portfolio-polish.md#part-3-account-page)): **Username**; **Ways to log in**, the password (change it, or set one from an emailed link when Google is the only way in; [spec](google-only-password.md)) and Google (connect it, or disconnect it when the account has a password, after "Disconnect Google?"; [spec](google-sign-in.md)); and the **Recovery email** ([spec](account-management.md)). A recovery email is saved only once its emailed link is opened at `/verify-email`, logged in or out.
    - The landing page and both of these have a **"Try the demo"** button that creates a demo account and goes to the
      builds list. A demo account sees a banner under the header: it's a demo, deleted after 24
      hours, ending in a "Sign up for your own account" link that ends the demo and opens sign-up
      (a link, so it doesn't stack under the header's button). For a demo, the header's "Log out"
-     reads "Exit demo" and asks first ("Exit the demo?", [spec](docs/specs/confirm-dialogs.md)).
+     reads "Exit demo" and asks first ("Exit the demo?", [spec](confirm-dialogs.md)).
    - **Sample builds:** a sold flip (every required slot filled, a bundle, two extra costs, a
      profit) and an in-progress build (some required slots empty, no selling price yet).
 1. **Builds list** (`/`): one card or row per build showing name, status badge, total cost, selling price and profit (green if positive, red if negative). Has a "New build" button.
@@ -210,9 +210,9 @@ another user's build (400). A part, bundle or cost can't be moved to another bui
      - Shows "N of 6 required parts" with a progress bar. A missing or optional slot has an "Add" link that opens the add-part row with that category preselected.
      - Computed in the frontend from the parts list. No data-model or API change.
    - Summary panel with all the totals from user story 5.
-   - Parts table: add, edit and delete rows inline; deleting asks first ("Delete this part?", [spec](docs/specs/confirm-dialogs.md)). The pencil turns a row into inputs with Save/Cancel (Enter saves, Esc cancels). The add row looks the same. On mobile it becomes stacked cards.
+   - Parts table: add, edit and delete rows inline; deleting asks first ("Delete this part?", [spec](confirm-dialogs.md)). The pencil turns a row into inputs with Save/Cancel (Enter saves, Esc cancels). The add row looks the same. On mobile it becomes stacked cards.
      - A part's condition, when set, shows short and muted after its name ("Like new"); the
-       form sets it from a select ([part condition spec](docs/specs/part-condition.md)).
+       form sets it from a select ([part condition spec](part-condition.md)).
    - Bundles, inside the parts table: a bundle row (name, shop, listed total, its one bought-for
      price) with its parts indented under it. A bundled part's bought-for shows the typed amount
      or "—". When typed amounts don't cover the price, the bundle shows "₱X not assigned".
@@ -232,7 +232,7 @@ States each screen must handle:
 - **Both:** loading and request failed. A 401 (token deleted or expired) logs out and goes to `/login` with "Your session ended. Log in again." (for a demo: "Your demo ended. Try it again or sign up.", since it has no password)
 - **Log in / sign up:** wrong username or password, username taken, password rejected by the validators (their messages, under the field), and too many attempts (429).
 
-Visual design (colors, type, components, light/dark) follows [docs/brand-guidelines.md](docs/brand-guidelines.md).
+Visual design (colors, type, components, light/dark) follows [specs/design/brand.md](design/brand.md).
 Builds are labeled `Build 01` in the UI: the build's `number` (1, 2, 3… among the user's own
 builds, oldest first, zero-padded to 2 digits), never the database id, which counts every
 user's builds. It's a count, so deleting a build renumbers the later ones.
@@ -297,12 +297,13 @@ pc-flipper-toolkit/
 │       ├── pages/         Landing, BuildsList, BuildDetail, Login, Account, Forgot, ResetPassword,
 │       │                  VerifyEmail, Privacy
 │       └── components/    PartsTable.tsx, ExtraCosts.tsx, Summary.tsx, ... (tests sit beside them)
-├── docs/brand-guidelines.md  The look: warm paper and ink, green accent, hairlines
-├── docs/ideas/            Idea one-pagers, and backlog.md: rough ideas and parked decisions
-├── docs/intent/           Confirmed statements of intent (the app, e2e tests, demo account)
-├── docs/specs/            Specs for later features built on this one (price lookup, Google sign-in, public ids, …)
-├── tasks/                 plan.md and todo.md: every phase, with acceptance criteria and checkpoints
-├── SPEC.md
+├── specs/                 Everything for building the app (not for its users)
+│   ├── app.md             This spec: the app as a whole
+│   ├── <feature>.md       Specs for later features built on this one (price lookup, Google sign-in, …)
+│   ├── plan.md, todo.md   Every phase, with acceptance criteria and checkpoints
+│   ├── intent/            Confirmed statements of intent from interviews
+│   ├── ideas/             Idea one-pagers, and backlog.md: rough ideas and parked decisions
+│   └── design/            brand.md (the look) and figma.md (the design file)
 ├── CLAUDE.md              How Claude Code works on this repo: workflow, rules, local ports
 └── README.md              Screenshot, live links, how to run
 ```
@@ -346,7 +347,7 @@ class Build(models.Model):
 
 ## Boundaries
 
-- **Always:** run the backend and frontend tests before every commit; keep money as Decimal (never float); compute totals only on the backend; validate that prices are ≥ 0; keep `SPEC.md` updated when a decision changes; document every new or changed endpoint in the same change (summary, description, field `help_text`, and an example for non-trivial responses). The schema test (`spectacular --validate --fail-on-warn`) must pass.
+- **Always:** run the backend and frontend tests before every commit; keep money as Decimal (never float); compute totals only on the backend; validate that prices are ≥ 0; keep `specs/app.md` updated when a decision changes; document every new or changed endpoint in the same change (summary, description, field `help_text`, and an example for non-trivial responses). The schema test (`spectacular --validate --fail-on-warn`) must pass.
 - **Ask first:** adding any dependency not listed above; changing the data model after the first migration ships; changing the deployment target; adding any feature from Out of scope.
 - **Never:** commit secrets or `.env` files (use environment variables); store money as float; remove or skip a failing test to get to green.
 

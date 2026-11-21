@@ -28,7 +28,7 @@ export type Build = {
   totals: Totals;
 };
 
-/** The builds list's summary line, worked out on the server (docs/specs/builds-summary.md). */
+/** The builds list's summary line, worked out on the server (specs/builds-summary.md). */
 export type BuildsSummary = {
   this_month: { profit: string; sold: number };
   all_time: { profit: string; sold: number };
@@ -49,7 +49,7 @@ export const CATEGORIES = {
 
 export type PartCategory = keyof typeof CATEGORIES;
 
-/** Facebook Marketplace's condition labels, in its order (docs/specs/part-condition.md). */
+/** Facebook Marketplace's condition labels, in its order (specs/part-condition.md). */
 export const CONDITIONS = {
   new: "New",
   like_new: "Used – Like New",
@@ -100,7 +100,7 @@ export type BuildDetail = Build & {
 
 export type NewPart = Omit<Part, "id" | "bundle"> & { bundle?: string | null };
 
-/** A product from a PC shop's catalogue, from the daily copy (docs/specs/price-lookup.md). */
+/** A product from a PC shop's catalogue, from the daily copy (specs/price-lookup.md). */
 export type ShopProduct = {
   shop: string;
   title: string;

@@ -1,8 +1,8 @@
 # Spec: Portfolio polish
 
 Small fixes to controls and words before the app goes in the author's portfolio, on top of
-[SPEC.md](../../SPEC.md), which stays the source of truth for everything else. Direction agreed
-2026-11-19 in [docs/ideas/portfolio-polish.md](../ideas/portfolio-polish.md).
+[specs/app.md](app.md), which stays the source of truth for everything else. Direction agreed
+2026-11-19 in [specs/ideas/portfolio-polish.md](ideas/portfolio-polish.md).
 
 ## Objective
 
@@ -77,7 +77,7 @@ Approved by the author on 2026-11-19. Only the labels change, not the numbers or
 | Bundle row | Listed total | Parts at shop prices | Same as the summary |
 | Builds summary | Tied up | Unchanged | "Money tied up" is what flippers say; "in 3 builds" under it explains it |
 
-SPEC.md's definitions (Objective, user story 3) take the new names in the same change.
+specs/app.md's definitions (Objective, user story 3) take the new names in the same change.
 
 ### Part 3: Account page
 
@@ -116,7 +116,7 @@ hairline and an `editorial` heading per section.
 
 ## Commands
 
-Same as [SPEC.md](../../SPEC.md#commands): `npm test`, `npm run lint`, `npx tsc -b` and
+Same as [specs/app.md](app.md#commands): `npm test`, `npm run lint`, `npx tsc -b` and
 `npm run e2e` in `frontend/`. No backend change.
 
 ## Project Structure
@@ -132,8 +132,8 @@ frontend/src/
   pages/Account.tsx             Part 3
   (+ the tests beside each)
 frontend/e2e/flip.spec.ts       only if it names a changed label
-SPEC.md                         Part 2 names; Screens: Account
-docs/brand-guidelines.md        icon buttons in the header, if it lists the build header
+specs/app.md                         Part 2 names; Screens: Account
+specs/design/brand.md        icon buttons in the header, if it lists the build header
 ```
 
 ## Code Style
@@ -161,7 +161,7 @@ The header's icon buttons go through `IconButton`, so the name is written once:
     above, that "Logged in as" is gone, and that no text on the page says "sign in" outside
     Google's button.
   - The header's username link has the full name as `title`.
-- **E2E:** no new tests ([e2e intent](../intent/e2e-tests.md)); update any label the flip test
+- **E2E:** no new tests ([e2e intent](intent/e2e-tests.md)); update any label the flip test
   names.
 - **Screenshots:** a build (desktop and 375px) and Account in each state, light and dark.
 
@@ -179,7 +179,7 @@ The header's icon buttons go through `IconButton`, so the name is written once:
    dialogs as before, at desktop and 375px.
 2. Every icon-only control in the app has a tooltip; the truncated username shows in full on
    hover.
-3. The summary and bundle row use the chosen labels, and SPEC.md uses them too.
+3. The summary and bundle row use the chosen labels, and specs/app.md uses them too.
 4. The Account page reads as in Part 3 in every state, with no "sign in" outside Google's
    button and nothing said twice.
 5. All tests pass (backend unchanged, frontend, e2e).

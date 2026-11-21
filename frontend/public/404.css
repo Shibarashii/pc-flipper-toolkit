@@ -1,4 +1,4 @@
-/* The not-found page (404.html). The brand's tokens (docs/brand-guidelines.md), light or dark
+/* The not-found page (404.html). The brand's tokens (specs/design/brand.md), light or dark
    from the browser's setting: this page has no theme button. Sizes as in App.tsx and ui.ts. */
 :root {
   color-scheme: light dark;

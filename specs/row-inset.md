@@ -1,6 +1,6 @@
 # Spec: Row inset
 
-A visual fix on top of [SPEC.md](../../SPEC.md), which stays the source of truth for everything
+A visual fix on top of [specs/app.md](app.md), which stays the source of truth for everything
 else. Asked for by the author on 2026-11-12, from a screenshot of a build page.
 
 ## Objective
@@ -54,7 +54,7 @@ React 19, TypeScript, Tailwind v4. Class changes only: no new component, depende
 
 ## Commands
 
-Same as [SPEC.md](../../SPEC.md#commands): in `frontend/`, `npm test`, `npm run lint`,
+Same as [specs/app.md](app.md#commands): in `frontend/`, `npm test`, `npm run lint`,
 `npx tsc -b`, `npx prettier --check src`, `npx playwright test`.
 
 ## Project Structure
@@ -68,7 +68,7 @@ frontend/src/components/BundleRow.tsx       bundle rows (view mode)
 frontend/src/components/ExtraCosts.tsx      cost rows
 frontend/src/components/PriceLookup.tsx     price results
 frontend/src/pages/BuildsList.tsx           phone cards and loading rows
-docs/brand-guidelines.md                    the rule, so new rows follow it
+specs/design/brand.md                    the rule, so new rows follow it
 ```
 
 ## Code Style
@@ -109,7 +109,7 @@ cells. No shared constant for `px-3`: it's one Tailwind class, and the brand rul
 3. Section headings, the progress bar and the heading buttons haven't moved.
 4. The Parts column heads, rows and Total row still line up.
 5. An open edit box still spans the row's full width.
-6. `docs/brand-guidelines.md` states the rule: rows inset 12px; headings flush.
+6. `specs/design/brand.md` states the rule: rows inset 12px; headings flush.
 7. All tests pass (frontend, e2e).
 
 ## Open Questions

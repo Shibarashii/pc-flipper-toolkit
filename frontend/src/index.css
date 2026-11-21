@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* Brand tokens: docs/brand-guidelines.md, as light-dark(light, dark). The theme is just
+/* Brand tokens: specs/design/brand.md, as light-dark(light, dark). The theme is just
    color-scheme: the device's setting, unless the header button saved a choice
    (data-theme on <html>, set before first paint in index.html). */
 :root {

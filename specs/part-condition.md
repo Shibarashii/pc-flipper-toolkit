@@ -1,6 +1,6 @@
 # Spec: Part condition
 
-A new optional field on parts, on top of [SPEC.md](../../SPEC.md), which stays the source of
+A new optional field on parts, on top of [specs/app.md](app.md), which stays the source of
 truth for everything else. Agreed in conversation on 2026-11-07.
 
 ## Objective
@@ -106,7 +106,7 @@ export type PartCondition = keyof typeof CONDITIONS;
 
 ## Commands
 
-Same as [SPEC.md](../../SPEC.md#commands): `python manage.py test`,
+Same as [specs/app.md](app.md#commands): `python manage.py test`,
 `python manage.py makemigrations --check`, `ruff check . && ruff format .` and
 `python manage.py spectacular --validate --fail-on-warn` in `backend/`; `npm test`,
 `npm run lint`, `npx tsc -b` and `npx playwright test` in `frontend/`.
@@ -126,8 +126,8 @@ frontend/src/
   listing.ts             condition in the post; grouping by name and condition
   test/fixtures.ts, *.test.*   condition on test parts
 frontend/e2e/flip.spec.ts  sets a condition on one part and checks the row
-SPEC.md                  Part's condition in Data Model; Screens mention it
-docs/ideas/backlog.md    the idea moves here; + build condition idea
+specs/app.md                  Part's condition in Data Model; Screens mention it
+specs/ideas/backlog.md    the idea moves here; + build condition idea
 ```
 
 ## Testing Strategy

@@ -1,7 +1,7 @@
 # Spec: CI speedups
 
-A small change to [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml), on top of
-[SPEC.md](../../SPEC.md). Agreed in conversation on 2026-11-06.
+A small change to [`.github/workflows/ci.yml`](../.github/workflows/ci.yml), on top of
+[specs/app.md](app.md). Agreed in conversation on 2026-11-06.
 
 ## Objective
 

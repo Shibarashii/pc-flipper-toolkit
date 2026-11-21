@@ -2,17 +2,17 @@
 
 Rough ideas and parked decisions, not brainstormed or specced yet. When one is picked up, it
 gets a one-pager in this folder (like [part-bundles.md](part-bundles.md)) or a spec in
-[docs/specs/](../specs/), and moves out of this list.
+[specs/](../), and moves out of this list.
 
 ## Rough ideas
 
 ### Copy listing (specced 2026-11-07)
 
-Moved to [docs/specs/copy-listing.md](../specs/copy-listing.md).
+Moved to [specs/copy-listing.md](../copy-listing.md).
 
 ### Builds summary (specced 2026-11-06)
 
-Moved to [docs/specs/builds-summary.md](../specs/builds-summary.md).
+Moved to [specs/builds-summary.md](../builds-summary.md).
 
 ### Stats screen (step 2 after the builds summary, added 2026-11-06)
 
@@ -29,11 +29,11 @@ brainstorm.
 
 ### A part's condition (specced 2026-11-07)
 
-Moved to [docs/specs/part-condition.md](../specs/part-condition.md).
+Moved to [specs/part-condition.md](../part-condition.md).
 
 ### Account page: profile and currency (added 2026-11-07)
 
-After Google sign-in adds the Account page ([spec](../specs/google-sign-in.md)): edit the
+After Google sign-in adds the Account page ([spec](../google-sign-in.md)): edit the
 profile (e.g. change the username) and choose the currency. Currency is the bigger one: the
 whole app formats ₱ today (`money.ts`, the post, the summary). To brainstorm.
 
@@ -62,7 +62,7 @@ Before sharing it, after the author's own nits and wording fixes:
 
 ### A landing page and SEO fixes (added 2026-11-21)
 
-Moved to [docs/specs/landing-page.md](../specs/landing-page.md).
+Moved to [specs/landing-page.md](../landing-page.md).
 
 ## Parked
 

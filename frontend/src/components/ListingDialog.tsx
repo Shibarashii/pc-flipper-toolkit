@@ -11,7 +11,7 @@ const messages = {
     "Couldn’t copy. The text is selected: press Ctrl+C, or use your phone’s Copy.",
 };
 
-/** The build as a Marketplace post, editable, with Copy (docs/specs/copy-listing.md).
+/** The build as a Marketplace post, editable, with Copy (specs/copy-listing.md).
  * Render only while open; each open starts from a freshly made post. */
 export function ListingDialog({
   build,

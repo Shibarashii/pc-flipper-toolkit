@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { currentTheme } from "./components/ThemeToggle";
 
-/** Google's sign-in button (docs/specs/google-sign-in.md). Google's own script draws it and
+/** Google's sign-in button (specs/google-sign-in.md). Google's own script draws it and
  * hands back an ID token, which the API checks. */
 
 type Gis = {

@@ -1,8 +1,8 @@
 # Spec: Copy listing
 
-A separate feature on top of [SPEC.md](../../SPEC.md), which stays the source of truth for
+A separate feature on top of [specs/app.md](app.md), which stays the source of truth for
 everything else (stack, auth, money rules, code style). Agreed in conversation on 2026-11-06
-(see [the backlog](../ideas/backlog.md)).
+(see [the backlog](ideas/backlog.md)).
 
 ## Objective
 
@@ -105,7 +105,7 @@ No backend change, no new dependency.
 
 ## Commands
 
-Same as [SPEC.md](../../SPEC.md#commands): `npm test`, `npm run lint` and `npx tsc -b` in
+Same as [specs/app.md](app.md#commands): `npm test`, `npm run lint` and `npx tsc -b` in
 `frontend/`.
 
 ## Project Structure

@@ -1,6 +1,6 @@
 # Spec: Google sign-in
 
-Sign in with Google next to username and password, on top of [SPEC.md](../../SPEC.md), which
+Sign in with Google next to username and password, on top of [specs/app.md](app.md), which
 stays the source of truth for everything else. Intent agreed in conversation on 2026-11-07.
 
 ## Objective
@@ -97,7 +97,7 @@ to add "Sign in with Google" to a web app.
 
 ```python
 class GoogleAccount(models.Model):
-    """A Google account connected to a user (docs/specs/google-sign-in.md)."""
+    """A Google account connected to a user (specs/google-sign-in.md)."""
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="google")
     sub = models.CharField(max_length=255, unique=True)  # Google's permanent id
@@ -192,7 +192,7 @@ class GoogleAccount(models.Model):
 
 ## Commands
 
-Same as [SPEC.md](../../SPEC.md#commands): `python manage.py test`,
+Same as [specs/app.md](app.md#commands): `python manage.py test`,
 `python manage.py makemigrations --check`, `ruff check . && ruff format .` and
 `python manage.py spectacular --validate --fail-on-warn` in `backend/`; `npm test`,
 `npm run lint`, `npx tsc -b` and `npx playwright test` in `frontend/`.
@@ -217,8 +217,8 @@ frontend/
   src/pages/Login.tsx    the Google button
   src/pages/Account.tsx  the Account page
   src/App.tsx            /account route; username links to it
-docs/ideas/backlog.md    + Account page: profile and currency
-SPEC.md, README.md       auth table, Account screen, setup notes
+specs/ideas/backlog.md    + Account page: profile and currency
+specs/app.md, README.md       auth table, Account screen, setup notes
 ```
 
 ## Testing Strategy

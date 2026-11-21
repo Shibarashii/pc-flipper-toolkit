@@ -1,6 +1,6 @@
 name: Refresh prices
 
-# The price lookup's daily copy of the PC shops' catalogues (docs/specs/price-lookup.md).
+# The price lookup's daily copy of the PC shops' catalogues (specs/price-lookup.md).
 # Render's free tier has no cron, so GitHub runs it against the production database.
 on:
   schedule:

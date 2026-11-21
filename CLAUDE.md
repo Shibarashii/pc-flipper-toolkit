@@ -1,28 +1,38 @@
 # CLAUDE.md
 
-How to work on PC Flipper Toolkit. The product itself is described in [SPEC.md](SPEC.md),
+How to work on PC Flipper Toolkit. The product itself is described in [specs/app.md](specs/app.md),
 which also has the commands (setup, tests, lint) and the project structure.
 
 ## Where things are
 
-- [SPEC.md](SPEC.md): the source of truth for the app as a whole.
-- [docs/specs/](docs/specs/): one spec per later feature, linking back to SPEC.md. New specs
-  go here (`docs/specs/<feature>.md`), never as `SPEC-<x>.md` at the root.
-- [docs/intent/](docs/intent/): confirmed statements of intent from interviews.
-- [docs/ideas/backlog.md](docs/ideas/backlog.md): rough ideas and parked decisions. An idea
-  that gets a spec moves out of the list ("Moved to …").
-- [tasks/plan.md](tasks/plan.md) and [tasks/todo.md](tasks/todo.md): every phase so far,
-  with acceptance criteria and checkpoints. A new feature adds a phase at the end. Never
-  overwrite them. They're long and the old phases are done: read only the last phase (find it
-  with `grep -n '^#* Phase' tasks/*.md`) and any unticked `- [ ]`.
-- [docs/brand-guidelines.md](docs/brand-guidelines.md): the look (warm paper and ink, green
-  accent, hairlines rather than cards).
-- [docs/figma.md](docs/figma.md): the design file, its pages and components, and how to build a
-  screen in it. Read it before any Figma work.
+Everything written for building the app, by the author or by an agent, lives in
+[specs/](specs/): specs, plans, intent, ideas and design notes. `docs/` is only for
+documentation for the app's users, and there is none yet; don't create it for anything else.
+`.claude/` is Claude Code's configuration (settings, skills, agents), not documents. Never put
+a spec or plan at the root, in `docs/` or in `tasks/`, even when a skill's default says so:
+the paths below override the agent-skills defaults (`SPEC.md`, `tasks/plan.md`,
+`tasks/todo.md`, `docs/intent/`). Why: [specs/intent/directory-layout.md](specs/intent/directory-layout.md).
+
+| What | Where | Notes |
+|---|---|---|
+| The app as a whole | [specs/app.md](specs/app.md) | The source of truth; what agent-skills calls `SPEC.md` |
+| A feature's spec | `specs/<feature>.md` | One file, kebab-case, linking back to `app.md`. Never `SPEC-<x>.md` |
+| Plan and task list | [specs/plan.md](specs/plan.md), [specs/todo.md](specs/todo.md) | See below |
+| A confirmed intent | `specs/intent/<topic>.md` | From `interview-me`, saved once the user says yes |
+| Rough ideas | [specs/ideas/backlog.md](specs/ideas/backlog.md), `specs/ideas/<idea>.md` | An idea that gets a spec moves out of the list ("Moved to …") |
+| The look | [specs/design/brand.md](specs/design/brand.md) | Warm paper and ink, green accent, hairlines rather than cards |
+| The Figma file | [specs/design/figma.md](specs/design/figma.md) | Its pages and components, and how to build a screen in it. Read it before any Figma work |
+
+`specs/plan.md` and `specs/todo.md` hold every phase so far, with acceptance criteria and
+checkpoints. A new feature adds a phase at the end. Never overwrite them. They're long and the
+old phases are done: read only the last phase (find it with
+`grep -n '^#* Phase' specs/plan.md specs/todo.md`) and any unticked `- [ ]`.
+
+Code comments point to the spec they implement by path, like `(specs/public-ids.md)`.
 
 ## Designing in Figma
 
-- Read [docs/figma.md](docs/figma.md) first; it has the ids of every page and component.
+- Read [specs/design/figma.md](specs/design/figma.md) first; it has the ids of every page and component.
 - New designs go on **Flow — in review**, linked to their spec. They move to **Ready for
   development** only after the user approves the spec; code is built from that page.
 - Use the existing components (Header, Footer, Button, Field, rows, cards…) as instances, the
@@ -36,8 +46,8 @@ which also has the commands (setup, tests, lint) and the project structure.
 ## How a feature goes
 
 1. **Interview** (`interview-me`) when the idea is rough, until the user confirms the intent.
-2. **Spec** (`/agent-skills:spec`) in `docs/specs/<feature>.md`; the user approves it.
-3. **Plan** (`/agent-skills:plan`): a new phase in `tasks/plan.md` and `tasks/todo.md`.
+2. **Spec** (`/agent-skills:spec`) in `specs/<feature>.md`; the user approves it.
+3. **Plan** (`/agent-skills:plan`): a new phase in `specs/plan.md` and `specs/todo.md`.
 4. **Build** (`/agent-skills:build`): one task at a time, test first, then stop.
 5. **Review** (`/agent-skills:review`), fix what the user agrees to, then open the PR.
 6. **Merge** only when the user says "merge" (steps below).
@@ -79,7 +89,7 @@ command.
 - **Ask first** before adding a dependency, changing the data model of something already
   shipped, changing where it deploys, or adding anything outside the agreed scope.
 - **Ids:** builds, parts, bundles and extra costs are named outside the database only by
-  their UUID `public_id`. Never expose the integer ids ([spec](docs/specs/public-ids.md)).
+  their UUID `public_id`. Never expose the integer ids ([spec](specs/public-ids.md)).
 - **Migrations** must be safe while the old code still runs: Render migrates before the new
   code serves, so a new column needs a database default (`db_default`).
 - **Shop prices:** only each shop's `/products.json`, with an honest user agent, 1 second

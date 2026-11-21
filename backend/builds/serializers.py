@@ -71,7 +71,7 @@ class TiedUpSerializer(serializers.Serializer):
 
 
 class BuildsSummarySerializer(serializers.Serializer):
-    """The builds list's summary line (docs/specs/builds-summary.md). Read-only."""
+    """The builds list's summary line (specs/builds-summary.md). Read-only."""
 
     this_month = SoldSummarySerializer(
         read_only=True,
@@ -96,7 +96,7 @@ class MoneyField(serializers.DecimalField):
 
 
 class PublicIdField(serializers.SlugRelatedField):
-    """Another record, by its public UUID (docs/specs/public-ids.md)."""
+    """Another record, by its public UUID (specs/public-ids.md)."""
 
     default_error_messages = {
         "does_not_exist": "No such record: {value}.",

@@ -1,7 +1,7 @@
 # Designing in Figma
 
 How to work in the design file. Read this before any Figma call. The look itself is in
-[brand-guidelines.md](brand-guidelines.md); this page is how the file is organized and how to
+[brand-guidelines.md](brand.md); this page is how the file is organized and how to
 build in it without redrawing what already exists.
 
 - File: [PC Flipper Toolkit — v1 Screens](https://www.figma.com/design/Wp4dGW94gTWFjwZSha3nby),

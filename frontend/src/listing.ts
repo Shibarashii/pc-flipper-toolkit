@@ -15,7 +15,7 @@ function joinNames(names: string[]): string {
     .join(" + ");
 }
 
-/** A Facebook Marketplace post for the build (docs/specs/copy-listing.md). Only names,
+/** A Facebook Marketplace post for the build (specs/copy-listing.md). Only names,
  * conditions, slots and the selling price: never what was paid, shops, profit or notes. */
 export function listingText(build: BuildDetail): string {
   // The checklist's slot order, then Other.

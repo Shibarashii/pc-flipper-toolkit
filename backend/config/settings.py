@@ -151,11 +151,11 @@ SPECTACULAR_SETTINGS = {
     "SERVE_INCLUDE_SCHEMA": False,
 }
 
-# Sign in with Google (docs/specs/google-sign-in.md): the OAuth client's id, which isn't a
+# Sign in with Google (specs/google-sign-in.md): the OAuth client's id, which isn't a
 # secret. Unset, Google sign-in answers "isn't set up" and everything else works.
 GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "")
 
-# Email (docs/specs/account-management.md): Brevo's SMTP relay in production. Without
+# Email (specs/account-management.md): Brevo's SMTP relay in production. Without
 # EMAIL_HOST (local, CI), emails print in runserver's output; tests use Django's outbox.
 EMAIL_HOST = os.environ.get("EMAIL_HOST", "")
 if EMAIL_HOST:
