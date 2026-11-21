@@ -97,13 +97,12 @@ export default function App() {
               </Link>
               <button
                 type="button"
-                // A demo has no account to come back to, so leaving it asks first.
+                // A demo has no account to come back to: it says "Exit demo" and asks first.
                 onClick={
                   isDemo(session) ? () => setExiting(true) : logOutEverywhere
                 }
                 className={`shrink-0 ${buttonSecondary}`}
               >
-                {/* A demo has no account to come back to. */}
                 {isDemo(session) ? "Exit demo" : "Log out"}
               </button>
             </>
@@ -116,8 +115,9 @@ export default function App() {
           message="Its builds can’t be opened again and are deleted after 24 hours."
           action="Exit demo"
           onConfirm={async () => {
-            setExiting(false);
+            // Stays open (its button disabled) while the server answers, which can be slow.
             await logOutEverywhere();
+            setExiting(false);
           }}
           onClose={() => setExiting(false)}
         />
