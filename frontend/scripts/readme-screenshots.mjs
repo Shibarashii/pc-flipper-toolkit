@@ -34,39 +34,34 @@ const newContext = (colorScheme) =>
     reducedMotion: "reduce",
   });
 
-/** The box around some elements, with room around it, in page pixels (boundingBox() is in
- * window pixels, so add the scroll). */
-async function around(page, locators, pad = 24) {
-  const boxes = await Promise.all(locators.map((l) => l.boundingBox()));
-  const [sx, sy] = await page.evaluate(() => [scrollX, scrollY]);
-  const x = Math.min(...boxes.map((b) => b.x)) - pad + sx;
-  const y = Math.min(...boxes.map((b) => b.y)) - pad + sy;
-  const right = Math.max(...boxes.map((b) => b.x + b.width)) + pad + sx;
-  const bottom = Math.max(...boxes.map((b) => b.y + b.height)) + pad + sy;
-  return { x, y, width: right - x, height: bottom - y };
+/** The whole window, scrolled so `top` sits 40px from its top. Every picture is the same
+ * size, so the README's feature table lines up. */
+async function shot(page, name, top) {
+  if (top)
+    await top.evaluate((el) =>
+      scrollTo(0, el.getBoundingClientRect().top + scrollY - 40),
+    );
+  await page.mouse.move(0, 0);
+  await page.screenshot({ path: `${OUT}${name}.png` });
+  await page.evaluate(() => scrollTo(0, 0));
 }
-
-const shot = (page, name, clip) =>
-  page.screenshot({ path: `${OUT}${name}.png`, clip, fullPage: !!clip });
 
 // The build page, top: the README's first picture.
 const light = await soldBuild("light");
-await shot(light, "build-page", { x: 0, y: 0, width: 1280, height: 860 });
+await shot(light, "build-page");
 
-// Its Build section: the case filling up, beside the checklist.
-const section = (name) =>
-  light.locator("section").filter({ has: light.getByRole("heading", { name, exact: true }) });
-await shot(light, "diagram", await around(light, [section("Build")]));
+const heading = (name) => light.getByRole("heading", { name, exact: true });
 
-// The Summary, with the parts' prices it adds up beside it.
-await shot(light, "summary", await around(light, [section("Summary")]));
+// Its Build section: the case filling up, beside the checklist and the summary.
+await shot(light, "diagram", heading("Build"));
 
-// Copy listing: the build as a Marketplace post.
+// The parts table: shop prices, what was paid, and the bundle.
+await shot(light, "parts", heading("Parts"));
+
+// Copy listing: the build as a Marketplace post, over the page.
 await light.getByRole("button", { name: "Copy listing" }).click();
-const dialog = light.getByRole("dialog");
-await dialog.waitFor();
-// The dialog is fixed, so clip it in the window: a full-page shot would move it.
-await light.screenshot({ path: `${OUT}listing.png`, clip: await dialog.boundingBox() });
+await light.getByRole("dialog").waitFor();
+await shot(light, "listing");
 await light.keyboard.press("Escape");
 
 // Price lookup: editing a part, searching the shops.
@@ -76,17 +71,15 @@ await form.getByRole("button", { name: "Find prices" }).click();
 const box = form.getByLabel("Search the shops");
 await box.fill("rx 6600");
 await box.press("Enter");
-const lookup = form.getByRole("group", { name: "Find prices" });
-await lookup.getByText(/^Prices from/).waitFor();
-// From the part's fields to the first few results.
-const fields = await around(light, [form.getByLabel("Part", { exact: true }), lookup], 24);
-await shot(light, "price-lookup", { ...fields, height: 620 });
+await form.getByRole("group", { name: "Find prices" }).getByText(/^Prices from/).waitFor();
+await box.blur();
+await shot(light, "price-lookup", form);
 await form.getByRole("button", { name: "Cancel" }).click();
 
 // The builds list.
 await light.getByRole("link", { name: "All builds" }).click();
 await light.getByRole("heading", { name: "Builds", level: 1 }).waitFor();
-await shot(light, "builds-list", { x: 0, y: 0, width: 1280, height: 440 });
+await shot(light, "builds-list");
 
 // Light and dark: the build page split down the middle.
 await light.getByRole("link", { name: SOLD }).filter({ visible: true }).click();
@@ -95,7 +88,7 @@ const dark = await soldBuild("dark");
 const halves = await Promise.all(
   [light, dark].map(async (page) =>
     (
-      await page.screenshot({ clip: { x: 0, y: 0, width: 1280, height: 860 } })
+      await page.screenshot()
     ).toString("base64"),
   ),
 );
