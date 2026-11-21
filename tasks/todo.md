@@ -1767,3 +1767,61 @@ first without a recovery email (the hint, no Set password), then with one: Set p
 email's new words, the link, log-in with the new password, then Password with Change and
 Google with Disconnect. A Forgot right after Set password for the same address sent nothing:
 the two share the 15-minute wait per address, as specced.
+
+## Phase 25: Ask before every action that can't be taken back
+
+Spec: [docs/specs/confirm-dialogs.md](../docs/specs/confirm-dialogs.md). Designs: the Confirm
+dialogs section on Figma's Ready for development (approved 2026-11-21). Frontend only: no API
+change, no new dependencies.
+
+### - [ ] T58: Delete a part or an extra cost asks first
+
+**Description:**
+- `DeleteDialog.tsx`: `ConfirmDialog` takes the title, message, action, its running label and
+  the error; `DeleteDialog` stays on top of it with the delete words, so the build and bundle
+  dialogs don't change.
+- `PartsTable` and `ExtraCosts`: the trash icon opens "Delete this part?" / "Delete this extra
+  cost?" (the `confirming` state the bundle's dialog already uses) instead of deleting at once;
+  the inline "Couldn’t delete…" lines go, the dialog shows the error.
+- SPEC.md's Build detail lines say deleting a part or a cost asks first. Tests first.
+
+**Acceptance criteria:**
+- [ ] Each dialog reads word for word as in the spec; Cancel and Esc close it and send nothing
+- [ ] The action sends the DELETE and closes it; a failure keeps it open with its error
+- [ ] A part inside a bundle gets the same dialog; the build and bundle dialogs are unchanged
+
+**Verification:**
+- [ ] Standard verification, `npx playwright test`
+- [ ] Manual: both dialogs at desktop and 375px, light and dark
+
+**Dependencies:** None
+**Files:** `frontend/src/components/DeleteDialog.tsx`, `PartsTable.tsx`, `ExtraCosts.tsx`, their tests, `frontend/src/pages/BuildDetail.test.tsx`, `SPEC.md`
+**Scope:** S
+
+### - [ ] T59: Disconnect Google and Exit demo ask first
+
+**Description:**
+- Account's Disconnect opens "Disconnect Google?"; confirming disconnects as today, a failure
+  keeps the dialog open with "Couldn’t disconnect Google. Check your connection and try again."
+- The header's Exit demo opens "Exit the demo?"; confirming logs out as today (even when the
+  server can't be reached), so it has no error. Log out and the banner's "Sign up for your own
+  account" stay one click.
+- SPEC.md's header and Account lines. Tests first.
+
+**Acceptance criteria:**
+- [ ] Both dialogs read word for word as in the spec; Cancel and Esc change nothing
+- [ ] Confirming disconnects (`DELETE /auth/google/connect/`) or exits the demo as before
+- [ ] Still one verb on Account; Log out doesn't ask
+
+**Verification:**
+- [ ] Standard verification, `npx playwright test`
+- [ ] Manual: both dialogs at desktop, 375px and 320px, light and dark
+
+**Dependencies:** T58
+**Files:** `frontend/src/pages/Account.tsx`, `frontend/src/App.tsx`, `frontend/src/App.test.tsx`, `SPEC.md`
+**Scope:** S
+
+### Checkpoint 23: Ask before every action that can't be taken back
+- [ ] The spec's success criteria 1–4 pass on the live site, at desktop and 375px, light and
+  dark
+- [ ] All tests pass on `main`

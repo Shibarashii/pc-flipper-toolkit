@@ -331,6 +331,21 @@ Ready for development (approved 2026-11-19).
 **Checkpoint 22:** the spec's success criteria 1–4 pass on the live site, with a real email to
 a Google-only account.
 
+### Phase 25: Ask before every action that can't be taken back ([docs/specs/confirm-dialogs.md](../docs/specs/confirm-dialogs.md))
+- [ ] T58: Delete a part or an extra cost asks first
+- [ ] T59: Disconnect Google and Exit demo ask first
+
+```
+T58 ConfirmDialog + part and cost ── T59 Disconnect and Exit demo ── Checkpoint 23
+```
+Frontend only: no API change, no migration, no new dependency. T58 turns `DeleteDialog` into
+`ConfirmDialog` and uses it on the build page; T59 reuses it on Account and in the header. Each
+is its own PR. Built from the Confirm dialogs section on Ready for development (approved
+2026-11-21).
+
+**Checkpoint 23:** the spec's success criteria 1–4 pass on the live site, at desktop and 375px,
+light and dark.
+
 ## Risks and Mitigations
 
 | Risk | Impact | Mitigation |
@@ -376,6 +391,9 @@ a Google-only account.
 | Whoever reads a Google-only account's recovery email can add a password to it | Med | The same as a reset for any password account today; the email is confirmed before it's saved, and setting the password emails a notice and logs every device out (T56) |
 | The public reset endpoint gives away which accounts are Google-only | Med | The same 202 answer and timing for every address; the existing "same answer" test now includes a Google-only account (T56) |
 | A demo account gets a reset link | Low | Demos can't have an email; a test asks with a demo's (empty) email (T56) |
+| A dialog slows fast editing of a build's parts | Low | One extra click only on delete; Cancel is focused and Esc closes it, as with the build's dialog; the spec accepts it (T58) |
+| A part inside a bundle still deletes at once | Med | It goes through the same `PartsTable` path; a test deletes a bundled part (T58) |
+| Exit demo's dialog doesn't fit a 320px phone | Low | The dialog is `calc(100% - 32px)` wide, like the others; checked at 375px and 320px (T59) |
 
 ## Open Questions
 
