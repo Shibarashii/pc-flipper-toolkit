@@ -1833,6 +1833,12 @@ change, no new dependencies.
 **Scope:** S
 
 ### Checkpoint 23: Ask before every action that can't be taken back
-- [ ] The spec's success criteria 1–4 pass on the live site, at desktop and 375px, light and
+- [x] The spec's success criteria 1–4 pass on the live site, at desktop and 375px, light and
   dark
-- [ ] All tests pass on `main`
+- [x] All tests pass on `main`
+
+Checked 2026-11-21 on the live site (`70649a3`) with a demo build: a bundled part (Cancel
+focused and kept it, Esc too, confirming deleted it), an extra cost, Delete build unchanged, and
+Exit demo (then Log in), at desktop light and 375px dark. Disconnect checked by the author on
+their own account. In dark, every dialog's backdrop is light grey (`backdrop:bg-ink/45`, `ink`
+being light there): it was so before this phase and is left for a fix of its own.
