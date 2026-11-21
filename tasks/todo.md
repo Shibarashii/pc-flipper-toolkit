@@ -1841,4 +1841,5 @@ Checked 2026-11-21 on the live site (`70649a3`) with a demo build: a bundled par
 focused and kept it, Esc too, confirming deleted it), an extra cost, Delete build unchanged, and
 Exit demo (then Log in), at desktop light and 375px dark. Disconnect checked by the author on
 their own account. In dark, every dialog's backdrop is light grey (`backdrop:bg-ink/45`, `ink`
-being light there): it was so before this phase and is left for a fix of its own.
+being light there): it was so before this phase and is left for a fix of its own. Fixed in
+#114 (a `scrim` token, the same in both themes).
