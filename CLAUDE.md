@@ -6,8 +6,10 @@ which also has the commands (setup, tests, lint) and the project structure.
 ## Where things are
 
 Everything written for building the app, by the author or by an agent, lives in
-[specs/](specs/): specs, plans, intent, ideas and design notes. `docs/` is only for
-documentation for the app's users, and there is none yet; don't create it for anything else.
+[specs/](specs/): specs, plans, intent, ideas and design notes. [docs/](docs/) is for anyone
+reading or using the project: getting started, testing, deployment, and the README's
+screenshots in `docs/images/` (taken by `frontend/scripts/readme-screenshots.mjs`). Nothing
+for agents goes there.
 `.claude/` is Claude Code's configuration (settings, skills, agents), not documents. Never put
 a spec or plan at the root, in `docs/` or in `tasks/`, even when a skill's default says so:
 the paths below override the agent-skills defaults (`SPEC.md`, `tasks/plan.md`,
