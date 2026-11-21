@@ -18,9 +18,10 @@ How the file is organized and how to design in it: [figma.md](figma.md).
 
 - **Wordmark:** `PC Flipper Toolkit` in Newsreader Medium 20, ink color. Never recolor it or set it in the sans.
 - **Mark:** a graphics card cut out of a green circle, the card in negative space
-  (`frontend/public/logo.png`, 256×256). Used as the favicon (changed 2026-11-10 from a serif
-  `P` on a forest square), and at 28px before the wordmark in the header, the two one link
-  home. Logged in, below 410px, the wordmark doesn't fit beside "Exit demo", so the mark
+  (256×256, in each theme's `accent`: `frontend/public/logo-light.png` and `logo-dark.png`).
+  Used as the favicon (changed 2026-11-10 from a serif `P` on a forest square; it follows the
+  browser's theme), and at 28px before the wordmark in the header (it follows the app's theme,
+  2026-11-21), the two one link home. Logged in, below 410px, the wordmark doesn't fit beside "Exit demo", so the mark
   shows alone; logged out it always fits (2026-11-12).
 
 ## Color

@@ -57,6 +57,25 @@ body {
   @apply bg-bg font-sans text-ink antialiased;
 }
 
+/* The header logo comes in each theme's green: show the one for the theme above. */
+.logo-dark {
+  display: none;
+}
+:root[data-theme="dark"] .logo-light {
+  display: none;
+}
+:root[data-theme="dark"] .logo-dark {
+  display: block;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .logo-light {
+    display: none;
+  }
+  :root:not([data-theme="light"]) .logo-dark {
+    display: block;
+  }
+}
+
 /* Tailwind v4 dropped the pointer cursor on buttons; bring it back for anything
    clickable that isn't a link (links already have it). Disabled ones keep the arrow. */
 @layer base {

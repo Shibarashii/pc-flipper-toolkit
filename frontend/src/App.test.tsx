@@ -1364,9 +1364,13 @@ test("the header's home link is the logo, then the name, in one link", () => {
   renderAt("/login");
   const home = screen.getByRole("link", { name: "PC Flipper Toolkit" });
   expect(home.getAttribute("href")).toBe("/");
-  const [logo, name] = home.children;
-  expect(logo.getAttribute("src")).toBe("/logo.png");
-  expect(logo.getAttribute("alt")).toBe("");
+  // One logo per theme; index.css shows the one in the theme's green.
+  const [light, dark, name] = home.children;
+  expect(light.getAttribute("src")).toBe("/logo-light.png");
+  expect(light.getAttribute("class")).toContain("logo-light");
+  expect(dark.getAttribute("src")).toBe("/logo-dark.png");
+  expect(dark.getAttribute("class")).toContain("logo-dark");
+  for (const logo of [light, dark]) expect(logo.getAttribute("alt")).toBe("");
   expect(name.textContent).toBe("PC Flipper Toolkit");
 });
 

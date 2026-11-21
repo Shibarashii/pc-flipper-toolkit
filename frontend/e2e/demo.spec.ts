@@ -19,7 +19,7 @@ test("try the demo: sample builds, then sign up instead", async ({ page }) => {
 
   // Logged in, the home link shows the logo always, the name beside it where it fits
   // (410px+).
-  await expect(home.locator("img")).toBeVisible();
+  await expect(home.locator("img:visible")).toHaveCount(1); // one logo per theme
   await expect(home.getByText("PC Flipper Toolkit")).toBeVisible({
     visible: page.viewportSize()!.width >= 410,
   });

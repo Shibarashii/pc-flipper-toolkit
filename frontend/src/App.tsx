@@ -58,7 +58,8 @@ export default function App() {
           aria-label="PC Flipper Toolkit"
           className={`flex shrink-0 items-center gap-2 rounded font-serif text-xl leading-7 font-medium ${focusRing}`}
         >
-          <img src="/logo.png" alt="" className="size-7" />
+          <img src="/logo-light.png" alt="" className="logo-light size-7" />
+          <img src="/logo-dark.png" alt="" className="logo-dark size-7" />
           <span className={session ? "hidden min-[410px]:inline" : undefined}>
             PC Flipper Toolkit
           </span>
