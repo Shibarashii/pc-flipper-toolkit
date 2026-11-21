@@ -2099,15 +2099,22 @@ dependency.
 - `Skeleton` shows the note above its blocks after 5 s; `BuildsSummary`'s doesn't, so the
   builds list shows it once.
 - Tests first, with fake timers.
+- Built 2026-11-21: the pressed button keeps `aria-disabled` instead of `disabled`, so it stays
+  at full strength; `start` ignores a second press. Inside a skeleton the note isn't a second
+  live region (`live={false}`) and has 12px above and below, as the builds list's skeleton
+  starts with a hairline. Seven Vitest tests (log in, sign up, the demo on both pages, Google,
+  a fast answer, the builds list). Checked on Vite with requests held: the log-in page (desktop,
+  dark) and the landing hero (desktop, dark) after 5 s; the builds list at 375 light.
+  Not checked by eye: reduced motion, a build's and Account's skeletons.
 
 **Acceptance criteria:**
-- [ ] Each way in shows its working words at once and the note after 5 s, not before
-- [ ] The builds list, a build, Account and verify email show the note above the skeleton after
+- [x] Each way in shows its working words at once and the note after 5 s, not before
+- [x] The builds list, a build, Account and verify email show the note above the skeleton after
   5 s, once
-- [ ] A fast answer never shows the note
+- [x] A fast answer never shows the note
 
 **Verification:**
-- [ ] Standard verification (Vitest, lint, `tsc -b`, build, e2e)
+- [x] Standard verification (Vitest, lint, `tsc -b`, build, e2e)
 - [ ] Manual: a slowed request on Log in, the landing page and the builds list, at desktop and
   375px, light and dark, and with reduced motion
 

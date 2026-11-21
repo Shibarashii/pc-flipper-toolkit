@@ -21,7 +21,7 @@ const size = {
 export function BuildsSummary({ summary }: { summary: Summary | null }) {
   if (!summary)
     return (
-      <Skeleton label="Loading summary" className="mt-6 sm:mt-8">
+      <Skeleton label="Loading summary" note={false} className="mt-6 sm:mt-8">
         <div className={grid}>
           {[true, false, false].map((isHeadline, i) => (
             // Padding, not margins: stacked margins collapse and the cell comes out short.

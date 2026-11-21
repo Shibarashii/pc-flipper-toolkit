@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { act, cleanup, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { afterEach, expect, test, vi } from "vitest";
 import type { Build } from "../api";
@@ -11,6 +11,7 @@ import {
 import { BuildsList } from "./BuildsList";
 
 afterEach(() => {
+  vi.useRealTimers();
   cleanup();
   vi.unstubAllGlobals();
 });
@@ -78,4 +79,20 @@ test("shows a loading skeleton until the builds arrive", async () => {
   expect(screen.getByRole("status").textContent).toBe("Loading builds");
   await screen.findByText("No builds yet");
   expect(screen.queryByText("Loading builds")).toBeNull();
+});
+
+test("a slow load says the server is waking up after 5 seconds, once", () => {
+  vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+  vi.stubGlobal("fetch", () => new Promise<Response>(() => {}));
+  render(
+    <MemoryRouter>
+      <BuildsList />
+    </MemoryRouter>,
+  );
+
+  act(() => vi.advanceTimersByTime(4900));
+  expect(screen.queryByText(/Waking up the server/)).toBeNull();
+  act(() => vi.advanceTimersByTime(100));
+  // The builds' skeleton and the summary's: one note between them.
+  expect(screen.getAllByText(/Waking up the server/)).toHaveLength(1);
 });
