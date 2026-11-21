@@ -18,6 +18,7 @@ import {
   type Me,
 } from "../api";
 import { updateSession } from "../auth";
+import { ConfirmDialog } from "../components/DeleteDialog";
 import { Field, useSave } from "../components/form";
 import { Bone, Skeleton } from "../components/Skeleton";
 import { GoogleButton, googleClientId } from "../google";
@@ -33,6 +34,7 @@ export function Account() {
   const [me, setMe] = useState<Me | "loading" | "error">("loading");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [disconnecting, setDisconnecting] = useState(false);
 
   useEffect(() => {
     let ignore = false;
@@ -114,12 +116,10 @@ export function Account() {
                 onConnect={(credential) =>
                   change(async () => (await connectGoogle(credential)).google)
                 }
-                onDisconnect={() =>
-                  change(async () => {
-                    await disconnectGoogle();
-                    return null;
-                  })
-                }
+                onDisconnect={() => {
+                  setError("");
+                  setDisconnecting(true);
+                }}
                 onError={() =>
                   setError(
                     "Couldn’t load Google’s button. Check your connection and reload.",
@@ -139,6 +139,22 @@ export function Account() {
             <Section title="Recovery email" className="mt-8">
               <EmailRow me={me} />
             </Section>
+
+            {disconnecting && (
+              <ConfirmDialog
+                title="Disconnect Google?"
+                message="You’ll log in with your username and password. You can connect Google again here."
+                action="Disconnect"
+                running="Disconnecting…"
+                error="Couldn’t disconnect Google. Check your connection and try again."
+                onConfirm={async () => {
+                  await disconnectGoogle();
+                  setMe({ ...me, google: null });
+                  setDisconnecting(false);
+                }}
+                onClose={() => setDisconnecting(false)}
+              />
+            )}
           </>
         ))}
     </main>

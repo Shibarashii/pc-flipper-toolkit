@@ -10,6 +10,7 @@ import {
 } from "react-router";
 import { logOut } from "./api";
 import { endSession, isDemo, useAuth } from "./auth";
+import { ConfirmDialog } from "./components/DeleteDialog";
 import { ThemeToggle } from "./components/ThemeToggle";
 import { BuildDetail } from "./pages/BuildDetail";
 import { BuildsList } from "./pages/BuildsList";
@@ -31,6 +32,7 @@ export default function App() {
   const from = (location.state as { from?: string } | null)?.from ?? "/";
   const [hadSession, setHadSession] = useState(session !== null);
   if (session && !hadSession) setHadSession(true);
+  const [exiting, setExiting] = useState(false);
 
   async function logOutEverywhere() {
     // Log out here even if the server can't be reached; the token just lingers there.
@@ -95,16 +97,31 @@ export default function App() {
               </Link>
               <button
                 type="button"
-                onClick={logOutEverywhere}
+                // A demo has no account to come back to: it says "Exit demo" and asks first.
+                onClick={
+                  isDemo(session) ? () => setExiting(true) : logOutEverywhere
+                }
                 className={`shrink-0 ${buttonSecondary}`}
               >
-                {/* A demo has no account to come back to. */}
                 {isDemo(session) ? "Exit demo" : "Log out"}
               </button>
             </>
           )}
         </div>
       </header>
+      {exiting && (
+        <ConfirmDialog
+          title="Exit the demo?"
+          message="Its builds can’t be opened again and are deleted after 24 hours."
+          action="Exit demo"
+          onConfirm={async () => {
+            // Stays open (its button disabled) while the server answers, which can be slow.
+            await logOutEverywhere();
+            setExiting(false);
+          }}
+          onClose={() => setExiting(false)}
+        />
+      )}
       {session && isDemo(session) && (
         // One line with an inline link, so its action doesn't stack under "Log out".
         <p className="border-b border-line bg-sunken px-4 py-2.5 text-[13px] leading-[18px] sm:px-10">

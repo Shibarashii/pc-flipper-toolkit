@@ -281,6 +281,12 @@ test.each([
     await screen.findByText("Ryzen 5 7600 + RTX 4060");
 
     fireEvent.click(screen.getByRole("button", { name: button }));
+    if (button === "Exit demo")
+      fireEvent.click(
+        within(screen.getByRole("dialog")).getByRole("button", {
+          name: button,
+        }),
+      );
     await screen.findByRole("heading", { name: "Log in" });
     fillIn("dave", "a long passphrase");
     fireEvent.click(screen.getByRole("button", { name: "Log in" }));
@@ -359,6 +365,25 @@ test("Try the demo logs into a demo account and shows the banner", async () => {
   expect(screen.getByRole("button", { name: "Exit demo" })).toBeTruthy();
   expect(screen.queryByRole("button", { name: "Log out" })).toBeNull();
   expect(requestTo(fetchMock, 0).url).toBe("/api/auth/demo/");
+  expect(getToken()).toBe("d1");
+});
+
+test("Exit demo asks first; Cancel keeps the demo", async () => {
+  saveSession({ token: "d1", username: "demo-abc" });
+  const fetchMock = stubFetch(() => Response.json([]));
+  renderAt("/");
+  await screen.findByText(DEMO_BANNER);
+
+  fireEvent.click(screen.getByRole("button", { name: "Exit demo" }));
+  const dialog = screen.getByRole("dialog", { name: "Exit the demo?" });
+  expect(dialog.textContent).toContain(
+    "Its builds can’t be opened again and are deleted after 24 hours.",
+  );
+  fireEvent.click(within(dialog).getByRole("button", { name: "Cancel" }));
+
+  expect(screen.queryByRole("dialog")).toBeNull();
+  expect(screen.getByText(DEMO_BANNER)).toBeTruthy();
+  expect(fetchMock).toHaveBeenCalledTimes(1);
   expect(getToken()).toBe("d1");
 });
 
@@ -581,7 +606,7 @@ test("the header's username and Account icon both open Account", () => {
   expect(screen.getByRole("link", { name: "Account" })).toBeTruthy();
 });
 
-test("Disconnect unlinks Google when there's a password", async () => {
+test("Disconnect asks first, then unlinks Google when there's a password", async () => {
   vi.stubEnv("VITE_GOOGLE_CLIENT_ID", "client.apps.googleusercontent.com");
   stubGoogle();
   saveSession({ token: "abc", username: "carol" });
@@ -592,13 +617,40 @@ test("Disconnect unlinks Google when there's a password", async () => {
   renderAt("/account");
 
   fireEvent.click(await screen.findByRole("button", { name: "Disconnect" }));
+  const dialog = screen.getByRole("dialog", { name: "Disconnect Google?" });
+  expect(dialog.textContent).toContain(
+    "You’ll log in with your username and password. You can connect Google again here.",
+  );
+  expect(fetchMock).toHaveBeenCalledTimes(1);
+  fireEvent.click(within(dialog).getByRole("button", { name: "Disconnect" }));
   expect(await screen.findByText("Not connected")).toBeTruthy();
+  expect(screen.queryByRole("dialog")).toBeNull();
   expect(
     await screen.findByRole("button", { name: "Sign in with Google" }),
   ).toBeTruthy();
   const [url, init] = fetchMock.mock.calls[1];
   expect(url).toBe("/api/auth/google/connect/");
   expect(init?.method).toBe("DELETE");
+});
+
+test("a failed Disconnect keeps the dialog open; Cancel keeps Google", async () => {
+  saveSession({ token: "abc", username: "carol" });
+  const fetchMock = stubFetch(me({ google: { email: "c@gmail.com" } }), () =>
+    Response.json({}, { status: 500 }),
+  );
+  renderAt("/account");
+
+  fireEvent.click(await screen.findByRole("button", { name: "Disconnect" }));
+  const dialog = screen.getByRole("dialog", { name: "Disconnect Google?" });
+  fireEvent.click(within(dialog).getByRole("button", { name: "Disconnect" }));
+  expect((await within(dialog).findByRole("alert")).textContent).toBe(
+    "Couldn’t disconnect Google. Check your connection and try again.",
+  );
+  fireEvent.click(within(dialog).getByRole("button", { name: "Cancel" }));
+
+  expect(screen.queryByRole("dialog")).toBeNull();
+  expect(screen.getByText("c@gmail.com")).toBeTruthy();
+  expect(fetchMock).toHaveBeenCalledTimes(2);
 });
 
 test("Google's button failing to load says so, still in one verb", async () => {

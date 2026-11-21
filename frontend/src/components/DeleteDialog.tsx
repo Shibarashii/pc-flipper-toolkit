@@ -25,24 +25,58 @@ export function DeleteDialog({
   onConfirm: () => Promise<void>;
   onClose: () => void;
 }) {
+  return (
+    <ConfirmDialog
+      title={`Delete this ${what}?`}
+      message={message}
+      action={`Delete ${what}`}
+      running="Deleting…"
+      error={`Couldn’t delete the ${what}. Check your connection and try again.`}
+      onConfirm={onConfirm}
+      onClose={onClose}
+    />
+  );
+}
+
+/** A question with Cancel and a red action, for anything that can't be taken back
+ * (docs/specs/confirm-dialogs.md). Render only while open; it opens itself as a modal. */
+export function ConfirmDialog({
+  title,
+  message,
+  action,
+  running = action,
+  error,
+  onConfirm,
+  onClose,
+}: {
+  title: string;
+  message: string;
+  action: string;
+  /** The action's label while onConfirm runs. */
+  running?: string;
+  /** Shown when onConfirm throws; the dialog stays open. */
+  error?: string;
+  onConfirm: () => Promise<void>;
+  onClose: () => void;
+}) {
   const ref = useModal();
   const id = useId();
-  const [deleting, setDeleting] = useState(false);
-  const [error, setError] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [failed, setFailed] = useState(false);
 
   async function confirm() {
-    setDeleting(true);
-    setError(false);
+    setBusy(true);
+    setFailed(false);
     try {
       await onConfirm();
     } catch {
-      setError(true);
-      setDeleting(false);
+      setFailed(true);
+      setBusy(false);
     }
   }
 
   return (
-    // Cancel comes first, so it's what showModal() focuses: Enter never deletes by accident.
+    // Cancel comes first, so it's what showModal() focuses: Enter never acts by accident.
     <dialog
       ref={ref}
       onClose={onClose}
@@ -54,7 +88,7 @@ export function DeleteDialog({
         id={`${id}-title`}
         className="font-serif text-[22px] leading-[28px] font-medium"
       >
-        Delete this {what}?
+        {title}
       </h2>
       <p
         id={`${id}-message`}
@@ -62,9 +96,9 @@ export function DeleteDialog({
       >
         {message}
       </p>
-      {error && (
+      {failed && error && (
         <p role="alert" className="mt-2 text-[13px] text-loss">
-          Couldn’t delete the {what}. Check your connection and try again.
+          {error}
         </p>
       )}
       <div className="mt-6 flex justify-end gap-2">
@@ -74,10 +108,10 @@ export function DeleteDialog({
         <button
           type="button"
           onClick={confirm}
-          disabled={deleting}
+          disabled={busy}
           className={buttonDanger}
         >
-          {deleting ? "Deleting…" : `Delete ${what}`}
+          {busy ? running : action}
         </button>
       </div>
     </dialog>

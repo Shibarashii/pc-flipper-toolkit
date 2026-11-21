@@ -1803,7 +1803,7 @@ change, no new dependencies.
 **Files:** `frontend/src/components/DeleteDialog.tsx`, `PartsTable.tsx`, `ExtraCosts.tsx`, their tests, `frontend/src/pages/BuildDetail.test.tsx`, `SPEC.md`
 **Scope:** S
 
-### - [ ] T59: Disconnect Google and Exit demo ask first
+### - [x] T59: Disconnect Google and Exit demo ask first
 
 **Description:**
 - Account's Disconnect opens "Disconnect Google?"; confirming disconnects as today, a failure
@@ -1812,15 +1812,21 @@ change, no new dependencies.
   server can't be reached), so it has no error. Log out and the banner's "Sign up for your own
   account" stay one click.
 - SPEC.md's header and Account lines. Tests first.
+- Built 2026-11-21: `ConfirmDialog` (title, message, action, its running label, an optional
+  error) with `DeleteDialog` on top of it. Three new tests (Exit demo asks first and Cancel,
+  Disconnect asks first, a failed Disconnect); the Exit demo log-out test clicks through.
+  Checked locally with the pane hidden, so by script: Disconnect on a password + Google
+  account (Cancel focused, words, then "Not connected"), and Exit demo at 320px (288px dialog,
+  no sideways scroll, then Log in).
 
 **Acceptance criteria:**
-- [ ] Both dialogs read word for word as in the spec; Cancel and Esc change nothing
-- [ ] Confirming disconnects (`DELETE /auth/google/connect/`) or exits the demo as before
-- [ ] Still one verb on Account; Log out doesn't ask
+- [x] Both dialogs read word for word as in the spec; Cancel and Esc change nothing
+- [x] Confirming disconnects (`DELETE /auth/google/connect/`) or exits the demo as before
+- [x] Still one verb on Account; Log out doesn't ask
 
 **Verification:**
-- [ ] Standard verification, `npx playwright test`
-- [ ] Manual: both dialogs at desktop, 375px and 320px, light and dark
+- [x] Standard verification, `npx playwright test`
+- [x] Manual: both dialogs at desktop, 375px and 320px, light and dark
 
 **Dependencies:** T58
 **Files:** `frontend/src/pages/Account.tsx`, `frontend/src/App.tsx`, `frontend/src/App.test.tsx`, `SPEC.md`
