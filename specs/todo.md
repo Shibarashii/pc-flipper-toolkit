@@ -2079,3 +2079,43 @@ centers its content as one block; shorter screens keep its own height.
 - [ ] The author submits `sitemap.xml` and requests indexing of `/` and `/privacy` in Search
   Console; the repo's description and topics change (`gh repo edit`) on the author's yes
 - [ ] 1–2 weeks later: what searching "pc flipper toolkit" shows (criterion 6), noted here
+
+## Phase 27: Say when the API is waking up
+
+Spec: [specs/waking-note.md](waking-note.md). Design: the "Waking note" section on Figma's Ready
+for development (approved 2026-11-21). Frontend only: no API change, no migration, no new
+dependency.
+
+### - [ ] T67: A spinner while you get in, and the waking note after 5 seconds
+
+**Description:**
+- `components/Waiting.tsx`: `Spinner` (14px, `currentColor`, `animate-spin`, still under reduced
+  motion), `useSlow(active)` (true once `active` has held 5 s), `WakingNote` (the spec's words,
+  `small` in `muted`, `role="status"`).
+- Log in: the pressed way in shows its working words ("Logging in…", "Creating account…",
+  "Starting the demo…", "Signing in with Google…") and the spinner on our buttons; the pressed
+  button stays at full strength, the others fade. After 5 s, the note under it.
+- Landing: the same for both copies of Try the demo.
+- `Skeleton` shows the note above its blocks after 5 s; `BuildsSummary`'s doesn't, so the
+  builds list shows it once.
+- Tests first, with fake timers.
+
+**Acceptance criteria:**
+- [ ] Each way in shows its working words at once and the note after 5 s, not before
+- [ ] The builds list, a build, Account and verify email show the note above the skeleton after
+  5 s, once
+- [ ] A fast answer never shows the note
+
+**Verification:**
+- [ ] Standard verification (Vitest, lint, `tsc -b`, build, e2e)
+- [ ] Manual: a slowed request on Log in, the landing page and the builds list, at desktop and
+  375px, light and dark, and with reduced motion
+
+**Dependencies:** None
+**Files:** `frontend/src/components/Waiting.tsx`, `Waiting.test.tsx`, `Skeleton.tsx`, `BuildsSummary.tsx`, `frontend/src/pages/Login.tsx`, `Landing.tsx`, their tests, `specs/app.md`
+**Scope:** M
+
+### Checkpoint 25: Say when the API is waking up
+- [ ] The spec's success criteria 1–4 pass on the live site after a cold start, at desktop and
+  375px, light and dark
+- [ ] All tests pass on `main`

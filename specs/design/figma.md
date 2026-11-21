@@ -59,7 +59,8 @@ with `set.children.find(v => v.name === "session=in, size=desktop")`) and set th
 | ThemeToggle | `124:5702` | `theme` light / dark (already inside Header) |
 | Logo/Mark | `17:1169` | none. 28px in the header. See the gotcha below for other sizes. |
 | Logo/Wordmark | `17:1167` | none |
-| Button | `17:1264` | `variant` primary / secondary / danger, `state` default / hover / focus / disabled, `Label` |
+| Button | `17:1264` | `variant` primary / secondary / danger, `state` default / hover / focus / disabled (and working, primary and secondary only: a spinner before the label), `Label` |
+| Spinner | `180:82` | none. 14px, `ink`; override the strokes' color (e.g. `on-accent`) inside a button |
 | Field | `29:2282` | `state` default / focus / disabled, `Label`, `Value`, `Show label`, `Select`, `Error`, `Error text` |
 | Textarea | `20:1071` | `Value` |
 | IconButton | `17:1282` | `action` edit / delete / listing, `size` row (28px, ghost) / header (38px, bordered; listing and delete only), `state` default / hover / focus |
