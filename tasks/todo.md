@@ -2014,9 +2014,16 @@ change, no migration, no new dependencies. T60–T62 and T63–T64 don't depend 
 **Scope:** M
 
 ### Checkpoint 24: A landing page, and pages Google can tell apart
+- Checked live 2026-11-21 (after #121): criteria 1–4 pass. `/` at 1280×720 fits the hero in
+  light and dark; 375 light and dark, no sideways scroll; Try the demo opens the demo's two
+  builds (+₱4,200.00 sold). Logged in, `/` is Builds. `/nope-xyz` returns 404 with the
+  not-found page; the seven private paths send `X-Robots-Tag: noindex`; the sitemap lists `/`
+  and `/privacy`; each page has its own title, and only `/` and `/privacy` a canonical.
+  Still open: criterion 5 and the indexing request (the author, in Search Console),
+  Lighthouse (not installed here), and `gh repo edit` on the author's yes.
 - [ ] The spec's success criteria 1–5 pass on the live site, at desktop and 375px, light and
   dark
-- [ ] All tests pass on `main`
+- [x] All tests pass on `main`
 - [ ] The author submits `sitemap.xml` and requests indexing of `/` and `/privacy` in Search
   Console; the repo's description and topics change (`gh repo edit`) on the author's yes
 - [ ] 1–2 weeks later: what searching "pc flipper toolkit" shows (criterion 6), noted here
