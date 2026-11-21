@@ -1,4 +1,4 @@
-// On desktop the landing page's hero fills the first screen (docs/intent/landing-hero-height.md).
+// On desktop the landing page's hero fills the first screen (specs/intent/landing-hero-height.md).
 import { expect, test, type Page } from "@playwright/test";
 
 test.skip(({ isMobile }) => isMobile, "phones keep the stacked hero");

@@ -16,7 +16,7 @@ const { slots } = buildSlots(SOLD_BUILD.parts);
 const profit = formatSignedMoney(SOLD_BUILD.totals.profit);
 
 /** Logged out, `/`: what the app is, with the demo's sold build as the picture
- * (docs/specs/landing-page.md). */
+ * (specs/landing-page.md). */
 export function Landing() {
   return (
     <main>

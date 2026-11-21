@@ -4,7 +4,7 @@
 
 The scaffold is done and on `main`: Django + DRF + Postgres, React + Vite + Tailwind, a
 `Build` model, `GET/POST /api/builds/`, and a read-only builds list page. This plan builds
-the rest of [SPEC.md](../SPEC.md) in small vertical slices. Each slice ends with something
+the rest of [specs/app.md](app.md) in small vertical slices. Each slice ends with something
 you can click, in the spirit of "smallest working page first, then one feature at a time".
 
 Full task details (acceptance criteria, verification, files) are in [todo.md](todo.md).
@@ -107,7 +107,7 @@ so their order is flexible.
 
 **Checkpoint 6 (done):** SPEC success criterion 8 passes on the live site.
 
-### Phase 9: Price lookup ([docs/specs/price-lookup.md](../docs/specs/price-lookup.md))
+### Phase 9: Price lookup ([specs/price-lookup.md](price-lookup.md))
 - [x] T26: Shop catalogue copy (`ShopProduct`, `refresh_shop_prices`)
 - [x] T27: Search API (`GET /api/prices/`)
 - [x] T28: "Find prices" in the part form
@@ -122,7 +122,7 @@ Render's build runs `migrate`, so merging T26 creates the table on Neon before T
 
 **Checkpoint 7 (done):** price lookup spec success criteria 1–6 pass on the live site. The scheduled runs of 2026-10-29 and 2026-10-30 were green.
 
-### Phase 10: Part search pop-up ([docs/specs/price-lookup.md, part 2](../docs/specs/price-lookup.md#part-2-part-search-pop-up))
+### Phase 10: Part search pop-up ([specs/price-lookup.md, part 2](price-lookup.md#part-2-part-search-pop-up))
 - [x] T30: Short names in the search API (`shorten()`, `short_title`)
 - [x] T31: The Part box's search pop-up
 
@@ -134,7 +134,7 @@ live once T30 is on Render. No new dependencies (the combobox is hand-written), 
 
 **Checkpoint 8:** part 2's success criteria 1–5 pass on the live site.
 
-### Phase 11: Builds summary ([docs/specs/builds-summary.md](../docs/specs/builds-summary.md))
+### Phase 11: Builds summary ([specs/builds-summary.md](builds-summary.md))
 - [x] T32: Summary API (`GET /api/builds/summary/`) and the demo's sale dated today
 - [x] T33: The summary line on the builds list
 
@@ -146,12 +146,12 @@ live once T32 is on Render. No migration, no new dependencies.
 
 **Checkpoint 9 (done):** the builds summary spec's success criteria 1–4 pass on the live site.
 
-### Phase 12: CI speedups ([docs/specs/ci-speedups.md](../docs/specs/ci-speedups.md))
+### Phase 12: CI speedups ([specs/ci-speedups.md](ci-speedups.md))
 - [x] T34: Cache Playwright's Chromium, cancel superseded PR runs, job time limits
 
 **Checkpoint 10:** the CI speedups spec's success criteria 2–4 hold on the next PRs.
 
-### Phase 13: Copy listing ([docs/specs/copy-listing.md](../docs/specs/copy-listing.md))
+### Phase 13: Copy listing ([specs/copy-listing.md](copy-listing.md))
 - [x] T35: Copy listing: the post, the dialog and the header button
 
 One task: the post is only useful through the dialog, and the whole feature is a pure
@@ -159,7 +159,7 @@ function, one dialog and one button. Frontend only: no API, migration or depende
 
 **Checkpoint 11 (done):** the copy listing spec's success criteria 1–4 pass on the live site.
 
-### Phase 14: Public ids ([docs/specs/public-ids.md](../docs/specs/public-ids.md))
+### Phase 14: Public ids ([specs/public-ids.md](public-ids.md))
 - [x] T36: The frontend takes any id, as a string
 - [x] T37: Public UUIDs in the database and the API
 
@@ -173,7 +173,7 @@ fields must switch at the same time as the builds' ids. No new dependencies.
 
 **Checkpoint 12 (done):** the public ids spec's success criteria 1–4 pass on the live site.
 
-### Phase 15: Part condition ([docs/specs/part-condition.md](../docs/specs/part-condition.md))
+### Phase 15: Part condition ([specs/part-condition.md](part-condition.md))
 - [x] T38: Set and see a part's condition (field, API, form, table)
 - [x] T39: Condition in the Copy listing post, and on the demo's parts
 
@@ -187,7 +187,7 @@ frontend treats a missing `condition` as blank.
 
 **Checkpoint 13 (done):** the part condition spec's success criteria 1–4 pass on the live site.
 
-### Phase 16: Google sign-in ([docs/specs/google-sign-in.md](../docs/specs/google-sign-in.md))
+### Phase 16: Google sign-in ([specs/google-sign-in.md](google-sign-in.md))
 - [x] T40: Sign in with Google (new and returning users)
 - [x] T41: The Account page: connect and disconnect Google
 - [x] T42: Privacy page, and publishing the Google app
@@ -213,7 +213,7 @@ files.
 the client id set on Render and Vercel (Vercel builds it in, so it needs a redeploy after
 setting it).
 
-### Phase 17: Footer ([docs/specs/footer.md](../docs/specs/footer.md))
+### Phase 17: Footer ([specs/footer.md](footer.md))
 - [x] T43: A footer on every page, at the bottom of the window on short pages
 
 ```
@@ -226,7 +226,7 @@ makes Privacy reachable when logged in, which T42 left out.
 **Checkpoint 15:** the footer spec's success criteria 1–4 pass on the live site, at desktop
 and on the author's phone.
 
-### Phase 18: Row inset ([docs/specs/row-inset.md](../docs/specs/row-inset.md))
+### Phase 18: Row inset ([specs/row-inset.md](row-inset.md))
 - [x] T44: Every hairline row insets its content 12px from both ends
 
 ```
@@ -240,7 +240,7 @@ are the check.
 **Checkpoint 16:** the row-inset spec's success criteria 1–5 pass on the live site, at
 desktop and on the author's phone.
 
-### Phase 19: Share card ([docs/specs/share-card.md](../docs/specs/share-card.md))
+### Phase 19: Share card ([specs/share-card.md](share-card.md))
 - [x] T45: A shared link shows a card; search shows the name and line
 
 ```
@@ -254,7 +254,7 @@ the platforms' crawlers, so the real check is on the live site.
 **Checkpoint 17:** the share-card spec's success criteria 1–5 pass on the live site, checked
 by the author in Facebook's Sharing Debugger, LinkedIn's Post Inspector and Messenger.
 
-### Phase 20: Account management, part 1 ([docs/specs/account-management.md](../docs/specs/account-management.md))
+### Phase 20: Account management, part 1 ([specs/account-management.md](account-management.md))
 - [x] T46: Change your username on Account
 - [x] T47: Change your password on Account
 
@@ -300,7 +300,7 @@ once and for an hour, token deleted); the pages follow.
 **Checkpoint 20:** the spec's success criteria 3–5 pass on the live site, with a real reset
 email.
 
-### Phase 23: Portfolio polish ([docs/specs/portfolio-polish.md](../docs/specs/portfolio-polish.md))
+### Phase 23: Portfolio polish ([specs/portfolio-polish.md](portfolio-polish.md))
 - [x] T53: Icon buttons and tooltips
 - [x] T54: Summary words
 - [x] T55: Account page regrouped
@@ -316,7 +316,7 @@ each is its own PR. Built from the Portfolio polish section on Ready for develop
 **Checkpoint 21:** the spec's success criteria 1–4 pass on the live site, at desktop and 375px,
 light and dark.
 
-### Phase 24: A password for Google-only accounts ([docs/specs/google-only-password.md](../docs/specs/google-only-password.md))
+### Phase 24: A password for Google-only accounts ([specs/google-only-password.md](google-only-password.md))
 - [x] T56: Reset link for Google-only accounts
 - [x] T57: Set password on Account
 
@@ -331,7 +331,7 @@ Ready for development (approved 2026-11-19).
 **Checkpoint 22:** the spec's success criteria 1–4 pass on the live site, with a real email to
 a Google-only account.
 
-### Phase 25: Ask before every action that can't be taken back ([docs/specs/confirm-dialogs.md](../docs/specs/confirm-dialogs.md))
+### Phase 25: Ask before every action that can't be taken back ([specs/confirm-dialogs.md](confirm-dialogs.md))
 - [x] T58: Delete a part or an extra cost asks first
 - [x] T59: Disconnect Google and Exit demo ask first
 
@@ -346,7 +346,7 @@ is its own PR. Built from the Confirm dialogs section on Ready for development (
 **Checkpoint 23:** the spec's success criteria 1–4 pass on the live site, at desktop and 375px,
 light and dark.
 
-### Phase 26: A landing page, and pages Google can tell apart ([docs/specs/landing-page.md](../docs/specs/landing-page.md))
+### Phase 26: A landing page, and pages Google can tell apart ([specs/landing-page.md](landing-page.md))
 - [x] T60: Unknown URLs return 404, private pages ask not to be indexed
 - [x] T61: Each page names itself (titles, canonicals)
 - [x] T62: A sitemap and the site's name for Google

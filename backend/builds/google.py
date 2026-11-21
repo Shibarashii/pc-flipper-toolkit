@@ -1,5 +1,5 @@
 """Sign in with Google: check Google's ID token, and pick a new account's username
-(docs/specs/google-sign-in.md)."""
+(specs/google-sign-in.md)."""
 
 import functools
 import re

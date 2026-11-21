@@ -410,7 +410,7 @@ function EmailForm({
 
 /** "Password" and Change, which opens Current and New password. An account that logs in
  * only with Google has "Not set" and Set password, which emails it the reset link (the
- * link proves the recovery email, docs/specs/google-only-password.md). */
+ * link proves the recovery email, specs/google-only-password.md). */
 function PasswordRow({
   me,
   onError,

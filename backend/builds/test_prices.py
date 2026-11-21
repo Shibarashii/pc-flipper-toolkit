@@ -1,4 +1,4 @@
-"""Price lookup tests (docs/specs/price-lookup.md). No test touches a real shop."""
+"""Price lookup tests (specs/price-lookup.md). No test touches a real shop."""
 
 import json
 from datetime import datetime, timedelta

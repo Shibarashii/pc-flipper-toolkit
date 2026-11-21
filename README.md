@@ -59,7 +59,7 @@ npm run dev
 Open http://localhost:5173 and sign up.
 
 **Sign in with Google** is optional locally. Without a client id, there's no Google button.
-To try it, make an OAuth client as in [the spec's setup](docs/specs/google-sign-in.md#setup-outside-the-code-the-author-does-these)
+To try it, make an OAuth client as in [the spec's setup](specs/google-sign-in.md#setup-outside-the-code-the-author-does-these)
 and put its id in `backend/.env` (`GOOGLE_CLIENT_ID`) and `frontend/.env`
 (`VITE_GOOGLE_CLIENT_ID`).
 
@@ -85,7 +85,7 @@ Sign-up is limited to 10 a minute, so running it many times in a row locally get
 
 Both redeploy on every push to `main`. See [`backend/.env.example`](backend/.env.example) for what each setting does.
 
-**Shop prices** for "Find prices" come from a copy of EasyPC's and PC Express's public catalogues, which [`refresh-prices.yml`](.github/workflows/refresh-prices.yml) refreshes daily at 2am Philippine time ([spec](docs/specs/price-lookup.md)).
+**Shop prices** for "Find prices" come from a copy of EasyPC's and PC Express's public catalogues, which [`refresh-prices.yml`](.github/workflows/refresh-prices.yml) refreshes daily at 2am Philippine time ([spec](specs/price-lookup.md)).
 - **Setup:** it needs one repository secret, `DATABASE_URL` (Neon's connection string), under Settings → Secrets and variables → Actions.
 - **Run it now:** `gh workflow run refresh-prices.yml`, or the "Run workflow" button in the Actions tab.
 - **If prices go stale:** GitHub turns scheduled workflows off after 60 days without activity in the repo, and the lookup's "Prices from" date stops moving. Re-enable it in the Actions tab.

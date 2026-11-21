@@ -20,7 +20,7 @@ const formatDay = (time: string) =>
     day: "numeric",
   });
 
-/** Search the PC shops' prices and pick one (docs/specs/price-lookup.md). Lives inside the
+/** Search the PC shops' prices and pick one (specs/price-lookup.md). Lives inside the
  * part form, so it can't be a <form> itself: Enter searches instead of saving the part,
  * and Esc closes only this panel. */
 export function PriceLookup({

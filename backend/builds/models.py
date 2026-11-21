@@ -18,7 +18,7 @@ def money_field(**kwargs) -> models.DecimalField:
 def public_id_field() -> models.UUIDField:
     """The record's name outside the database: a random UUID (version 4) in URLs and
     the API, so the integer ids, which count every user's records, never leave it
-    (docs/specs/public-ids.md). Postgres makes it, so existing rows got one in the
+    (specs/public-ids.md). Postgres makes it, so existing rows got one in the
     migration, and an insert from code that doesn't know the column still gets one."""
     return models.UUIDField(unique=True, editable=False, db_default=RandomUUID())
 
@@ -220,7 +220,7 @@ class ShopProduct(models.Model):
     """One product from a shop's public catalogue, kept for the price lookup.
 
     Each shop's rows are replaced together by `manage.py refresh_shop_prices`
-    (docs/specs/price-lookup.md), so they all share one `updated_at`.
+    (specs/price-lookup.md), so they all share one `updated_at`.
     """
 
     shop = models.CharField(max_length=50)
@@ -244,7 +244,7 @@ class ShopProduct(models.Model):
 
 
 class GoogleAccount(models.Model):
-    """A Google account connected to a user (docs/specs/google-sign-in.md)."""
+    """A Google account connected to a user (specs/google-sign-in.md)."""
 
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="google"

@@ -1,5 +1,5 @@
 /// <reference types="node" />
-// Runs in Node under Vitest: vercel.json and App.tsx as files (docs/specs/landing-page.md).
+// Runs in Node under Vitest: vercel.json and App.tsx as files (specs/landing-page.md).
 import { readFileSync } from "node:fs";
 import { expect, test } from "vitest";
 import { SITE_URL } from "./site";
@@ -98,7 +98,7 @@ test("the sitemap lists the home page and Privacy, and robots.txt points to it",
   );
 });
 
-// Google takes the site's name in results from this (docs/specs/landing-page.md).
+// Google takes the site's name in results from this (specs/landing-page.md).
 test("index.html names the site in WebSite structured data", () => {
   const json = readFileSync("index.html", "utf8").match(
     /<script type="application\/ld\+json">([\s\S]*?)<\/script>/,

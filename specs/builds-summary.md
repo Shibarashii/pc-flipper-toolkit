@@ -1,8 +1,8 @@
 # Spec: Builds summary
 
-A separate feature on top of [SPEC.md](../../SPEC.md), which stays the source of truth for
+A separate feature on top of [specs/app.md](app.md), which stays the source of truth for
 everything else (stack, auth, money rules, code style). Agreed in conversation on 2026-11-06
-(see [the backlog](../ideas/backlog.md)).
+(see [the backlog](ideas/backlog.md)).
 
 ## Objective
 
@@ -31,7 +31,7 @@ This month             All time               Tied up
 | **Tied up:** cost and "in N builds" | Builds not sold (Planning, Building, Listed) whose `total_cost` is above ₱0 | Adds up their `total_cost`. An empty Planning build isn't counted. |
 
 - `profit` and `total_cost` are the same values the builds list already shows (`totals` in
-  SPEC.md), so bundles count once and extra costs are included.
+  specs/app.md), so bundles count once and extra costs are included.
 - Profit can be negative (a loss). It's shown with a sign and in the loss colour, like the
   builds list's Profit column.
 - There's no new rule about Sold. Picking Sold already fills in today's date, and a selling
@@ -103,7 +103,7 @@ showing This month: ₱0.00.
 
 ## Commands
 
-Same as [SPEC.md](../../SPEC.md#commands): `python manage.py test` and
+Same as [specs/app.md](app.md#commands): `python manage.py test` and
 `ruff check . && ruff format .` in `backend/`; `npm test`, `npm run lint` and
 `npx tsc -b` in `frontend/`.
 

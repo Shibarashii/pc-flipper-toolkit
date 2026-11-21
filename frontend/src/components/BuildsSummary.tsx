@@ -16,7 +16,7 @@ const size = {
   other: "text-[20px] leading-[26px] sm:text-[22px] sm:leading-[28px]",
 };
 
-/** The builds list's summary line (docs/specs/builds-summary.md). Every figure comes
+/** The builds list's summary line (specs/builds-summary.md). Every figure comes
  * from the server; null shows a placeholder while it loads. */
 export function BuildsSummary({ summary }: { summary: Summary | null }) {
   if (!summary)

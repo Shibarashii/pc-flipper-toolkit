@@ -32,7 +32,7 @@ TAKEN = "That username is taken."
 TAKEN_EMAIL = "That email is used by another account."
 LINK_GONE = "This link no longer works."
 # Confirmation links: signed, so they can't be changed; checked against the account's
-# current email when opened, so each works once (docs/specs/account-management.md).
+# current email when opened, so each works once (specs/account-management.md).
 CONFIRM_SALT = "builds.confirm-email"
 CONFIRM_MAX_AGE = 24 * 60 * 60
 

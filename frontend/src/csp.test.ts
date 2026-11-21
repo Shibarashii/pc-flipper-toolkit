@@ -13,7 +13,7 @@ test("the CSP allows index.html's inline script", () => {
   expect(readFileSync("vercel.json", "utf8")).toContain(`'sha256-${hash}'`);
 });
 
-// Google's sign-in (docs/specs/google-sign-in.md): its documented origins, and the referrer
+// Google's sign-in (specs/google-sign-in.md): its documented origins, and the referrer
 // policy it recommends (other sites see only our origin, never a page's path).
 test("the CSP lets Google's sign-in button load", () => {
   const { headers } = JSON.parse(readFileSync("vercel.json", "utf8"));
@@ -54,7 +54,7 @@ test("pages send only our origin as the referrer, the link pages nothing", () =>
     expect(policies(path)).toEqual(["no-referrer"]);
 });
 
-// A shared link's card and the search snippet (docs/specs/share-card.md). Link previewers
+// A shared link's card and the search snippet (specs/share-card.md). Link previewers
 // don't run JavaScript, so the tags must be in index.html itself, with absolute URLs.
 test("index.html has the share card's tags and its 1200×630 image", () => {
   const html = readFileSync("index.html", "utf8");

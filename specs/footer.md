@@ -1,6 +1,6 @@
 # Spec: Footer
 
-A one-line footer on every page, on top of [SPEC.md](../../SPEC.md), which stays the source of
+A one-line footer on every page, on top of [specs/app.md](app.md), which stays the source of
 truth for everything else. Intent agreed in conversation on 2026-11-10.
 
 ## Objective
@@ -53,7 +53,7 @@ truth for everything else. Intent agreed in conversation on 2026-11-10.
 
 ## Commands
 
-Same as [SPEC.md](../../SPEC.md#commands): `npm test`, `npm run lint`, `npx tsc -b` and
+Same as [specs/app.md](app.md#commands): `npm test`, `npm run lint`, `npx tsc -b` and
 `npx playwright test` in `frontend/`. No backend change.
 
 ## Project Structure
@@ -64,8 +64,8 @@ frontend/src/
   pages/Login.tsx        its Privacy link goes
   App.test.tsx           + the tests below
 frontend/e2e/flip.spec.ts  + one footer check on the sign-up page
-SPEC.md                  Screens: the footer
-docs/brand-guidelines.md Components: Footer
+specs/app.md                  Screens: the footer
+specs/design/brand.md Components: Footer
 ```
 
 ## Testing Strategy
@@ -77,7 +77,7 @@ docs/brand-guidelines.md Components: Footer
     there is exactly one Privacy link on the page.
 - **E2E:** jsdom can't lay out a page, so the flip test, on its sign-up page, checks that the
   footer's bottom edge is the window's bottom edge. It runs at desktop and 375px, as the flip
-  test already does. No new e2e file ([e2e intent](../intent/e2e-tests.md): no per-feature
+  test already does. No new e2e file ([e2e intent](intent/e2e-tests.md): no per-feature
   suites).
 - **Screenshots:** Log in, a builds list and a long build page, at desktop and 375px, light
   and dark.

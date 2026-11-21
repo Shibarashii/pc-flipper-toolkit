@@ -109,7 +109,7 @@ def at(when: str):
 
 
 class SummaryTests(LoggedInApiTestCase):
-    """GET /api/builds/summary/ (docs/specs/builds-summary.md)."""
+    """GET /api/builds/summary/ (specs/builds-summary.md)."""
 
     def build(self, cost: str = "0.00", **fields) -> Build:
         build = new_build(name="B", **fields)
@@ -491,7 +491,7 @@ class DetailApiTests(LoggedInApiTestCase):
 
 
 class ConditionTests(LoggedInApiTestCase):
-    """A part's optional condition (docs/specs/part-condition.md)."""
+    """A part's optional condition (specs/part-condition.md)."""
 
     def setUp(self):
         super().setUp()
@@ -1468,7 +1468,7 @@ SENT = {"detail": "If an account has that email, we've sent it a link."}
 
 
 class ResetTests(APITestCase):
-    """Forgot your username or password (docs/specs/account-management.md, part 3)."""
+    """Forgot your username or password (specs/account-management.md, part 3)."""
 
     def setUp(self):
         cache.clear()  # the rate limit and the 15-minute wait live in the cache
@@ -1507,7 +1507,7 @@ class ResetTests(APITestCase):
 
     def test_every_address_gets_the_same_answer_and_only_a_real_one_an_email(self):
         # A Google-only account gets one too: it's how it adds a password
-        # (docs/specs/google-only-password.md).
+        # (specs/google-only-password.md).
         User.objects.create_user("gina", email="gina@gmail.com")
         User.objects.create_user(
             "ivan", email="ivan@example.com", password="x", is_active=False
@@ -1826,7 +1826,7 @@ def walk_ids(data, path="$"):
 
 class PublicIdTests(LoggedInApiTestCase):
     """Builds, parts, bundles and extra costs are named by a random UUID outside the
-    database; their integer ids never leave it (docs/specs/public-ids.md)."""
+    database; their integer ids never leave it (specs/public-ids.md)."""
 
     def setUp(self):
         super().setUp()

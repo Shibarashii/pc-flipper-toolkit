@@ -1,4 +1,4 @@
-// Each page names itself in the tab and in search results (docs/specs/landing-page.md).
+// Each page names itself in the tab and in search results (specs/landing-page.md).
 import { cleanup, render, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";

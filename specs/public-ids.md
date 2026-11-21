@@ -1,6 +1,6 @@
 # Spec: Public ids
 
-A change to how the API and the app's URLs name records, on top of [SPEC.md](../../SPEC.md),
+A change to how the API and the app's URLs name records, on top of [specs/app.md](app.md),
 which stays the source of truth for everything else. Agreed in conversation on 2026-11-07.
 
 ## Objective
@@ -10,7 +10,7 @@ random UUID instead of its sequential integer id: `/builds/3f2c9a4e-…` instead
 
 - **Why:** the integer ids count every user's records, so they show how big the site is and
   how fast it grows, and they invite guessing. Access is already protected: every query is
-  filtered by owner and another user's id returns 404 (SPEC.md). Public UUIDs are the extra
+  filtered by owner and another user's id returns 404 (specs/app.md). Public UUIDs are the extra
   layer that keeps the database's internals out of URLs and API responses, the way production
   APIs do it (OWASP: unguessable ids as defence in depth, never instead of access checks).
 - **User:** anyone using the app, who never sees a difference except the address bar. And
@@ -95,7 +95,7 @@ public_id = models.UUIDField(unique=True, editable=False, db_default=RandomUUID(
 
 ## Commands
 
-Same as [SPEC.md](../../SPEC.md#commands): `python manage.py test`,
+Same as [specs/app.md](app.md#commands): `python manage.py test`,
 `python manage.py makemigrations --check`, `ruff check . && ruff format .` and
 `python manage.py spectacular --validate --fail-on-warn` in `backend/`; `npm test`,
 `npm run lint`, `npx tsc -b` and `npx playwright test` in `frontend/`.
@@ -113,7 +113,7 @@ frontend/src/
   api.ts               string ids
   pages/BuildDetail.tsx  no integer check
   test/fixtures.ts, *.test.tsx   string ids
-SPEC.md                API table and data model say UUID
+specs/app.md                API table and data model say UUID
 ```
 
 ## Testing Strategy

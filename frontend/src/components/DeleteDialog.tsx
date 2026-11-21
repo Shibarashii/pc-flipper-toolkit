@@ -39,7 +39,7 @@ export function DeleteDialog({
 }
 
 /** A question with Cancel and a red action, for anything that can't be taken back
- * (docs/specs/confirm-dialogs.md). Render only while open; it opens itself as a modal. */
+ * (specs/confirm-dialogs.md). Render only while open; it opens itself as a modal. */
 export function ConfirmDialog({
   title,
   message,

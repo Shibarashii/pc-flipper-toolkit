@@ -1,6 +1,6 @@
 # Spec: Share card and search tags
 
-A link preview and search snippet for the site, on top of [SPEC.md](../../SPEC.md), which
+A link preview and search snippet for the site, on top of [specs/app.md](app.md), which
 stays the source of truth for everything else. Intent confirmed in conversation on
 2026-11-12.
 
@@ -84,7 +84,7 @@ does for the Search Console file.
 
 ## Commands
 
-Same as [SPEC.md](../../SPEC.md#commands): `npm test`, `npm run lint` and `npm run build` in
+Same as [specs/app.md](app.md#commands): `npm test`, `npm run lint` and `npm run build` in
 `frontend/`. No backend change.
 
 On the live site, after the deploy:

@@ -1167,7 +1167,7 @@ test("an email another account took meanwhile says so", async () => {
   expect(screen.getByRole("link", { name: "Go to Account" })).toBeTruthy();
 });
 
-// Forgot your username or password (docs/specs/account-management.md, part 3).
+// Forgot your username or password (specs/account-management.md, part 3).
 test("log-in links to forgot, sign-up doesn't", async () => {
   renderAt("/login");
   expect(

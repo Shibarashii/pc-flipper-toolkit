@@ -1,7 +1,7 @@
 # Spec: Landing page and search fixes
 
 A public home page and the search fixes found on the live site, on top of
-[SPEC.md](../../SPEC.md), which stays the source of truth for everything else. Intent
+[specs/app.md](app.md), which stays the source of truth for everything else. Intent
 confirmed in conversation on 2026-11-21. Replaces two backlog entries ("A landing page",
 "SEO fixes").
 
@@ -143,7 +143,7 @@ in them can be clicked or focused. The diagram moves out of `BuildChecklist` int
   header, up to 960px, with its content centered as one block, so the next block starts below
   the first screen instead of peeking in. On a screen shorter than its content it keeps its
   own height; phones and tablets are unchanged. Intent:
-  [landing-hero-height.md](../intent/landing-hero-height.md).
+  [landing-hero-height.md](intent/landing-hero-height.md).
 
 ### Below the hero
 
@@ -183,7 +183,7 @@ Then the footer, as on every page.
 
 ## Commands
 
-Same as [SPEC.md](../../SPEC.md#commands): `npm test`, `npm run lint`, `npx tsc -b` and
+Same as [specs/app.md](app.md#commands): `npm test`, `npm run lint`, `npx tsc -b` and
 `npm run e2e` in `frontend/`. After the deploy, check the live headers:
 `curl -sI https://pc-flipper-toolkit.vercel.app/anything | head -1` (404) and
 `curl -sI https://pc-flipper-toolkit.vercel.app/login | grep -i x-robots` (noindex).
@@ -204,7 +204,7 @@ frontend/src/components/BuildDiagram.tsx  the case diagram, out of BuildChecklis
 frontend/src/pages/*.tsx             a <title> each; canonical on Landing and Privacy
 frontend/src/App.tsx                 logged-out "/" → Landing; header Log in
 frontend/e2e/demo.spec.ts            starts the demo from the landing page
-SPEC.md                              Screens: the landing page; Project Structure
+specs/app.md                              Screens: the landing page; Project Structure
 ```
 
 ## Code Style
@@ -233,7 +233,7 @@ export function Privacy() {
   logged out `/` shows Landing and `/builds/x` still redirects to `/login`; each page sets
   its title.
 - **E2E:** `demo.spec.ts` starts from the landing page's **Try the demo** (no new test,
-  [e2e intent](../intent/e2e-tests.md)).
+  [e2e intent](intent/e2e-tests.md)).
 - **Manual:** the landing page at 1280 and 375, light and dark, with the hero fitting at 1280×720;
   after the deploy, the two `curl` checks above and Search Console's URL inspection of `/`
   showing the landing page's text.

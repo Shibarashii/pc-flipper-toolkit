@@ -1,6 +1,6 @@
 # Tasks: PC Flipper Toolkit v1
 
-Plan: [plan.md](plan.md) · Spec: [SPEC.md](../SPEC.md) · Design: [docs/brand-guidelines.md](../docs/brand-guidelines.md)
+Plan: [plan.md](plan.md) · Spec: [specs/app.md](app.md) · Design: [specs/design/brand.md](design/brand.md)
 
 **Standard verification** (every task, before committing):
 - Backend: `cd backend && .venv/bin/python manage.py test && .venv/bin/ruff check . && .venv/bin/ruff format --check .`
@@ -422,7 +422,7 @@ the device setting and remembers the choice in this browser. The tokens move to 
 
 ## Phase 6: Part bundles
 
-Spec: SPEC.md user story 9 and the Bundles notes; idea: [docs/ideas/part-bundles.md](../docs/ideas/part-bundles.md).
+Spec: specs/app.md user story 9 and the Bundles notes; idea: [specs/ideas/part-bundles.md](ideas/part-bundles.md).
 
 ### - [x] T20: Bundles in the API
 
@@ -563,7 +563,7 @@ opens `/signup`. A second e2e test clicks "Try the demo" and checks both sample 
 
 ## Phase 9: Price lookup
 
-Spec: [docs/specs/price-lookup.md](../docs/specs/price-lookup.md). No new dependencies.
+Spec: [specs/price-lookup.md](price-lookup.md). No new dependencies.
 
 ### - [x] T26: Shop catalogue copy
 
@@ -592,7 +592,7 @@ only after every page downloaded. Read-only in the admin, so the copy can be che
 
 **Description:** `GET /api/prices/?q=` returns up to 20 products whose title contains every
 word of `q` (case-insensitive), in stock first, then cheapest first, plus `updated_at` (the
-oldest shop refresh, or `null`). Needs a token. Documented with drf-spectacular. SPEC.md's API
+oldest shop refresh, or `null`). Needs a token. Documented with drf-spectacular. specs/app.md's API
 table and out-of-scope line point to the price lookup spec.
 
 **Acceptance criteria:**
@@ -604,7 +604,7 @@ table and out-of-scope line point to the price lookup spec.
 - [x] `spectacular --validate --fail-on-warn` passes
 
 **Dependencies:** T26
-**Files:** `backend/builds/views.py`, `backend/builds/serializers.py`, `backend/config/urls.py`, tests, `SPEC.md`
+**Files:** `backend/builds/views.py`, `backend/builds/serializers.py`, `backend/config/urls.py`, tests, `specs/app.md`
 **Scope:** S
 
 ### - [x] T28: "Find prices" in the part form
@@ -653,7 +653,7 @@ the job, the secret, and re-enabling it after GitHub's 60-day pause.
 
 ## Phase 10: Part search pop-up
 
-Spec: [docs/specs/price-lookup.md, part 2](../docs/specs/price-lookup.md#part-2-part-search-pop-up).
+Spec: [specs/price-lookup.md, part 2](price-lookup.md#part-2-part-search-pop-up).
 No new dependencies, no migration.
 
 ### - [x] T30: Short names in the search API
@@ -737,14 +737,14 @@ WAI-ARIA 1.2 combobox with a listbox pop-up.
 
 ## Phase 11: Builds summary
 
-Spec: [docs/specs/builds-summary.md](../docs/specs/builds-summary.md). No migration, no new
+Spec: [specs/builds-summary.md](builds-summary.md). No migration, no new
 dependencies.
 
 ### - [x] T32: Summary API and the demo's sale dated today
 
 **Description:** `BuildViewSet.summary`, an `@action(detail=False)` at `GET
 /api/builds/summary/`. It reuses the viewset's owner filter and prefetching, and sums the
-model's `profit` and `total_cost` in Python (the spec's [The numbers](../docs/specs/builds-summary.md#the-numbers)):
+model's `profit` and `total_cost` in Python (the spec's [The numbers](builds-summary.md#the-numbers)):
 
 - `this_month`: Sold builds whose `sold_at` is in `timezone.localdate()`'s month
 - `all_time`: every Sold build
@@ -812,7 +812,7 @@ loaded at the same time as the list:
 
 ## Phase 12: CI speedups
 
-Spec: [docs/specs/ci-speedups.md](../docs/specs/ci-speedups.md). Only
+Spec: [specs/ci-speedups.md](ci-speedups.md). Only
 `.github/workflows/ci.yml` changes; the job names stay.
 
 ### - [x] T34: Cache Playwright's Chromium, cancel superseded PR runs, job time limits
@@ -842,7 +842,7 @@ Spec: [docs/specs/ci-speedups.md](../docs/specs/ci-speedups.md). Only
 
 ## Phase 13: Copy listing
 
-Spec: [docs/specs/copy-listing.md](../docs/specs/copy-listing.md). Frontend only: no API,
+Spec: [specs/copy-listing.md](copy-listing.md). Frontend only: no API,
 migration or new dependency.
 
 ### - [x] T35: Copy listing: the post, the dialog and the header button
@@ -893,7 +893,7 @@ migration or new dependency.
 
 ## Phase 14: Public ids
 
-Spec: [docs/specs/public-ids.md](../docs/specs/public-ids.md). One migration, no new
+Spec: [specs/public-ids.md](public-ids.md). One migration, no new
 dependencies.
 
 ### - [x] T36: The frontend takes any id, as a string
@@ -928,7 +928,7 @@ as strings, so this works with today's integer API and with UUIDs.
   keeping the owner-filtered querysets.
 - Viewsets: `lookup_field = "public_id"`, `lookup_url_kwarg = "id"`.
 - API docs examples use UUIDs.
-- SPEC.md's API table and data model say UUID.
+- specs/app.md's API table and data model say UUID.
 
 **Acceptance criteria:**
 - [x] No response of the four resources (list, detail, create, update, and nested in the
@@ -953,7 +953,7 @@ as strings, so this works with today's integer API and with UUIDs.
   carried an integer id
 
 **Dependencies:** T36 deployed
-**Files:** `backend/builds/models.py`, a new `backend/builds/migrations/0007_*.py`, `backend/builds/serializers.py`, `backend/builds/views.py`, `backend/builds/tests.py`, `SPEC.md`
+**Files:** `backend/builds/models.py`, a new `backend/builds/migrations/0007_*.py`, `backend/builds/serializers.py`, `backend/builds/views.py`, `backend/builds/tests.py`, `specs/app.md`
 **Scope:** M
 
 ### Checkpoint 12: Public ids
@@ -969,7 +969,7 @@ as strings, so this works with today's integer API and with UUIDs.
 
 ## Phase 15: Part condition
 
-Spec: [docs/specs/part-condition.md](../docs/specs/part-condition.md). One migration, no new
+Spec: [specs/part-condition.md](part-condition.md). One migration, no new
 dependencies.
 
 ### - [x] T38: Set and see a part's condition (field, API, form, table)
@@ -1010,7 +1010,7 @@ dependencies.
   row already wraps)
 
 **Dependencies:** None
-**Files:** `backend/builds/models.py`, a new `backend/builds/migrations/0008_*.py`, `backend/builds/serializers.py`, `backend/builds/tests.py`, `frontend/src/api.ts`, `frontend/src/components/PartRow.tsx`, `frontend/src/components/PartsTable.test.tsx`, `frontend/src/test/fixtures.ts`, `frontend/e2e/flip.spec.ts`, `SPEC.md`
+**Files:** `backend/builds/models.py`, a new `backend/builds/migrations/0008_*.py`, `backend/builds/serializers.py`, `backend/builds/tests.py`, `frontend/src/api.ts`, `frontend/src/components/PartRow.tsx`, `frontend/src/components/PartsTable.test.tsx`, `frontend/src/test/fixtures.ts`, `frontend/e2e/flip.spec.ts`, `specs/app.md`
 **Scope:** M
 
 ### - [x] T39: Condition in the Copy listing post, and on the demo's parts
@@ -1037,7 +1037,7 @@ dependencies.
   parts "(Used – Good)", the other four "(New)")
 
 **Dependencies:** T38
-**Files:** `frontend/src/listing.ts`, `frontend/src/listing.test.ts`, `backend/builds/demo.py`, `backend/builds/tests.py`, `docs/specs/copy-listing.md` (its condition line points to the new spec)
+**Files:** `frontend/src/listing.ts`, `frontend/src/listing.test.ts`, `backend/builds/demo.py`, `backend/builds/tests.py`, `specs/copy-listing.md` (its condition line points to the new spec)
 **Scope:** S
 
 ### Checkpoint 13: Part condition
@@ -1053,7 +1053,7 @@ dependencies.
 
 ## Phase 16: Google sign-in
 
-Spec: [docs/specs/google-sign-in.md](../docs/specs/google-sign-in.md). One new table, one new
+Spec: [specs/google-sign-in.md](google-sign-in.md). One new table, one new
 dependency (`google-auth`, approved 2026-11-07).
 
 ### - [x] T40: Sign in with Google (new and returning users)
@@ -1108,7 +1108,7 @@ dependency (`google-auth`, approved 2026-11-07).
   English (`locale: "en"`), since Google otherwise picked Tagalog/Cebuano from the location.
 
 **Dependencies:** the author's Google Cloud client (for the manual check only)
-**Files:** `backend/requirements.txt`, `backend/config/settings.py`, `backend/config/urls.py`, `backend/builds/models.py`, a new `backend/builds/migrations/0009_*.py`, a new `backend/builds/google.py`, `backend/builds/auth.py`, `backend/builds/tests.py`, a new `frontend/src/google.ts`, `frontend/src/api.ts`, `frontend/src/pages/Login.tsx` and its test, `frontend/vercel.json`, `frontend/.env.example`, `README.md`, `SPEC.md`
+**Files:** `backend/requirements.txt`, `backend/config/settings.py`, `backend/config/urls.py`, `backend/builds/models.py`, a new `backend/builds/migrations/0009_*.py`, a new `backend/builds/google.py`, `backend/builds/auth.py`, `backend/builds/tests.py`, a new `frontend/src/google.ts`, `frontend/src/api.ts`, `frontend/src/pages/Login.tsx` and its test, `frontend/vercel.json`, `frontend/.env.example`, `README.md`, `specs/app.md`
 **Scope:** L (about 15 files, but one path: button to token to session)
 
 ### - [x] T41: The Account page: connect and disconnect Google
@@ -1142,7 +1142,7 @@ dependency (`google-auth`, approved 2026-11-07).
 - [x] Screenshots: desktop and 375px, light and dark
 
 **Dependencies:** T40
-**Files:** `backend/builds/auth.py`, `backend/config/urls.py`, `backend/builds/tests.py`, `frontend/src/api.ts`, a new `frontend/src/pages/Account.tsx` and its test, `frontend/src/App.tsx`, `SPEC.md`
+**Files:** `backend/builds/auth.py`, `backend/config/urls.py`, `backend/builds/tests.py`, `frontend/src/api.ts`, a new `frontend/src/pages/Account.tsx` and its test, `frontend/src/App.tsx`, `specs/app.md`
 **Scope:** M
 
 ### - [x] T42: Privacy page, and publishing the Google app
@@ -1179,7 +1179,7 @@ dependency (`google-auth`, approved 2026-11-07).
 
 ## Phase 17: Footer
 
-Spec: [docs/specs/footer.md](../docs/specs/footer.md). Frontend only.
+Spec: [specs/footer.md](footer.md). Frontend only.
 
 ### - [x] T43: A footer on every page, at the bottom of the window on short pages
 
@@ -1190,7 +1190,7 @@ Spec: [docs/specs/footer.md](../docs/specs/footer.md). Frontend only.
   GitHub" right from 640px, stacked (links first) below; small, muted, focus rings; the same
   side padding as the header.
 - `Login.tsx`: its own Privacy link goes.
-- `SPEC.md` (Screens) and `docs/brand-guidelines.md` (Components) mention the footer.
+- `specs/app.md` (Screens) and `specs/design/brand.md` (Components) mention the footer.
 
 **Acceptance criteria:**
 - [x] Every page, logged in or out, shows the footer with the © line, Privacy (`/privacy`) and
@@ -1210,7 +1210,7 @@ Spec: [docs/specs/footer.md](../docs/specs/footer.md). Frontend only.
   dark
 
 **Dependencies:** none
-**Files:** `frontend/src/App.tsx`, `frontend/src/pages/Login.tsx`, `frontend/src/App.test.tsx`, `frontend/e2e/flip.spec.ts`, `SPEC.md`, `docs/brand-guidelines.md`
+**Files:** `frontend/src/App.tsx`, `frontend/src/pages/Login.tsx`, `frontend/src/App.test.tsx`, `frontend/e2e/flip.spec.ts`, `specs/app.md`, `specs/design/brand.md`
 **Scope:** S
 
 ### Checkpoint 15: Footer (done)
@@ -1221,7 +1221,7 @@ Spec: [docs/specs/footer.md](../docs/specs/footer.md). Frontend only.
 
 ## Phase 18: Row inset
 
-Spec: [docs/specs/row-inset.md](../docs/specs/row-inset.md). Frontend only.
+Spec: [specs/row-inset.md](row-inset.md). Frontend only.
 
 ### - [x] T44: Every hairline row insets its content 12px from both ends
 
@@ -1233,7 +1233,7 @@ Spec: [docs/specs/row-inset.md](../docs/specs/row-inset.md). Frontend only.
   cards and loading rows (`BuildsList.tsx`, `sm:px-3` becomes `px-3`).
 - Edit boxes keep the full row width; headings, the progress bar, heading buttons and the
   builds summary's stat strip stay flush.
-- `docs/brand-guidelines.md`: rows inset 12px from their hairlines; headings flush.
+- `specs/design/brand.md`: rows inset 12px from their hairlines; headings flush.
 - Found while building: the Summary's Profit figure (no wrap) no longer fit its narrower box,
   so it sizes itself to the box (`min(60px, N cqi)`, N by its length) instead of 60/48px by
   length. The empty states under the lines get the inset too.
@@ -1256,7 +1256,7 @@ Spec: [docs/specs/row-inset.md](../docs/specs/row-inset.md). Frontend only.
   light and dark; 320px for the wrap check
 
 **Dependencies:** none
-**Files:** `frontend/src/components/BuildChecklist.tsx`, `Summary.tsx`, `PartsTable.tsx`, `PartRow.tsx`, `BundleRow.tsx`, `ExtraCosts.tsx`, `PriceLookup.tsx`, `frontend/src/pages/BuildsList.tsx`, `docs/brand-guidelines.md`
+**Files:** `frontend/src/components/BuildChecklist.tsx`, `Summary.tsx`, `PartsTable.tsx`, `PartRow.tsx`, `BundleRow.tsx`, `ExtraCosts.tsx`, `PriceLookup.tsx`, `frontend/src/pages/BuildsList.tsx`, `specs/design/brand.md`
 **Scope:** S (one class per row)
 
 ### Checkpoint 16: Row inset (done)
@@ -1266,7 +1266,7 @@ Spec: [docs/specs/row-inset.md](../docs/specs/row-inset.md). Frontend only.
 
 ## Phase 19: Share card
 
-Spec: [docs/specs/share-card.md](../docs/specs/share-card.md). Frontend only.
+Spec: [specs/share-card.md](share-card.md). Frontend only.
 
 ### - [x] T45: A shared link shows a card; search shows the name and line
 
@@ -1297,7 +1297,7 @@ Spec: [docs/specs/share-card.md](../docs/specs/share-card.md). Frontend only.
 - [x] Look at `og-image.png` at full size and as a ~500px-wide card
 
 **Dependencies:** none
-**Files:** `frontend/index.html`, `frontend/public/og-image.png`, `frontend/public/robots.txt`, `frontend/src/csp.test.ts`, `docs/specs/share-card.md`
+**Files:** `frontend/index.html`, `frontend/public/og-image.png`, `frontend/public/robots.txt`, `frontend/src/csp.test.ts`, `specs/share-card.md`
 **Scope:** S
 
 ### Checkpoint 17: Share card (done)
@@ -1310,7 +1310,7 @@ Spec: [docs/specs/share-card.md](../docs/specs/share-card.md). Frontend only.
 
 ## Phase 20: Account management, part 1
 
-Spec: [docs/specs/account-management.md](../docs/specs/account-management.md). No migration, no
+Spec: [specs/account-management.md](account-management.md). No migration, no
 new dependencies.
 
 ### - [x] T46: Change your username on Account
@@ -1322,7 +1322,7 @@ new dependencies.
 - Account (`Account.tsx`): a Username section above Google: the name and "Change", which opens
   one field with Save and Cancel. On save, the stored session's username (`auth.ts`) updates so
   the header follows.
-- SPEC.md's auth table gets the endpoint.
+- specs/app.md's auth table gets the endpoint.
 - Tests first, in `tests.py` and `App.test.tsx`.
 - Built 2026-11-17: sign-up and rename share `UsernameSerializer`. A taken name gets sign-up's
   "That username is taken.", not the design caption's Django text. Demo accounts see the
@@ -1342,7 +1342,7 @@ new dependencies.
 - [x] Manual: rename on the local copy at desktop and 375px, light and dark
 
 **Dependencies:** none
-**Files:** `backend/builds/auth.py`, `backend/builds/tests.py`, `frontend/src/api.ts`, `frontend/src/pages/Account.tsx`, `frontend/src/App.test.tsx`, `SPEC.md`, `docs/specs/account-management.md`
+**Files:** `backend/builds/auth.py`, `backend/builds/tests.py`, `frontend/src/api.ts`, `frontend/src/pages/Account.tsx`, `frontend/src/App.test.tsx`, `specs/app.md`, `specs/account-management.md`
 **Scope:** S
 
 ### - [x] T47: Change your password on Account
@@ -1355,7 +1355,7 @@ new dependencies.
 - Account: a Password section: "Change" opens Current password and New password
   (`current-password`, `new-password` autocomplete). On save the new token is stored. Google-only
   accounts see "You log in with Google" instead.
-- SPEC.md's auth table gets the endpoint. Tests first.
+- specs/app.md's auth table gets the endpoint. Tests first.
 - Built 2026-11-17: Account's sections are now regions named by their headings (both rows
   have a "Change" button). Tabs follow each other's session through the `storage` event;
   without it, a second tab's 401 on the old token cleared the stored session, so this browser
@@ -1373,7 +1373,7 @@ new dependencies.
 - [x] Manual: two browsers logged in locally; a change in one logs the other out
 
 **Dependencies:** none (after T46 only to avoid conflicts in `Account.tsx`)
-**Files:** `backend/builds/auth.py`, `backend/config/urls.py`, `backend/builds/tests.py`, `frontend/src/api.ts`, `frontend/src/pages/Account.tsx`, `frontend/src/App.test.tsx`, `SPEC.md`
+**Files:** `backend/builds/auth.py`, `backend/config/urls.py`, `backend/builds/tests.py`, `frontend/src/api.ts`, `frontend/src/pages/Account.tsx`, `frontend/src/App.test.tsx`, `specs/app.md`
 **Scope:** S
 
 ### Checkpoint 18: Account management, part 1 (done)
@@ -1383,7 +1383,7 @@ new dependencies.
 
 ## Phase 21: Account management, part 2
 
-Spec: [docs/specs/account-management.md](../docs/specs/account-management.md). One migration
+Spec: [specs/account-management.md](account-management.md). One migration
 (`0010`, an index); no new Python package (Brevo over Django's SMTP backend).
 
 ### - [x] S1: Brevo set up and tested (the author, outside the code)
@@ -1402,7 +1402,7 @@ Spec: [docs/specs/account-management.md](../docs/specs/account-management.md). O
   critical and most users are on Gmail. "Check your spam folder" goes in each "we sent a link"
   message, the emails get a text and an HTML version (Brevo turns text-only into HTML with a
   tracking image, which costs points), and a domain of our own is
-  [parked](../docs/ideas/backlog.md#parked).
+  [parked](ideas/backlog.md#parked).
 
 **Blocks:** the merge of T49
 
@@ -1422,7 +1422,7 @@ Spec: [docs/specs/account-management.md](../docs/specs/account-management.md). O
   `django.core.signing` token (salted, 24 hours) holding the user's id, the new email and the
   account's current email; saves the email if the current one is unchanged and no other account
   took it. `GET /api/auth/me/` gains `email`. Demo `403`.
-- SPEC.md's auth table. Tests first.
+- specs/app.md's auth table. Tests first.
 - Built 2026-11-18: the token carries a keyed hash of the account's current email, not the
   email itself (a token can be decoded, and its address isn't confirmed yet), and the
   confirmation email says "Hi," without the username for the same reason. Sending again to
@@ -1445,7 +1445,7 @@ Spec: [docs/specs/account-management.md](../docs/specs/account-management.md). O
 - [x] Manual: the console backend prints the email in `runserver`'s output
 
 **Dependencies:** none (Brevo isn't needed: nothing in the app calls this yet)
-**Files:** `backend/config/settings.py`, `backend/.env.example`, `backend/builds/emails.py`, `backend/builds/migrations/0010_…`, `backend/builds/auth.py`, `backend/config/urls.py`, `backend/builds/tests.py`, `SPEC.md`
+**Files:** `backend/config/settings.py`, `backend/.env.example`, `backend/builds/emails.py`, `backend/builds/migrations/0010_…`, `backend/builds/auth.py`, `backend/config/urls.py`, `backend/builds/tests.py`, `specs/app.md`
 **Scope:** M
 
 ### - [x] T49: Add or change your email on Account
@@ -1515,7 +1515,7 @@ Spec: [docs/specs/account-management.md](../docs/specs/account-management.md). O
   the console backend prints in runserver's own terminal)
 
 **Dependencies:** T49
-**Files:** `backend/builds/auth.py`, `backend/builds/google.py`, `backend/builds/tests.py`, `backend/builds/test_google.py`, `frontend/src/pages/Login.tsx`, `frontend/e2e/flip.spec.ts`, `SPEC.md`
+**Files:** `backend/builds/auth.py`, `backend/builds/google.py`, `backend/builds/tests.py`, `backend/builds/test_google.py`, `frontend/src/pages/Login.tsx`, `frontend/e2e/flip.spec.ts`, `specs/app.md`
 **Scope:** S
 
 ### Checkpoint 19: Account management, part 2 (done)
@@ -1525,7 +1525,7 @@ Spec: [docs/specs/account-management.md](../docs/specs/account-management.md). O
 
 ## Phase 22: Account management, part 3
 
-Spec: [docs/specs/account-management.md](../docs/specs/account-management.md). No migration, no
+Spec: [specs/account-management.md](account-management.md). No migration, no
 new dependencies.
 
 ### - [x] T51: Reset API
@@ -1539,7 +1539,7 @@ new dependencies.
 - `POST /api/auth/password-reset/confirm/ {uid, token, new_password}`: Django's
   `default_token_generator`, `PASSWORD_RESET_TIMEOUT = 3600`, the password validators; sets the
   password, deletes the token, emails "Your password was changed", `204`. No log-in.
-- SPEC.md's auth table. Tests first.
+- specs/app.md's auth table. Tests first.
 - Built 2026-11-18: the 15-minute wait is marked only when an email goes out, under a keyed hash
   of the address (never the address itself); the review found that marking every address let
   300 made-up ones push real marks out of the 300-entry cache. The answer never differs. The wait lives
@@ -1560,7 +1560,7 @@ new dependencies.
 - [x] Standard verification, plus `spectacular --validate --fail-on-warn`
 
 **Dependencies:** Phase 21
-**Files:** `backend/config/settings.py`, `backend/builds/auth.py`, `backend/config/urls.py`, `backend/builds/emails.py`, `backend/builds/tests.py`, `SPEC.md`
+**Files:** `backend/config/settings.py`, `backend/builds/auth.py`, `backend/config/urls.py`, `backend/builds/emails.py`, `backend/builds/tests.py`, `specs/app.md`
 **Scope:** S
 
 ### - [x] T52: Forgot and reset pages
@@ -1599,7 +1599,7 @@ new dependencies.
 
 ## Phase 23: Portfolio polish
 
-Spec: [docs/specs/portfolio-polish.md](../docs/specs/portfolio-polish.md). Designs: the
+Spec: [specs/portfolio-polish.md](portfolio-polish.md). Designs: the
 Portfolio polish section on Figma's Ready for development (approved 2026-11-19). Frontend only: no
 migration, no API change, no new dependencies.
 
@@ -1638,20 +1638,20 @@ migration, no API change, no new dependencies.
 - Build summary: Listed total → Parts at shop prices, Below/Above market → Under/Over shop
   prices, Voucher savings → Saved on parts. Bundle row: Listed total → Parts at shop prices.
   "Tied up" stays.
-- SPEC.md's definitions take the new names. Tests first (rename the labels the tests look for).
-- Built 2026-11-19: SPEC.md keeps each API field's name beside its new label
+- specs/app.md's definitions take the new names. Tests first (rename the labels the tests look for).
+- Built 2026-11-19: specs/app.md keeps each API field's name beside its new label
   (`listed_total`, `below_market`, `voucher_savings`), since the API doesn't change. The flip
   e2e test reads the renamed label, and the bundle test now checks the phone card's label.
 
 **Acceptance criteria:**
 - [x] The summary and bundle row show the new labels with the same values and edge cases
-- [x] SPEC.md uses the new names; no "Listed total", "market" or "Voucher savings" left in the UI
+- [x] specs/app.md uses the new names; no "Listed total", "market" or "Voucher savings" left in the UI
 
 **Verification:**
 - [x] Standard verification, `npx playwright test`
 
 **Dependencies:** None
-**Files:** `frontend/src/components/Summary.tsx`, `frontend/src/components/BundleRow.tsx`, `frontend/src/components/Summary.test.tsx`, `frontend/src/components/PartsTable.test.tsx`, `frontend/e2e/flip.spec.ts`, `SPEC.md`
+**Files:** `frontend/src/components/Summary.tsx`, `frontend/src/components/BundleRow.tsx`, `frontend/src/components/Summary.test.tsx`, `frontend/src/components/PartsTable.test.tsx`, `frontend/e2e/flip.spec.ts`, `specs/app.md`
 **Scope:** XS
 
 ### - [x] T55: Account page regrouped
@@ -1695,7 +1695,7 @@ checked locally before the merge (a password account, a Google-only one), as the
 
 ## Phase 24: A password for Google-only accounts
 
-Spec: [docs/specs/google-only-password.md](../docs/specs/google-only-password.md). Designs: the
+Spec: [specs/google-only-password.md](google-only-password.md). Designs: the
 Google-only password section on Figma's Ready for development (approved 2026-11-19). No
 migration, no new endpoint, no new dependencies.
 
@@ -1706,7 +1706,7 @@ migration, no new endpoint, no new dependencies.
   with the spec's comment; its API description stops saying "and a password".
 - `emails.reset_password`: "To set a new password, open this link:" and "…you can ignore this
   email; nothing changes."
-- SPEC.md's `/api/auth/password-reset/` row; a "(Changed 2026-11-19 …)" note on the
+- specs/app.md's `/api/auth/password-reset/` row; a "(Changed 2026-11-19 …)" note on the
   out-of-scope line in google-sign-in.md and account-management.md. Tests first.
 - Built 2026-11-19: the reset tests now expect a Google-only account's email, its first
   password set from the link (once), log-in with it, Google still connected and Disconnect
@@ -1726,7 +1726,7 @@ migration, no new endpoint, no new dependencies.
   the console email, sets a password and logs in with it
 
 **Dependencies:** None
-**Files:** `backend/builds/auth.py`, `backend/builds/emails.py`, `backend/builds/tests.py`, `SPEC.md`, `docs/specs/google-sign-in.md`, `docs/specs/account-management.md`
+**Files:** `backend/builds/auth.py`, `backend/builds/emails.py`, `backend/builds/tests.py`, `specs/app.md`, `specs/google-sign-in.md`, `specs/account-management.md`
 **Scope:** XS
 
 ### - [x] T57: Set password on Account
@@ -1738,7 +1738,7 @@ migration, no new endpoint, no new dependencies.
   there? Check your spam folder." above the row; errors (429, server down) under the heading.
 - Without a recovery email: no button, and the hint adds "Add a recovery email to set a
   password."
-- SPEC.md's Account screen mentions Set password. Tests first, one per state.
+- specs/app.md's Account screen mentions Set password. Tests first, one per state.
 - Built 2026-11-19: four Account tests (with an email, after Set password, a 429 under the
   heading, without an email). Checked locally at 375px: Set password, the console email's
   link, log-in with the new password (then Change and Disconnect), and the no-email hint in
@@ -1754,7 +1754,7 @@ migration, no new endpoint, no new dependencies.
 - [x] Manual: a local Google-only account, with and without a recovery email
 
 **Dependencies:** T56
-**Files:** `frontend/src/pages/Account.tsx`, `frontend/src/App.test.tsx`, `SPEC.md`
+**Files:** `frontend/src/pages/Account.tsx`, `frontend/src/App.test.tsx`, `specs/app.md`
 **Scope:** XS
 
 ### Checkpoint 22: A password for Google-only accounts
@@ -1770,7 +1770,7 @@ the two share the 15-minute wait per address, as specced.
 
 ## Phase 25: Ask before every action that can't be taken back
 
-Spec: [docs/specs/confirm-dialogs.md](../docs/specs/confirm-dialogs.md). Designs: the Confirm
+Spec: [specs/confirm-dialogs.md](confirm-dialogs.md). Designs: the Confirm
 dialogs section on Figma's Ready for development (approved 2026-11-21). Frontend only: no API
 change, no new dependencies.
 
@@ -1783,7 +1783,7 @@ change, no new dependencies.
 - `PartsTable` and `ExtraCosts`: the trash icon opens "Delete this part?" / "Delete this extra
   cost?" (the `confirming` state the bundle's dialog already uses) instead of deleting at once;
   the inline "Couldn’t delete…" lines go, the dialog shows the error.
-- SPEC.md's Build detail lines say deleting a part or a cost asks first. Tests first.
+- specs/app.md's Build detail lines say deleting a part or a cost asks first. Tests first.
 - Built 2026-11-21: `DeleteDialog` already gives the spec's words for "part" and "extra cost",
   so `ConfirmDialog` waits for T59, the first dialog that isn't a delete. The jsdom modal stub
   moved into `test/setup.ts` (it was copied in three test files). Seven new tests (asks first,
@@ -1800,7 +1800,7 @@ change, no new dependencies.
 - [x] Manual: both dialogs at desktop and 375px, light and dark
 
 **Dependencies:** None
-**Files:** `frontend/src/components/DeleteDialog.tsx`, `PartsTable.tsx`, `ExtraCosts.tsx`, their tests, `frontend/src/pages/BuildDetail.test.tsx`, `SPEC.md`
+**Files:** `frontend/src/components/DeleteDialog.tsx`, `PartsTable.tsx`, `ExtraCosts.tsx`, their tests, `frontend/src/pages/BuildDetail.test.tsx`, `specs/app.md`
 **Scope:** S
 
 ### - [x] T59: Disconnect Google and Exit demo ask first
@@ -1811,7 +1811,7 @@ change, no new dependencies.
 - The header's Exit demo opens "Exit the demo?"; confirming logs out as today (even when the
   server can't be reached), so it has no error. Log out and the banner's "Sign up for your own
   account" stay one click.
-- SPEC.md's header and Account lines. Tests first.
+- specs/app.md's header and Account lines. Tests first.
 - Built 2026-11-21: `ConfirmDialog` (title, message, action, its running label, an optional
   error) with `DeleteDialog` on top of it. Three new tests (Exit demo asks first and Cancel,
   Disconnect asks first, a failed Disconnect); the Exit demo log-out test clicks through.
@@ -1829,7 +1829,7 @@ change, no new dependencies.
 - [x] Manual: both dialogs at desktop, 375px and 320px, light and dark
 
 **Dependencies:** T58
-**Files:** `frontend/src/pages/Account.tsx`, `frontend/src/App.tsx`, `frontend/src/App.test.tsx`, `SPEC.md`
+**Files:** `frontend/src/pages/Account.tsx`, `frontend/src/App.tsx`, `frontend/src/App.test.tsx`, `specs/app.md`
 **Scope:** S
 
 ### Checkpoint 23: Ask before every action that can't be taken back
@@ -1846,7 +1846,7 @@ being light there): it was so before this phase and is left for a fix of its own
 
 ## Phase 26: A landing page, and pages Google can tell apart
 
-Spec: [docs/specs/landing-page.md](../docs/specs/landing-page.md). Designs: the Landing page
+Spec: [specs/landing-page.md](landing-page.md). Designs: the Landing page
 section on Figma's Ready for development (approved 2026-11-21). Frontend and Vercel only: no API
 change, no migration, no new dependencies. T60–T62 and T63–T64 don't depend on each other.
 
@@ -1954,7 +1954,7 @@ change, no migration, no new dependencies. T60–T62 and T63–T64 don't depend 
   unchanged) with the price tags and the profit card, in an `inert` wrapper with one
   `aria-label`. Data from `src/landingDemo.ts` (the demo's sold build).
 - Landing's `<title>` and canonical (`SITE_URL/`). `demo.spec.ts` starts from the landing
-  page's Try the demo. SPEC.md's Screens. Tests first.
+  page's Try the demo. specs/app.md's Screens. Tests first.
 
 - Built 2026-11-21: `BuildDiagram` takes the slots and is scaled with a CSS transform (1.3×
   desktop, 0.95× phone); the hairlines and dots are tokens (`line-strong`, `accent`), not the
@@ -1978,7 +1978,7 @@ change, no migration, no new dependencies. T60–T62 and T63–T64 don't depend 
 - [x] Manual: desktop, 375px and 320px, light and dark, against the Figma frames
 
 **Dependencies:** None
-**Files:** `frontend/src/pages/Landing.tsx` (+ test), `frontend/src/landingDemo.ts`, `frontend/src/components/BuildDiagram.tsx`, `BuildChecklist.tsx`, `frontend/src/App.tsx` (+ test), `frontend/e2e/demo.spec.ts`, `SPEC.md`
+**Files:** `frontend/src/pages/Landing.tsx` (+ test), `frontend/src/landingDemo.ts`, `frontend/src/components/BuildDiagram.tsx`, `BuildChecklist.tsx`, `frontend/src/App.tsx` (+ test), `frontend/e2e/demo.spec.ts`, `specs/app.md`
 **Scope:** M
 
 ### - [x] T64: The landing page below the hero
@@ -2040,7 +2040,7 @@ transparent, and eases in once when it enters the viewport (`IntersectionObserve
 
 ### - [x] T66: On desktop the hero fills the first screen
 
-**Description:** Asked for on 2026-11-21 ([intent](../docs/intent/landing-hero-height.md)): on a
+**Description:** Asked for on 2026-11-21 ([intent](intent/landing-hero-height.md)): on a
 desktop screen taller than 720px, the next block's heading peeked into the first screen. The
 hero (1280px and wider) now takes the screen's height below the header, up to 960px, and
 centers its content as one block; shorter screens keep its own height.

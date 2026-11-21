@@ -1,7 +1,7 @@
 # Spec: A password for Google-only accounts
 
 An account made with "Sign in with Google" can add a password, the same way a forgotten one
-is reset: a link to its recovery email. On top of [SPEC.md](../../SPEC.md), which stays the
+is reset: a link to its recovery email. On top of [specs/app.md](app.md), which stays the
 source of truth; this undoes one "Out of scope" line in
 [google-sign-in.md](google-sign-in.md) and [account-management.md](account-management.md).
 Approved 2026-11-19 as written.
@@ -74,7 +74,7 @@ Only the Google-only Password row changes. Everything else stays as built in
 
 ## Commands
 
-Same as [SPEC.md](../../SPEC.md#commands): `python manage.py test` and `ruff check .` in
+Same as [specs/app.md](app.md#commands): `python manage.py test` and `ruff check .` in
 `backend/`; `npm test`, `npm run lint`, `npx tsc -b` and `npm run e2e` in `frontend/`.
 
 ## Project Structure
@@ -85,8 +85,8 @@ backend/builds/emails.py      reset_password: two lines reworded
 backend/builds/tests.py       the reset tests
 frontend/src/pages/Account.tsx  the Google-only Password row
 frontend/src/App.test.tsx       its tests
-SPEC.md                       the password-reset row; Screens: Account
-docs/specs/google-sign-in.md, account-management.md  a "(Changed …)" note on the out-of-scope line
+specs/app.md                       the password-reset row; Screens: Account
+specs/google-sign-in.md, account-management.md  a "(Changed …)" note on the out-of-scope line
 ```
 
 ## Code Style
@@ -115,7 +115,7 @@ if (
 - **Frontend (Vitest, `App.test.tsx`):** the Password row, word for word, in the three states
   above; "Set password" posts `{email}` to `/auth/password-reset/`; 429 shows under the
   heading; still one verb on the page.
-- **E2E:** none new ([e2e intent](../intent/e2e-tests.md)).
+- **E2E:** none new ([e2e intent](intent/e2e-tests.md)).
 - **Manual:** a local Google-only account with an email: Set password, open the link from
   the console email, log in with the password.
 

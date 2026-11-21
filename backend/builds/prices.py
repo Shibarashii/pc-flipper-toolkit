@@ -1,4 +1,4 @@
-"""Prices from PC shops' public Shopify catalogues (docs/specs/price-lookup.md).
+"""Prices from PC shops' public Shopify catalogues (specs/price-lookup.md).
 
 Only `/products.json` is fetched (both shops' robots.txt allow it; EasyPC's disallows
 `/search`), one page at a time, with an honest user-agent. A search never calls a shop:
@@ -57,7 +57,7 @@ def unmangle(title: str) -> str:
     )
 
 
-# shorten()'s rules (docs/specs/price-lookup.md, part 2). A bad short name costs the user a
+# shorten()'s rules (specs/price-lookup.md, part 2). A bad short name costs the user a
 # few keystrokes, so fix one by adding a test case and a rule here.
 # Brackets go first: they can hold a separator. A title cut off inside one drops the rest.
 _BRACKETS = re.compile(r"\([^)]*(?:\)|$)")  # SKUs, colours, fan lists

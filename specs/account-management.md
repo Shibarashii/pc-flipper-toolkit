@@ -1,7 +1,7 @@
 # Spec: Account management
 
 Changing a username and password, a verified email on every account, and "Forgot your
-username or password?", on top of [SPEC.md](../../SPEC.md), which stays the source of truth
+username or password?", on top of [specs/app.md](app.md), which stays the source of truth
 for everything else, and [google-sign-in.md](google-sign-in.md), which added the Account
 page. Intent confirmed in conversation on 2026-11-17.
 
@@ -203,7 +203,7 @@ Text uses curly apostrophes (’), as the rest of the app does.
 
 - **Privacy page:** the app stores your email, and sends it to Brevo only to deliver these
   emails.
-- **SPEC.md** (auth table, Account screen), **README** (Brevo setup).
+- **specs/app.md** (auth table, Account screen), **README** (Brevo setup).
 
 ## Setup outside the code (the author does these)
 
@@ -217,11 +217,11 @@ Before part 2 ships, since its confirmation emails are the first ones sent:
    sender) before shipping. **Decided 2026-11-18:** the Gmail sender stays for now (Gmail's
    inbox got the test; mail-tester 5.5/10, mostly for the free-address sender), with "check
    your spam folder" in the sent messages; a domain of our own is parked in the
-   [backlog](../ideas/backlog.md#parked).
+   [backlog](ideas/backlog.md#parked).
 
 ## Commands
 
-Same as [SPEC.md](../../SPEC.md#commands): `python manage.py test`,
+Same as [specs/app.md](app.md#commands): `python manage.py test`,
 `python manage.py makemigrations --check`, `ruff check . && ruff format .` and
 `python manage.py spectacular --validate --fail-on-warn` in `backend/`; `npm test`,
 `npm run lint`, `npx tsc -b` and `npx playwright test` in `frontend/`.
@@ -246,7 +246,7 @@ frontend/src/
   pages/Privacy.tsx     + email and Brevo
   App.tsx               + the three routes, logged in and out
 frontend/vercel.json    no-referrer on the two link pages
-SPEC.md, README.md      auth table, Account screen, Brevo setup
+specs/app.md, README.md      auth table, Account screen, Brevo setup
 ```
 
 ## Testing Strategy
@@ -270,7 +270,7 @@ SPEC.md, README.md      auth table, Account screen, Brevo setup
 - **Frontend (Vitest):** the Account rows and forms (including Google-only and demo), the
   sign-up Email field, the three new pages with good and bad links.
 - **E2E:** the flip test's sign-up fills in an email. No new e2e file
-  ([e2e intent](../intent/e2e-tests.md)).
+  ([e2e intent](intent/e2e-tests.md)).
 - **Manual, per part:** the flow on the live site at desktop and 375px, light and dark; for
   parts 2 and 3, the real emails arriving in an inbox.
 
