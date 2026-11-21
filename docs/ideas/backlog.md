@@ -60,30 +60,9 @@ Before sharing it, after the author's own nits and wording fixes:
   exact money (`Decimal`, strings in JSON), polite shop-price fetching, and a reset that never
   says whether an account exists.
 
-### A landing page (added 2026-11-21, to plan)
+### A landing page and SEO fixes (added 2026-11-21)
 
-A public page at `/` for logged-out visitors, instead of the redirect to `/login`. Today a
-crawler only finds the login form, a heading and one sentence, so nothing ranks for searches
-like "PC flip profit tracker"; the share card (`og:*`) only shapes shared links, not ranking.
-What it says, what it shows (the builds list, the profit) and how it leads to "Try the demo" are
-for the interview. It also settles the canonical: `/` would finally be the page it claims to be.
-
-### SEO fixes (added 2026-11-21)
-
-Small fixes, found checking the live site; none needs the landing page:
-
-- **Canonical:** every route says `<link rel="canonical" href="/">`, `/privacy` included, so
-  Google may never index `/privacy` on its own. Each public page should name itself.
-- **Soft 404s:** `vercel.json` rewrites every path to `index.html`, so unknown URLs
-  (`/sitemap.xml`, `/anything`) return 200. Google counts them as soft 404s.
-- **A sitemap:** none yet; a static `public/sitemap.xml` with the public pages, linked from
-  `robots.txt`.
-- **Page titles:** every page is "PC Flipper Toolkit". A title per page ("Log in · PC Flipper
-  Toolkit", the build's name…) helps search results and tabs, and screen readers announce it
-  when the page changes.
-- **`noindex`** on `/account`, `/verify-email` and `/reset-password`.
-- **A domain of our own** would also make the site's name stand out more than `vercel.app`;
-  see the parked email domain below (same domain, a deploy change, so ask first).
+Moved to [docs/specs/landing-page.md](../specs/landing-page.md).
 
 ## Parked
 

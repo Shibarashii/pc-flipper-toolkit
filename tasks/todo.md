@@ -1843,3 +1843,138 @@ Exit demo (then Log in), at desktop light and 375px dark. Disconnect checked by 
 their own account. In dark, every dialog's backdrop is light grey (`backdrop:bg-ink/45`, `ink`
 being light there): it was so before this phase and is left for a fix of its own. Fixed in
 #114 (a `scrim` token, the same in both themes).
+
+## Phase 26: A landing page, and pages Google can tell apart
+
+Spec: [docs/specs/landing-page.md](../docs/specs/landing-page.md). Designs: the Landing page
+section on Figma's Ready for development (approved 2026-11-21). Frontend and Vercel only: no API
+change, no migration, no new dependencies. T60–T62 and T63–T64 don't depend on each other.
+
+### - [ ] T60: Unknown URLs return 404, private pages ask not to be indexed
+
+**Description:**
+- `vercel.json` rewrites only the app's routes (`/`, `/login`, `/signup`, `/privacy`,
+  `/account`, `/forgot`, `/reset-password`, `/verify-email`, `/builds/:id`) to `index.html`;
+  everything else gets Vercel's 404 with `public/404.html` and `public/404.css`, words and look
+  as in the spec and the design.
+- `X-Robots-Tag: noindex` on `/(login|signup|account|forgot|reset-password|verify-email)` and
+  `/builds/(.*)`, listed one by one.
+- `src/seo.test.ts`: every `path` in `App.tsx` (but `*`) matches a rewrite. Tests first.
+
+**Acceptance criteria:**
+- [ ] Every app page still opens by its URL, including a build's; `google0717eefd8353a321.html`
+  and the other files in `public/` are served as before
+- [ ] An unknown path gets the not-found page with status 404, light and dark by the browser
+- [ ] The private paths send `noindex`; `/` and `/privacy` don't
+
+**Verification:**
+- [ ] Standard verification
+- [ ] On the Vercel preview: deep links to each page and a build, `curl -sI` on `/anything`,
+  `/login` and `/`
+- [ ] Manual: the 404 page at desktop and 375px, light and dark
+
+**Dependencies:** None
+**Files:** `frontend/vercel.json`, `frontend/public/404.html`, `frontend/public/404.css`, `frontend/src/seo.test.ts`
+**Scope:** S
+
+### - [ ] T61: Each page names itself (titles, canonicals)
+
+**Description:**
+- `src/site.ts` exports `SITE_URL`.
+- Each page renders React's own `<title>` with the spec's title (the builds list, a build by its
+  name, Privacy, Log in, Sign up, Account, the recovery pages).
+- Privacy renders its canonical; the static canonical leaves `index.html` (`og:url` stays).
+- `seo.test.ts`: `index.html` has no canonical. Tests first.
+
+**Acceptance criteria:**
+- [ ] Each page's tab shows its title from the spec, and a build's shows its name
+- [ ] `/privacy` has exactly one canonical, to itself; no other page has one yet
+- [ ] The share card is unchanged
+
+**Verification:**
+- [ ] Standard verification
+- [ ] Manual: tab titles on each page; `document.querySelectorAll('link[rel=canonical]')` on
+  `/privacy` and `/login`
+
+**Dependencies:** None (T60 first by order only)
+**Files:** `frontend/src/site.ts`, `frontend/index.html`, `frontend/src/pages/*.tsx` (one line each), `frontend/src/seo.test.ts`
+**Scope:** M
+
+### - [ ] T62: A sitemap and the site's name for Google
+
+**Description:**
+- `public/sitemap.xml` with `/` and `/privacy`; `robots.txt` gets its `Sitemap:` line.
+- `index.html` gets the `WebSite` structured data from the spec.
+- `seo.test.ts`: every absolute URL in `index.html`, `sitemap.xml` and `robots.txt` starts with
+  `SITE_URL`. Tests first.
+
+**Acceptance criteria:**
+- [ ] `/sitemap.xml` and `/robots.txt` serve with the right contents
+- [ ] The structured data parses (Google's Rich Results Test) and the console shows no CSP error
+- [ ] The CSP hash test still passes
+
+**Verification:**
+- [ ] Standard verification
+- [ ] On the preview: the two files, and the Rich Results Test on the page's code
+
+**Dependencies:** T61 (`SITE_URL`)
+**Files:** `frontend/public/sitemap.xml`, `frontend/public/robots.txt`, `frontend/index.html`, `frontend/src/seo.test.ts`
+**Scope:** S
+
+### - [ ] T63: The landing page's hero at `/`
+
+**Description:**
+- Logged out, `/` renders `pages/Landing.tsx` (other paths still redirect to `/login` and come
+  back); the header shows a **Log in** button there, not on `/login` or `/signup`.
+- The hero: label, heading, line, Try the demo (the log-in page's `tryDemo()` and error),
+  Sign up, the note, and the picture: `BuildDiagram` (moved out of `BuildChecklist`, which uses it
+  unchanged) with the price tags and the profit card, in an `inert` wrapper with one
+  `aria-label`. Data from `src/landingDemo.ts` (the demo's sold build).
+- Landing's `<title>` and canonical (`SITE_URL/`). `demo.spec.ts` starts from the landing
+  page's Try the demo. SPEC.md's Screens. Tests first.
+
+**Acceptance criteria:**
+- [ ] Logged out, `/` shows the hero as designed at 1280 and 375, light and dark; at 1280×720 it
+  fits without scrolling
+- [ ] Try the demo opens the demo's builds; a failure shows the log-in page's error
+- [ ] Logged in, `/` is the builds list; the build page's diagram looks as before
+
+**Verification:**
+- [ ] Standard verification, `npx playwright test`
+- [ ] Manual: desktop, 375px and 320px, light and dark, against the Figma frames
+
+**Dependencies:** None
+**Files:** `frontend/src/pages/Landing.tsx` (+ test), `frontend/src/landingDemo.ts`, `frontend/src/components/BuildDiagram.tsx`, `BuildChecklist.tsx`, `frontend/src/App.tsx` (+ test), `frontend/e2e/demo.spec.ts`, `SPEC.md`
+**Scope:** M
+
+### - [ ] T64: The landing page below the hero
+
+**Description:**
+- The blocks from the spec, in order: the build page panel (`BuildChecklist` and `Summary` from
+  `landingDemo.ts`, cut off at 440px; phones show only the Summary), What it tracks (three small
+  pictures), the profit equation, four questions as `<details>` (the first open), and the closing
+  band with both buttons.
+- Pictures `inert`, as in T63. Tests first.
+
+**Acceptance criteria:**
+- [ ] Every block reads word for word as in the spec and looks as designed, desktop and 375px,
+  light and dark
+- [ ] The questions open and close with the keyboard; all four answers are in the page's HTML
+- [ ] Nothing in the pictures can be clicked or focused
+
+**Verification:**
+- [ ] Standard verification
+- [ ] Manual: desktop, 375px and 320px, light and dark, against the Figma frames; Lighthouse
+  (SEO and accessibility) on the preview
+
+**Dependencies:** T63
+**Files:** `frontend/src/pages/Landing.tsx` (+ test), `frontend/src/landingDemo.ts`
+**Scope:** M
+
+### Checkpoint 24: A landing page, and pages Google can tell apart
+- [ ] The spec's success criteria 1–5 pass on the live site, at desktop and 375px, light and
+  dark
+- [ ] All tests pass on `main`
+- [ ] The author submits `sitemap.xml` and requests indexing of `/` and `/privacy` in Search
+  Console; the repo's description and topics change (`gh repo edit`) on the author's yes
+- [ ] 1–2 weeks later: what searching "pc flipper toolkit" shows (criterion 6), noted here

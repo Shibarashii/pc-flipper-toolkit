@@ -346,6 +346,28 @@ is its own PR. Built from the Confirm dialogs section on Ready for development (
 **Checkpoint 23:** the spec's success criteria 1–4 pass on the live site, at desktop and 375px,
 light and dark.
 
+### Phase 26: A landing page, and pages Google can tell apart ([docs/specs/landing-page.md](../docs/specs/landing-page.md))
+- [ ] T60: Unknown URLs return 404, private pages ask not to be indexed
+- [ ] T61: Each page names itself (titles, canonicals)
+- [ ] T62: A sitemap and the site's name for Google
+- [ ] T63: The landing page's hero at `/`
+- [ ] T64: The landing page below the hero
+
+```
+T60 404s + noindex ── T61 titles + canonicals ── T62 sitemap + site name ──┐
+T63 hero at / ── T64 below the hero ───────────────────────────────────────┴── Checkpoint 24
+```
+Frontend and Vercel only: no API change, no migration, no new dependency. Part 1 (T60–T62) and
+Part 2 (T63–T64) don't depend on each other; T60 goes first because a missing rewrite would
+404 a real page. Each task is its own PR. The landing page is built from the "Landing page"
+section on Ready for development (approved 2026-11-21); its pictures are the app's own
+components from fixed demo data, not screenshots. After the deploy, the author submits the
+sitemap in Search Console and requests indexing; the repo's description changes with
+`gh repo edit` only on the author's yes.
+
+**Checkpoint 24:** the spec's success criteria 1–5 pass on the live site, at desktop and 375px,
+light and dark; criterion 6 (the name search) is looked at 1–2 weeks after the indexing request.
+
 ## Risks and Mitigations
 
 | Risk | Impact | Mitigation |
@@ -394,6 +416,14 @@ light and dark.
 | A dialog slows fast editing of a build's parts | Low | One extra click only on delete; Cancel is focused and Esc closes it, as with the build's dialog; the spec accepts it (T58) |
 | A part inside a bundle still deletes at once | Med | It goes through the same `PartsTable` path; a test deletes a bundled part (T58) |
 | Exit demo's dialog doesn't fit a 320px phone | Low | The dialog is `calc(100% - 32px)` wide, like the others; checked at 375px and 320px (T59) |
+| A route missing from `vercel.json`'s rewrites 404s a real page live | High | A test matches every `path` in `App.tsx` to a rewrite; the Vercel preview's deep links are opened before merging (T60) |
+| `noindex` lands on `/` or `/privacy` by a too-broad pattern | High (the page stops being found) | The paths are listed one by one, never a negative regex; the live headers are checked with `curl` (T60, Checkpoint 24) |
+| A page keeps a second canonical (the old static one, or two components) | Med | The static one leaves `index.html` and a test checks it stays out; only Landing and Privacy render one (T61) |
+| The JSON-LD `<script>` confuses the CSP hash test, or the CSP blocks it | Low | It's `type="application/ld+json"`, which the test's `<script>` match skips and browsers don't run; checked in the console (T62) |
+| The landing page's demo numbers drift from what the demo account really shows | Med (a page about trusting the numbers) | `landingDemo.ts` holds the values the backend's demo test already asserts, with a comment pointing at `builds/demo.py`; a frontend test checks its totals add up (T63) |
+| The pictures can be clicked or tabbed into (they're real components) | Med | Each sits in an `inert` wrapper with one `aria-label`; a test checks no control in them can be focused (T63, T64) |
+| The header's new Log in button crowds a 320px phone | Low | Checked at 375px and 320px; the name already hides below 410px when logged in, the same rule applies (T63) |
+| Google indexes `/` before the landing page ships and keeps the log-in text for a while | Low | Indexing is requested only after T64 is live (Checkpoint 24) |
 
 ## Open Questions
 
