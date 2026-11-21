@@ -2,6 +2,7 @@
 // Runs in Node under Vitest: vercel.json and App.tsx as files (docs/specs/landing-page.md).
 import { readFileSync } from "node:fs";
 import { expect, test } from "vitest";
+import { SITE_URL } from "./site";
 
 const vercel = JSON.parse(readFileSync("vercel.json", "utf8"));
 
@@ -61,4 +62,51 @@ test("private pages ask not to be indexed; the home page and Privacy don't", () 
 // index.html would tell Google every route is the home page.
 test("index.html has no canonical of its own", () => {
   expect(readFileSync("index.html", "utf8")).not.toContain('rel="canonical"');
+});
+
+// The static files can't import SITE_URL, so this lists any of our URLs they spell otherwise.
+// Third-party hosts (fonts, Google sign-in, schema.org, the sitemap's namespace) are left out.
+const THIRD_PARTY =
+  /^https?:\/\/(fonts\.googleapis\.com|fonts\.gstatic\.com|accounts\.google\.com|schema\.org|www\.sitemaps\.org)(\/|$)/;
+
+test("every absolute URL of ours in the static files is SITE_URL's", () => {
+  for (const file of [
+    "index.html",
+    "public/sitemap.xml",
+    "public/robots.txt",
+  ]) {
+    const urls = [
+      ...readFileSync(file, "utf8").matchAll(/https?:\/\/[^\s"'<>]+/g),
+    ]
+      .map((m) => m[0])
+      .filter((url) => !THIRD_PARTY.test(url));
+    expect(urls.length, file).toBeGreaterThan(0);
+    for (const url of urls)
+      expect(url.startsWith(`${SITE_URL}/`), `${file}: ${url}`).toBe(true);
+  }
+});
+
+test("the sitemap lists the home page and Privacy, and robots.txt points to it", () => {
+  const locs = [
+    ...readFileSync("public/sitemap.xml", "utf8").matchAll(
+      /<loc>([^<]+)<\/loc>/g,
+    ),
+  ].map((m) => m[1]);
+  expect(locs).toEqual([`${SITE_URL}/`, `${SITE_URL}/privacy`]);
+  expect(readFileSync("public/robots.txt", "utf8")).toContain(
+    `Sitemap: ${SITE_URL}/sitemap.xml`,
+  );
+});
+
+// Google takes the site's name in results from this (docs/specs/landing-page.md).
+test("index.html names the site in WebSite structured data", () => {
+  const json = readFileSync("index.html", "utf8").match(
+    /<script type="application\/ld\+json">([\s\S]*?)<\/script>/,
+  );
+  expect(JSON.parse(json![1])).toEqual({
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "PC Flipper Toolkit",
+    url: `${SITE_URL}/`,
+  });
 });
