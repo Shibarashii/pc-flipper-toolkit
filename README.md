@@ -13,7 +13,6 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/Shibarashii/pc-flipper-toolkit/actions/workflows/ci.yml"><img src="https://github.com/Shibarashii/pc-flipper-toolkit/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <img src="https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white" alt="React 19">
   <img src="https://img.shields.io/badge/Django-6-092E20?logo=django&logoColor=white" alt="Django 6">
   <img src="https://img.shields.io/badge/PostgreSQL-Neon-4169E1?logo=postgresql&logoColor=white" alt="PostgreSQL">
