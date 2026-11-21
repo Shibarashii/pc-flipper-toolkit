@@ -1863,8 +1863,11 @@ change, no migration, no new dependencies. T60–T62 and T63–T64 don't depend 
 - Built 2026-11-21: three rewrites (`/`, the seven named pages in one pattern, `/builds/:id`),
   two `X-Robots-Tag` rules. `seo.test.ts` reads the routes from `App.tsx`, checks unknown paths
   (`/anything`, `/builds/a/b`) aren't rewritten, and that `/`, `/privacy` and `/sitemap.xml` get
-  no `noindex`. The 404 page checked locally at 1280 light and 375 dark; its 404 status and the
-  headers can only be seen on the Vercel preview.
+  no `noindex`. The 404 page checked locally at 1280 light and 375 dark. On the preview (signed
+  in, by `fetch`): every page and `/builds/abc` 200 with the app; `/anything`, `/sitemap` and
+  `/builds/a/b` 404 with the not-found page; the verification file, `robots.txt` and the share
+  image 200. Vercel sends `noindex` on every preview URL, so which pages get it is checked live
+  (Checkpoint 24).
 
 **Acceptance criteria:**
 - [x] Every app page still opens by its URL, including a build's; `google0717eefd8353a321.html`
@@ -1874,7 +1877,7 @@ change, no migration, no new dependencies. T60–T62 and T63–T64 don't depend 
 
 **Verification:**
 - [x] Standard verification
-- [ ] On the Vercel preview: deep links to each page and a build, `curl -sI` on `/anything`,
+- [x] On the Vercel preview: deep links to each page and a build, `curl -sI` on `/anything`,
   `/login` and `/`
 - [x] Manual: the 404 page at desktop and 375px, light and dark
 
