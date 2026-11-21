@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { focusRing } from "../ui";
-import { SITE_URL } from "../site";
+import { pageTitle, SITE_URL } from "../site";
 
 const CONTACT = "pcflippertoolkit@gmail.com";
 
@@ -18,7 +18,7 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 export function Privacy() {
   return (
     <main className="mx-auto max-w-[640px] px-4 pt-12 pb-16 text-[15px] leading-[22px] sm:pt-20">
-      <title>Privacy · PC Flipper Toolkit</title>
+      <title>{pageTitle("Privacy")}</title>
       <link rel="canonical" href={`${SITE_URL}/privacy`} />
       <h1 className="font-serif text-[40px] leading-[44px] font-medium tracking-[-0.01em]">
         Privacy

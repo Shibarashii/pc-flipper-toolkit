@@ -14,6 +14,7 @@ import { StatusTag } from "../components/StatusTag";
 import { formatMoney, formatSignedMoney, profitColor } from "../money";
 import { clearNotice, useAuth } from "../auth";
 import { buttonPrimary } from "../ui";
+import { pageTitle } from "../site";
 
 // Insets the first and last columns, so text doesn't touch the hovered row's edges.
 const edgeCells = "[&>:first-child]:pl-3 [&>:last-child]:pr-3";
@@ -45,7 +46,7 @@ export function BuildsList() {
 
   return (
     <main className="mx-auto max-w-5xl px-4 pt-7 pb-10 sm:px-8 sm:pt-12">
-      <title>Builds · PC Flipper Toolkit</title>
+      <title>{pageTitle("Builds")}</title>
       <div className="flex items-end justify-between gap-4">
         <div>
           <h1 className="font-serif text-[40px] leading-[44px] font-medium tracking-[-0.01em]">

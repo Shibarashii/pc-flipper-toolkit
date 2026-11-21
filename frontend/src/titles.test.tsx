@@ -74,3 +74,14 @@ test("only Privacy names its own address as canonical", async () => {
   await waitFor(() => expect(document.title).toMatch(/^Log in/));
   expect(canonicals()).toEqual([]);
 });
+
+test("a build that doesn't exist is titled like its heading", async () => {
+  saveSession({ token: "abc", username: "carol" });
+  vi.stubGlobal("fetch", async () =>
+    Response.json({ detail: "Not found." }, { status: 404 }),
+  );
+  renderAt("/builds/3");
+  await waitFor(() =>
+    expect(document.title).toBe("Build not found · PC Flipper Toolkit"),
+  );
+});

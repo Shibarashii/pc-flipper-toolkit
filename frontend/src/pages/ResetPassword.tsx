@@ -3,6 +3,7 @@ import { Link, useSearchParams } from "react-router";
 import { ApiError, generalError, resetPassword } from "../api";
 import { Field, focusOnMount, useSave } from "../components/form";
 import { buttonPrimary, input } from "../ui";
+import { pageTitle } from "../site";
 
 const heading =
   "font-serif text-[40px] leading-[44px] font-medium tracking-[-0.01em] outline-none";
@@ -36,7 +37,7 @@ export function ResetPassword() {
 
   return (
     <main className="mx-auto max-w-[400px] px-4 pt-12 pb-10 text-[15px] leading-[22px] sm:pt-20">
-      <title>Reset password · PC Flipper Toolkit</title>
+      <title>{pageTitle("Reset password")}</title>
       {result === "form" && (
         <>
           <h1 className={heading}>Set a new password</h1>
