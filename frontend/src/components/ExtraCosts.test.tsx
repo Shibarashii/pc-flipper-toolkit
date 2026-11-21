@@ -4,6 +4,7 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from "@testing-library/react";
 import { afterEach, expect, test, vi } from "vitest";
 import type { ExtraCost } from "../api";
@@ -116,15 +117,47 @@ test("Esc discards the edit", () => {
   expect(fetchMock).not.toHaveBeenCalled();
 });
 
-test("deleting a cost sends DELETE and refreshes", async () => {
+test("deleting a cost asks first, then sends DELETE and refreshes", async () => {
   const { fetchMock, onChanged } = renderCosts(
     new Response(null, { status: 204 }),
   );
 
   fireEvent.click(screen.getByRole("button", { name: "Delete Platform fee" }));
+  const dialog = screen.getByRole("dialog", {
+    name: "Delete this extra cost?",
+  });
+  expect(dialog.textContent).toContain(
+    "“Platform fee” will be deleted. This can’t be undone.",
+  );
+  expect(fetchMock).not.toHaveBeenCalled();
+  fireEvent.click(
+    within(dialog).getByRole("button", { name: "Delete extra cost" }),
+  );
 
   await waitFor(() => expect(onChanged).toHaveBeenCalled());
   const [url, init] = fetchMock.mock.calls[0];
   expect(url).toBe("/api/extra-costs/5/");
   expect(init.method).toBe("DELETE");
+});
+
+test("Cancel keeps the cost", () => {
+  const { fetchMock } = renderCosts(new Response(null, { status: 204 }));
+
+  fireEvent.click(screen.getByRole("button", { name: "Delete Platform fee" }));
+  fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+
+  expect(screen.queryByRole("dialog")).toBeNull();
+  expect(fetchMock).not.toHaveBeenCalled();
+});
+
+test("a failed cost delete keeps the dialog open with its error", async () => {
+  const { onChanged } = renderCosts(Response.json({}, { status: 500 }));
+
+  fireEvent.click(screen.getByRole("button", { name: "Delete Platform fee" }));
+  fireEvent.click(screen.getByRole("button", { name: "Delete extra cost" }));
+
+  expect((await screen.findByRole("alert")).textContent).toBe(
+    "Couldn’t delete the extra cost. Check your connection and try again.",
+  );
+  expect(onChanged).not.toHaveBeenCalled();
 });

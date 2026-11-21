@@ -332,7 +332,7 @@ Ready for development (approved 2026-11-19).
 a Google-only account.
 
 ### Phase 25: Ask before every action that can't be taken back ([docs/specs/confirm-dialogs.md](../docs/specs/confirm-dialogs.md))
-- [ ] T58: Delete a part or an extra cost asks first
+- [x] T58: Delete a part or an extra cost asks first
 - [ ] T59: Disconnect Google and Exit demo ask first
 
 ```

@@ -209,7 +209,7 @@ another user's build (400). A part, bundle or cost can't be moved to another bui
      - Shows "N of 6 required parts" with a progress bar. A missing or optional slot has an "Add" link that opens the add-part row with that category preselected.
      - Computed in the frontend from the parts list. No data-model or API change.
    - Summary panel with all the totals from user story 5.
-   - Parts table: add, edit and delete rows inline. The pencil turns a row into inputs with Save/Cancel (Enter saves, Esc cancels). The add row looks the same. On mobile it becomes stacked cards.
+   - Parts table: add, edit and delete rows inline; deleting asks first ("Delete this part?", [spec](docs/specs/confirm-dialogs.md)). The pencil turns a row into inputs with Save/Cancel (Enter saves, Esc cancels). The add row looks the same. On mobile it becomes stacked cards.
      - A part's condition, when set, shows short and muted after its name ("Like new"); the
        form sets it from a select ([part condition spec](docs/specs/part-condition.md)).
    - Bundles, inside the parts table: a bundle row (name, shop, listed total, its one bought-for
@@ -221,7 +221,7 @@ another user's build (400). A part, bundle or cost can't be moved to another bui
        optional only when a bundle is picked. On mobile the bundle is a card with its parts
        under it.
      - Deleting a bundle asks first, naming the parts that go with it.
-   - Extra costs list: add, edit and delete, same inline pattern as parts.
+   - Extra costs list: add, edit and delete, same inline pattern as parts; deleting asks first ("Delete this extra cost?").
    - Notes: a plain textarea under Extra costs that saves on blur.
    - Delete build: a confirmation dialog naming how many parts, bundles and extra costs will be deleted with it.
 

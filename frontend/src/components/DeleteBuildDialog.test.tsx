@@ -6,17 +6,10 @@ import {
   waitFor,
 } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router";
-import { afterEach, beforeAll, expect, test, vi } from "vitest";
+import { afterEach, expect, test, vi } from "vitest";
 import type { BuildDetail, Bundle, ExtraCost, Part } from "../api";
 import { makeBuild } from "../test/fixtures";
 import { DeleteBuildDialog } from "./DeleteBuildDialog";
-
-beforeAll(() => {
-  // jsdom doesn't implement modal dialogs.
-  HTMLDialogElement.prototype.showModal ??= function (this: HTMLDialogElement) {
-    this.open = true;
-  };
-});
 
 afterEach(() => {
   cleanup();
