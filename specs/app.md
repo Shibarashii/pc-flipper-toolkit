@@ -283,6 +283,7 @@ pc-flipper-toolkit/
 ├── frontend/
 │   ├── vite.config.ts     Includes the /api dev proxy
 │   ├── e2e/               Playwright: the main flow, trying the demo, and the price lookup
+│   ├── scripts/           readme-screenshots.mjs: the README's screenshots, into docs/images/
 │   └── src/
 │       ├── App.tsx        Routes, header and footer
 │       ├── api.ts         fetch helpers and TS types matching the API
@@ -304,8 +305,10 @@ pc-flipper-toolkit/
 │   ├── intent/            Confirmed statements of intent from interviews
 │   ├── ideas/             Idea one-pagers, and backlog.md: rough ideas and parked decisions
 │   └── design/            brand.md (the look) and figma.md (the design file)
+├── docs/                  For people using the project: getting started, testing, deployment;
+│                          images/ holds the README's screenshots
 ├── CLAUDE.md              How Claude Code works on this repo: workflow, rules, local ports
-└── README.md              Screenshot, live links, how to run
+└── README.md              The showcase: screenshots, features, live links
 ```
 
 ## Code Style
@@ -358,7 +361,7 @@ class Build(models.Model):
 3. On the live site, every request without a login is rejected (401), and two accounts never see each other's builds.
 4. The builds list and build detail pages are usable at 375px width without horizontal scrolling.
 5. The frontend is live on Vercel and the API on Render, both reachable by public link, and data survives a backend restart or redeploy.
-6. The README has a screenshot, the live link, and setup steps that work on a fresh clone.
+6. The README has a screenshot, the live link, and setup steps (in `docs/getting-started.md`) that work on a fresh clone.
 7. A bundle (3 parts, one price, one part's bought-for typed in) on the live site fills those
    three checklist slots, counts its price once in the totals (matching a hand calculation),
    shows the unassigned amount, and is usable at 375px.
