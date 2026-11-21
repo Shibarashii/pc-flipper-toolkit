@@ -50,6 +50,7 @@ export function VerifyEmail() {
 
   return (
     <main className="mx-auto max-w-[400px] px-4 pt-12 pb-10 text-[15px] leading-[22px] sm:pt-20">
+      <title>Verify email · PC Flipper Toolkit</title>
       {result.kind === "loading" ? (
         <Skeleton label="Confirming your email">
           <Bone className="h-11 w-full" />

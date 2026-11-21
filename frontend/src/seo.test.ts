@@ -56,3 +56,9 @@ test("private pages ask not to be indexed; the home page and Privacy don't", () 
   for (const path of ["/", "/privacy", "/sitemap.xml"])
     expect(robots(path), path).toEqual([]);
 });
+
+// Each page that wants a canonical renders its own (Privacy for now); a static one in
+// index.html would tell Google every route is the home page.
+test("index.html has no canonical of its own", () => {
+  expect(readFileSync("index.html", "utf8")).not.toContain('rel="canonical"');
+});

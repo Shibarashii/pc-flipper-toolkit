@@ -66,6 +66,7 @@ export function BuildDetail() {
 
   return (
     <main className="mx-auto max-w-[1216px] px-4 pt-6 pb-10 sm:px-8 sm:pt-8">
+      <title>{`${state.kind === "ok" ? state.build.name : "Build"} · PC Flipper Toolkit`}</title>
       <Link
         to="/"
         className="text-[13px] leading-[18px] font-medium text-muted hover:text-ink"

@@ -71,6 +71,7 @@ export function Login({ mode }: { mode: keyof typeof MODES }) {
 
   return (
     <main className="mx-auto max-w-[400px] px-4 pt-12 pb-10 sm:pt-20">
+      <title>{`${title} · PC Flipper Toolkit`}</title>
       <h1 className="font-serif text-[40px] leading-[44px] font-medium tracking-[-0.01em]">
         {title}
       </h1>

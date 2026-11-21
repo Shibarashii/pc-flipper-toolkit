@@ -45,6 +45,7 @@ export function BuildsList() {
 
   return (
     <main className="mx-auto max-w-5xl px-4 pt-7 pb-10 sm:px-8 sm:pt-12">
+      <title>Builds · PC Flipper Toolkit</title>
       <div className="flex items-end justify-between gap-4">
         <div>
           <h1 className="font-serif text-[40px] leading-[44px] font-medium tracking-[-0.01em]">

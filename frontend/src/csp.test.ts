@@ -71,7 +71,6 @@ test("index.html has the share card's tags and its 1200×630 image", () => {
   expect(meta("property", "og:title")).toBe("PC Flipper Toolkit");
   expect(meta("property", "og:type")).toBe("website");
   expect(meta("property", "og:url")).toBe(site);
-  expect(html).toContain(`<link rel="canonical" href="${site}" />`);
   expect(meta("property", "og:image")).toBe(`${site}og-image.png`);
   expect(meta("property", "og:image:alt")).not.toBe("");
   // A PNG's width and height are big-endian at bytes 16 and 20.

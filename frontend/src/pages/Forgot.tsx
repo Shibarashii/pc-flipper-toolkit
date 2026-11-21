@@ -21,6 +21,7 @@ export function Forgot() {
 
   return (
     <main className="mx-auto max-w-[400px] px-4 pt-12 pb-10 text-[15px] leading-[22px] sm:pt-20">
+      <title>Forgot password · PC Flipper Toolkit</title>
       <h1 className="font-serif text-[40px] leading-[44px] font-medium tracking-[-0.01em]">
         Forgot your username or password?
       </h1>

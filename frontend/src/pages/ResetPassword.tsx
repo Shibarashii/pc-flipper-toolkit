@@ -36,6 +36,7 @@ export function ResetPassword() {
 
   return (
     <main className="mx-auto max-w-[400px] px-4 pt-12 pb-10 text-[15px] leading-[22px] sm:pt-20">
+      <title>Reset password · PC Flipper Toolkit</title>
       {result === "form" && (
         <>
           <h1 className={heading}>Set a new password</h1>

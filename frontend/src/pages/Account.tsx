@@ -65,6 +65,7 @@ export function Account() {
 
   return (
     <main className="mx-auto max-w-[640px] px-4 pt-12 pb-16 text-[15px] leading-[22px] sm:pt-20">
+      <title>Account · PC Flipper Toolkit</title>
       <h1 className="font-serif text-[40px] leading-[44px] font-medium tracking-[-0.01em]">
         Account
       </h1>
