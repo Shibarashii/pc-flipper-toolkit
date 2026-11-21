@@ -44,6 +44,7 @@ with the sun/moon button in the header (remembered in the browser).
 | `loss` | `#A63A2B` | `#E07A66` | Negative money, destructive actions |
 | `status-building` | `#8A6100` | `#D9A441` | "Building" tag |
 | `status-listed` | `#2F5D8A` | `#7FA8D6` | "Listed" tag |
+| `scrim` | `#0A0908` | `#0A0908` | Behind a dialog, at 45% |
 
 "Planning" uses `muted`.
 

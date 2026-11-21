@@ -31,7 +31,7 @@ export function NewBuildDialog({ onClose }: { onClose: () => void }) {
       ref={ref}
       onClose={onClose}
       aria-labelledby="new-build-title"
-      className="m-auto w-[calc(100%-32px)] max-w-md border border-line-strong bg-surface p-6 text-ink backdrop:bg-ink/40"
+      className="m-auto w-[calc(100%-32px)] max-w-md border border-line-strong bg-surface p-6 text-ink backdrop:bg-scrim/45"
     >
       <form onSubmit={submit}>
         <h2 id="new-build-title" className="font-serif text-[22px] font-medium">

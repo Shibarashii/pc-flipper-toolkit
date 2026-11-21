@@ -45,7 +45,7 @@ export function ListingDialog({
       ref={ref}
       onClose={onClose}
       aria-labelledby={`${id}-title`}
-      className="m-auto w-[calc(100%-32px)] max-w-md border border-line-strong bg-surface p-6 text-ink backdrop:bg-ink/40"
+      className="m-auto w-[calc(100%-32px)] max-w-md border border-line-strong bg-surface p-6 text-ink backdrop:bg-scrim/45"
     >
       <h2 id={`${id}-title`} className="font-serif text-[22px] font-medium">
         Copy listing

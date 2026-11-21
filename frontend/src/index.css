@@ -21,6 +21,7 @@
   --loss: light-dark(#a63a2b, #e07a66);
   --status-building: light-dark(#8a6100, #d9a441);
   --status-listed: light-dark(#2f5d8a, #7fa8d6);
+  --scrim: #0a0908; /* dims the page behind a dialog, the same in both themes */
 }
 :root[data-theme="light"] {
   color-scheme: light;
@@ -46,6 +47,7 @@
   --color-loss: var(--loss);
   --color-status-building: var(--status-building);
   --color-status-listed: var(--status-listed);
+  --color-scrim: var(--scrim);
 
   --font-sans: "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
   --font-serif: "Newsreader", ui-serif, Georgia, serif;
