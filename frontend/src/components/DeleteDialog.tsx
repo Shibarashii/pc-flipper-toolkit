@@ -82,7 +82,7 @@ export function ConfirmDialog({
       onClose={onClose}
       aria-labelledby={`${id}-title`}
       aria-describedby={`${id}-message`}
-      className="m-auto w-[calc(100%-32px)] max-w-[460px] rounded border border-line-strong bg-bg p-6 text-ink backdrop:bg-ink/45"
+      className="m-auto w-[calc(100%-32px)] max-w-[460px] rounded border border-line-strong bg-bg p-6 text-ink backdrop:bg-scrim/45"
     >
       <h2
         id={`${id}-title`}
