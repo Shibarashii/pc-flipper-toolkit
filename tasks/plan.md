@@ -353,6 +353,7 @@ light and dark.
 - [x] T63: The landing page's hero at `/`
 - [x] T64: The landing page below the hero
 - [x] T65: The blocks below the hero fade in as they scroll into view
+- [x] T66: On desktop the hero fills the first screen
 
 ```
 T60 404s + noindex ── T61 titles + canonicals ── T62 sitemap + site name ──┐
