@@ -198,8 +198,8 @@ function FadeIn({
   );
 }
 
-/** The build page's Build and Summary with the demo's build. Desktop cuts it at 440px;
- * below 1280px, where the page stacks, only the Summary shows. */
+/** The build page's Build and Summary with the demo's build, whole. Below 1280px, where
+ * the page stacks, only the Summary shows. */
 function BuildPanel() {
   return (
     <Block
@@ -213,7 +213,7 @@ function BuildPanel() {
       >
         <div
           inert
-          className="grid rounded-lg border border-line-strong bg-surface p-4 sm:p-8 xl:h-[440px] xl:grid-cols-[minmax(0,1fr)_320px] xl:gap-14 xl:overflow-hidden"
+          className="grid rounded-lg border border-line-strong bg-surface p-4 sm:p-8 xl:grid-cols-[minmax(0,1fr)_320px] xl:gap-14"
         >
           <div className="xl:col-start-2 xl:row-start-1">
             <Summary

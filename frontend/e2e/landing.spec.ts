@@ -46,3 +46,16 @@ test("on a very tall screen the hero stops growing", async ({ page }) => {
   // Capped: the content doesn't float in the middle of a 1440px screen.
   expect(m.pictureTop - m.headerBottom).toBeLessThan(250);
 });
+
+test("the build panel shows the whole build and summary, nothing cut off", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto("/");
+  const panel = page.getByRole("img", { name: /^The demo’s sold build/ });
+  const cut = await panel.evaluate((el) => {
+    const box = el.firstElementChild!;
+    return box.scrollHeight - box.clientHeight;
+  });
+  expect(cut).toBe(0);
+});

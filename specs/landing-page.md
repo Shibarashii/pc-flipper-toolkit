@@ -152,7 +152,7 @@ on desktop and 72px on phones. No cards except the pictures; hairlines between q
 
 1. **Every flip, part by part.** Line: "Each build shows its parts, what’s still missing, and the
    profit as it adds up." Then the build page's Build section and Summary with the demo's build,
-   in a bordered `surface` panel cut off at 440px on desktop. Phones show only the Summary.
+   in a bordered `surface` panel, shown whole. Phones show only the Summary.
 2. **What it tracks.** Three items, each a small picture on `sunken` above a name and one line:
    - **Parts**: a filled diagram slot "RX 6600 8GB", "Paid ₱11,000 · shop ₱13,000". "Shop price
      and what you paid. A bundle counts once."
