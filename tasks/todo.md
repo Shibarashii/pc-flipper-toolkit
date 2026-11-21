@@ -2013,20 +2013,25 @@ change, no migration, no new dependencies. T60–T62 and T63–T64 don't depend 
 **Files:** `frontend/src/pages/Landing.tsx` (+ test), `frontend/src/landingDemo.ts`
 **Scope:** M
 
-### - [ ] T65: The blocks below the hero fade in as they scroll into view
+### - [x] T65: The blocks below the hero fade in as they scroll into view
 
 **Description:** Asked for on 2026-11-21 ("lazy loading, just like how developers do it"); the
 author picked a fade-in on scroll over loading the code or the blocks later, so every block
 stays in the HTML for search. Each block and the closing band starts 16px lower and
 transparent, and eases in once when it enters the viewport (`IntersectionObserver`).
 
+- Built 2026-11-21: one `FadeIn` section in `Landing.tsx`, used by `Block` and the band. Only
+  opacity and position animate, so a theme switch doesn't fade the band's background; print
+  shows every block. Checked at 1280 (fades as you scroll, all shown at the end); 375 and
+  reduce motion not yet watched in a browser.
+
 **Acceptance criteria:**
-- [ ] A block below the hero is hidden until it scrolls into view, then shows and stays shown
-- [ ] All the blocks' text is in the page from the start
-- [ ] With reduce motion set, or without `IntersectionObserver`, the blocks show at once
+- [x] A block below the hero is hidden until it scrolls into view, then shows and stays shown
+- [x] All the blocks' text is in the page from the start
+- [x] With reduce motion set, or without `IntersectionObserver`, the blocks show at once
 
 **Verification:**
-- [ ] `npx vitest run src/pages/Landing.test.tsx`, lint, build, e2e
+- [x] `npx vitest run src/pages/Landing.test.tsx`, lint, build, e2e
 - [ ] Manual: scroll the page at 1280 and 375; reduce motion shows everything at once
 
 **Dependencies:** T64
