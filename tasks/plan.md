@@ -350,7 +350,7 @@ light and dark.
 - [x] T60: Unknown URLs return 404, private pages ask not to be indexed
 - [x] T61: Each page names itself (titles, canonicals)
 - [x] T62: A sitemap and the site's name for Google
-- [ ] T63: The landing page's hero at `/`
+- [x] T63: The landing page's hero at `/`
 - [ ] T64: The landing page below the hero
 
 ```

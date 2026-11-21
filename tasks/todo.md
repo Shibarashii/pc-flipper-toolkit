@@ -1944,7 +1944,7 @@ change, no migration, no new dependencies. T60–T62 and T63–T64 don't depend 
 **Files:** `frontend/public/sitemap.xml`, `frontend/public/robots.txt`, `frontend/index.html`, `frontend/src/seo.test.ts`
 **Scope:** S
 
-### - [ ] T63: The landing page's hero at `/`
+### - [x] T63: The landing page's hero at `/`
 
 **Description:**
 - Logged out, `/` renders `pages/Landing.tsx` (other paths still redirect to `/login` and come
@@ -1956,15 +1956,26 @@ change, no migration, no new dependencies. T60–T62 and T63–T64 don't depend 
 - Landing's `<title>` and canonical (`SITE_URL/`). `demo.spec.ts` starts from the landing
   page's Try the demo. SPEC.md's Screens. Tests first.
 
+- Built 2026-11-21: `BuildDiagram` takes the slots and is scaled with a CSS transform (1.3×
+  desktop, 0.95× phone); the hairlines and dots are tokens (`line-strong`, `accent`), not the
+  Figma SVGs, so dark mode follows. Three layouts: phone art below 768px, the desktop art under
+  the text from 768px, side by side from 1280px. `landingDemo.ts` copies `demo.py`'s sold build
+  by hand (no test ties them). Two changes from the design: the Cooler slot is dotted
+  (optional), as the app shows this build, since the demo has no cooler; and beside the header's
+  Log in the name hides below 330px, as it does logged in below 410px. One decision: once a
+  session ends in the tab, `/` still goes to Log in, where "Your session ended" and "Your demo
+  ended" show. Checked locally: 1280×720 light and dark (the hero ends at 703px), 375, 320 (no
+  sideways scroll), 900; the build page's diagram still 300×380.
+
 **Acceptance criteria:**
-- [ ] Logged out, `/` shows the hero as designed at 1280 and 375, light and dark; at 1280×720 it
+- [x] Logged out, `/` shows the hero as designed at 1280 and 375, light and dark; at 1280×720 it
   fits without scrolling
-- [ ] Try the demo opens the demo's builds; a failure shows the log-in page's error
-- [ ] Logged in, `/` is the builds list; the build page's diagram looks as before
+- [x] Try the demo opens the demo's builds; a failure shows the log-in page's error
+- [x] Logged in, `/` is the builds list; the build page's diagram looks as before
 
 **Verification:**
-- [ ] Standard verification, `npx playwright test`
-- [ ] Manual: desktop, 375px and 320px, light and dark, against the Figma frames
+- [x] Standard verification, `npx playwright test`
+- [x] Manual: desktop, 375px and 320px, light and dark, against the Figma frames
 
 **Dependencies:** None
 **Files:** `frontend/src/pages/Landing.tsx` (+ test), `frontend/src/landingDemo.ts`, `frontend/src/components/BuildDiagram.tsx`, `BuildChecklist.tsx`, `frontend/src/App.tsx` (+ test), `frontend/e2e/demo.spec.ts`, `SPEC.md`

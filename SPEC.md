@@ -185,13 +185,14 @@ another user's build (400). A part, bundle or cost can't be moved to another bui
 
 ## Screens
 
-0. **Log in** (`/login`) and **Sign up** (`/signup`): username and password (sign-up also an email), linking to each other; Log in also links to "Forgot your username or password?" (`/forgot`), which emails the username and a link to `/reset-password` to set a new one, then log in ([spec](docs/specs/account-management.md)). Logged out, every other page redirects here; logging in goes to the builds list, which after sign-up says once where the confirmation link went. **Privacy** (`/privacy`), `/verify-email`, `/forgot` and `/reset-password` open logged in or out.
+0. **Landing page** (`/`, logged out; [spec](docs/specs/landing-page.md)): what the app is, with **Try the demo** and **Sign up**, beside a picture of the demo's sold build (the build diagram with price tags and its profit) made from the app's own components. The header gets a **Log in** button on every logged-out page but Log in and Sign up. Once a session ends in the tab (Log out, Exit demo, an expired token), `/` goes to Log in instead, where that is explained.
+   **Log in** (`/login`) and **Sign up** (`/signup`): username and password (sign-up also an email), linking to each other; Log in also links to "Forgot your username or password?" (`/forgot`), which emails the username and a link to `/reset-password` to set a new one, then log in ([spec](docs/specs/account-management.md)). Logged out, every other page but `/` redirects here; logging in goes to the builds list, which after sign-up says once where the confirmation link went. **Privacy** (`/privacy`), `/verify-email`, `/forgot` and `/reset-password` open logged in or out.
    - Every page ends with a **footer** ([spec](docs/specs/footer.md)): "© 2026 Seanrei Valdeabella" and links to Privacy, the GitHub repo and the author's LinkedIn; at the bottom of the window on short pages, after the content on long ones.
    - The header shows the username and "Log out" when logged in. It starts with the logo and
      the name, one link home; logged in and below 410px wide the logo shows alone, so the header fits
      a 320px phone without scrolling sideways. Logged out, the name always shows (the log-in
      page has it nowhere else). The username (an icon on phones) opens **Account** (`/account`), in three sections ([spec](docs/specs/portfolio-polish.md#part-3-account-page)): **Username**; **Ways to log in**, the password (change it, or set one from an emailed link when Google is the only way in; [spec](docs/specs/google-only-password.md)) and Google (connect it, or disconnect it when the account has a password, after "Disconnect Google?"; [spec](docs/specs/google-sign-in.md)); and the **Recovery email** ([spec](docs/specs/account-management.md)). A recovery email is saved only once its emailed link is opened at `/verify-email`, logged in or out.
-   - Both pages have a **"Try the demo"** button that creates a demo account and goes to the
+   - The landing page and both of these have a **"Try the demo"** button that creates a demo account and goes to the
      builds list. A demo account sees a banner under the header: it's a demo, deleted after 24
      hours, ending in a "Sign up for your own account" link that ends the demo and opens sign-up
      (a link, so it doesn't stack under the header's button). For a demo, the header's "Log out"
@@ -293,7 +294,7 @@ pc-flipper-toolkit/
 │       ├── listing.ts     The copy-listing text
 │       ├── google.tsx     Google's sign-in button
 │       ├── test/          Vitest setup and fixtures
-│       ├── pages/         BuildsList, BuildDetail, Login, Account, Forgot, ResetPassword,
+│       ├── pages/         Landing, BuildsList, BuildDetail, Login, Account, Forgot, ResetPassword,
 │       │                  VerifyEmail, Privacy
 │       └── components/    PartsTable.tsx, ExtraCosts.tsx, Summary.tsx, ... (tests sit beside them)
 ├── docs/brand-guidelines.md  The look: warm paper and ink, green accent, hairlines

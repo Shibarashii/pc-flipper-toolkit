@@ -1,11 +1,26 @@
 import { expect, test } from "@playwright/test";
 
 test("try the demo: sample builds, then sign up instead", async ({ page }) => {
-  await page.goto("/login");
-  // Logged out, the header has room for the name at every width, and it's the only place
-  // the log-in page shows it.
+  // Visitors start on the landing page.
+  await page.goto("/");
+  await expect(
+    page.getByRole("heading", {
+      name: "See the real profit on every PC you flip",
+    }),
+  ).toBeVisible();
+  // Logged out, the header has room for the name, and it's the only place the log-in
+  // page shows it.
   const home = page.getByRole("link", { name: "PC Flipper Toolkit" });
   await expect(home.getByText("PC Flipper Toolkit")).toBeVisible();
+  // The smallest phones: the landing page and its header fit a 320px window.
+  const scrollsSideways = () =>
+    page.evaluate(
+      "document.documentElement.scrollWidth - document.documentElement.clientWidth",
+    );
+  const viewport = page.viewportSize()!;
+  await page.setViewportSize({ width: 320, height: viewport.height });
+  expect(await scrollsSideways()).toBe(0);
+  await page.setViewportSize(viewport);
   await page.getByRole("button", { name: "Try the demo" }).click();
 
   await expect(
