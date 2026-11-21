@@ -29,6 +29,12 @@ test("every route in App.tsx is rewritten to the app, and nothing else is", () =
     expect(rewritten(path), path).toBe(false);
 });
 
+// The rewrites match exact paths, so "/login/" would 404. Vercel redirects it to "/login"
+// instead, which also leaves Google one address per page.
+test("a trailing slash redirects to the page instead of a 404", () => {
+  expect(vercel.trailingSlash).toBe(false);
+});
+
 const robots = (path: string): string[] =>
   vercel.headers
     .filter(({ source }: { source: string }) => matches(source, path))
