@@ -1,4 +1,5 @@
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -21,6 +22,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  vi.useRealTimers();
   cleanup();
   vi.unstubAllGlobals();
   vi.unstubAllEnvs();
@@ -1404,4 +1406,122 @@ test("the header's username shows in full on hover, since it can be cut off", as
 
   const link = screen.getByRole("link", { name: "a-rather-long-username" });
   expect(link.title).toBe("a-rather-long-username");
+});
+
+// specs/waking-note.md: the API sleeps on Render's free plan, so a first request can take a minute.
+const WAKING =
+  "Waking up the server — this can take up to a minute. It runs on Render’s free plan, which sleeps when nobody’s using it.";
+
+/** A server that hasn't answered yet. */
+const stubSilentServer = () =>
+  vi.stubGlobal("fetch", () => new Promise<Response>(() => {}));
+
+const after = (ms: number) => act(() => vi.advanceTimersByTime(ms));
+
+test("logging in says so at once, and that the server is waking up after 5 seconds", () => {
+  vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+  stubSilentServer();
+  renderAt("/login");
+  fillIn("carol", "a long passphrase");
+
+  fireEvent.click(screen.getByRole("button", { name: "Log in" }));
+
+  expect(screen.getByRole("button", { name: "Logging in…" })).toBeTruthy();
+  after(4900);
+  expect(screen.queryByText(WAKING)).toBeNull();
+  after(100);
+  expect(screen.getByText(WAKING)).toBeTruthy();
+});
+
+test("signing up says Creating account…", () => {
+  stubSilentServer();
+  renderAt("/signup");
+  fillIn("carol", "a long passphrase");
+  fireEvent.change(screen.getByLabelText("Email"), {
+    target: { value: "carol@example.com" },
+  });
+
+  fireEvent.click(screen.getByRole("button", { name: "Create account" }));
+
+  expect(
+    screen.getByRole("button", { name: "Creating account…" }),
+  ).toBeTruthy();
+});
+
+test("only the pressed way in works and gets the note: Try the demo", () => {
+  vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+  stubSilentServer();
+  renderAt("/login");
+  fillIn("carol", "a long passphrase");
+
+  fireEvent.click(screen.getByRole("button", { name: "Try the demo" }));
+  after(5000);
+
+  const demo = screen.getByRole("button", { name: "Starting the demo…" });
+  expect(screen.getByRole("button", { name: "Log in" })).toBeTruthy();
+  expect(screen.getAllByText(WAKING)).toHaveLength(1);
+  // Under the demo's button, not the form's.
+  expect(demo.parentElement!.contains(screen.getByText(WAKING))).toBe(true);
+});
+
+test("an answer within 5 seconds never shows the note", async () => {
+  // Fake timers that still run, so findByRole can wait for the answer.
+  vi.useFakeTimers({
+    toFake: ["setTimeout", "clearTimeout"],
+    shouldAdvanceTime: true,
+  });
+  stubFetch(() =>
+    Response.json(
+      { non_field_errors: ["Wrong username or password."] },
+      { status: 400 },
+    ),
+  );
+  renderAt("/login");
+  fillIn("carol", "wrong");
+
+  fireEvent.click(screen.getByRole("button", { name: "Log in" }));
+  expect(await screen.findByRole("alert")).toBeTruthy();
+  after(10000);
+
+  expect(screen.queryByText(WAKING)).toBeNull();
+  expect(screen.getByRole("button", { name: "Log in" })).toBeTruthy();
+});
+
+test("Google sign-in says so under Google's button, then the note", async () => {
+  vi.stubEnv("VITE_GOOGLE_CLIENT_ID", "client.apps.googleusercontent.com");
+  stubGoogle();
+  stubSilentServer();
+  renderAt("/login");
+  const google = await screen.findByRole("button", {
+    name: "Sign in with Google",
+  });
+  vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+
+  fireEvent.click(google);
+
+  // A live region, so a screen reader hears it: Google's button isn't ours to relabel.
+  expect(screen.getByRole("status").textContent).toBe(
+    "Signing in with Google…",
+  );
+  after(5000);
+  expect(screen.getAllByText(WAKING)).toHaveLength(1);
+});
+
+test("the working button stays at full strength, even if a field is cleared", () => {
+  stubSilentServer();
+  renderAt("/login");
+  fillIn("carol", "a long passphrase");
+  fireEvent.click(screen.getByRole("button", { name: "Log in" }));
+
+  fireEvent.change(screen.getByLabelText("Username"), {
+    target: { value: "" },
+  });
+
+  const working = screen.getByRole("button", { name: "Logging in…" });
+  expect((working as HTMLButtonElement).disabled).toBe(false);
+  expect(working.getAttribute("aria-disabled")).toBe("true");
+  expect(
+    (screen.getByRole("button", { name: "Try the demo" }) as HTMLButtonElement)
+      .disabled,
+  ).toBe(true);
 });

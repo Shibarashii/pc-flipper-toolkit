@@ -11,20 +11,26 @@ import {
 } from "../api";
 import { saveSession, useAuth, type Session } from "../auth";
 import { Field } from "../components/form";
+import { Spinner, useSlow, WakingNote, Working } from "../components/Waiting";
 import { GoogleButton, googleClientId } from "../google";
 import { buttonPrimary, buttonSecondary, focusRing, input, link } from "../ui";
 import { pageTitle } from "../site";
+
+/** The ways in that wait on the server, each with its own spinner and words. */
+type Way = "form" | "google" | "demo";
 
 const MODES = {
   login: {
     title: "Log in",
     submit: "Log in",
+    working: "Logging in…",
     password: "current-password",
     other: { text: "No account yet?", link: "Sign up", to: "/signup" },
   },
   signup: {
     title: "Sign up",
     submit: "Create account",
+    working: "Creating account…",
     password: "new-password",
     other: { text: "Already have an account?", link: "Log in", to: "/login" },
   },
@@ -32,7 +38,7 @@ const MODES = {
 
 /** Log in (`/login`) or sign up (`/signup`). Logged out, every other page sends you here. */
 export function Login({ mode }: { mode: keyof typeof MODES }) {
-  const { title, submit, password, other } = MODES[mode];
+  const { title, submit, working, password, other } = MODES[mode];
   const { notice } = useAuth();
   // The page that sent you here: kept when switching between log in and sign up, and
   // App goes back to it once the session is saved.
@@ -41,11 +47,15 @@ export function Login({ mode }: { mode: keyof typeof MODES }) {
   const signingUp = mode === "signup";
   const [errors, setErrors] = useState<FieldErrors>({});
   const [error, setError] = useState("");
-  const [saving, setSaving] = useState(false);
+  // Which way in is waiting on the server: only that one spins and gets the waking note
+  // (specs/waking-note.md). The pressed button stays at full strength; the others fade.
+  const [saving, setSaving] = useState<Way | "">("");
+  const slow = useSlow(saving !== "");
 
-  // The form and "Try the demo" both end in a session, with the same errors.
-  async function start(session: () => Promise<Session>, notice = "") {
-    setSaving(true);
+  // The form, Google and "Try the demo" all end in a session, with the same errors.
+  async function start(way: Way, session: () => Promise<Session>, notice = "") {
+    if (saving) return;
+    setSaving(way);
     setErrors({});
     setError("");
     try {
@@ -54,7 +64,7 @@ export function Login({ mode }: { mode: keyof typeof MODES }) {
       const fieldErrors = err instanceof ApiError ? err.fieldErrors : {};
       setErrors(fieldErrors);
       setError(generalError(err, fieldErrors));
-      setSaving(false);
+      setSaving("");
     }
   }
 
@@ -62,9 +72,11 @@ export function Login({ mode }: { mode: keyof typeof MODES }) {
     e.preventDefault();
     const username = form.username.trim();
     const email = form.email.trim();
-    if (!signingUp) start(() => logIn({ username, password: form.password }));
+    if (!signingUp)
+      start("form", () => logIn({ username, password: form.password }));
     else
       start(
+        "form",
         () => signUp({ username, email, password: form.password }),
         `We sent a link to ${email} to confirm your email. If it doesn’t arrive, check your spam folder.`,
       );
@@ -138,16 +150,20 @@ export function Login({ mode }: { mode: keyof typeof MODES }) {
         )}
         <button
           type="submit"
+          aria-disabled={saving === "form" || undefined}
+          // While it works, only another way in disables it; a cleared field doesn't.
           disabled={
-            saving ||
-            !form.username.trim() ||
-            !form.password ||
-            (signingUp && !form.email.trim())
+            saving
+              ? saving !== "form"
+              : !form.username.trim() ||
+                !form.password ||
+                (signingUp && !form.email.trim())
           }
           className={`mt-2 ${buttonPrimary}`}
         >
-          {submit}
+          {saving === "form" ? <Working>{working}</Working> : submit}
         </button>
+        {slow && saving === "form" && <WakingNote />}
       </form>
       {!signingUp && (
         <p className="mt-4">
@@ -160,7 +176,9 @@ export function Login({ mode }: { mode: keyof typeof MODES }) {
       <div className="mt-6 flex flex-col gap-3 border-t border-line pt-6">
         {googleClientId() && (
           <GoogleButton
-            onCredential={(credential) => start(() => googleSignIn(credential))}
+            onCredential={(credential) =>
+              start("google", () => googleSignIn(credential))
+            }
             onError={() =>
               setError(
                 "Couldn’t load Google sign-in. Check your connection, or use your username and password.",
@@ -168,18 +186,33 @@ export function Login({ mode }: { mode: keyof typeof MODES }) {
             }
           />
         )}
+        {saving === "google" && (
+          <p
+            role="status"
+            className="flex items-center gap-2 text-[13px] leading-[18px] text-muted"
+          >
+            <Spinner />
+            Signing in with Google…
+          </p>
+        )}
         <button
           type="button"
-          onClick={() => start(tryDemo)}
-          disabled={saving}
+          onClick={() => start("demo", tryDemo)}
+          aria-disabled={saving === "demo" || undefined}
+          disabled={saving !== "" && saving !== "demo"}
           className={`w-full ${buttonSecondary}`}
         >
-          Try the demo
+          {saving === "demo" ? (
+            <Working>Starting the demo…</Working>
+          ) : (
+            "Try the demo"
+          )}
         </button>
         <p className="-mt-1 text-[13px] leading-[18px] text-muted">
           A sample account with two builds to change freely. It’s deleted after
           24 hours.
         </p>
+        {slow && saving !== "form" && <WakingNote />}
       </div>
 
       <p className="mt-6 text-[13px] leading-[18px] text-muted">

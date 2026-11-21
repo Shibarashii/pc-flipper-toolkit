@@ -370,6 +370,19 @@ sitemap in Search Console and requests indexing; the repo's description changes 
 **Checkpoint 24:** the spec's success criteria 1–5 pass on the live site, at desktop and 375px,
 light and dark; criterion 6 (the name search) is looked at 1–2 weeks after the indexing request.
 
+### Phase 27: Say when the API is waking up ([specs/waking-note.md](waking-note.md))
+- [ ] T67: A spinner while you get in, and the waking note after 5 seconds
+
+```
+T67 spinner + waking note ── Checkpoint 25
+```
+Frontend only: no API change, no migration, no new dependency. One task, one PR: the buttons
+(log-in page, landing page) and the page skeletons share `components/Waiting.tsx`. Built from
+the "Waking note" section on Ready for development (approved 2026-11-21).
+
+**Checkpoint 25:** the spec's success criteria 1–4 pass on the live site after a cold start
+(15+ minutes idle), at desktop and 375px, light and dark.
+
 ## Risks and Mitigations
 
 | Risk | Impact | Mitigation |
@@ -426,6 +439,8 @@ light and dark; criterion 6 (the name search) is looked at 1–2 weeks after the
 | The pictures can be clicked or tabbed into (they're real components) | Med | Each sits in an `inert` wrapper with one `aria-label`; a test checks no control in them can be focused (T63, T64) |
 | The header's new Log in button crowds a 320px phone | Low | Checked at 375px and 320px; the name already hides below 410px when logged in, the same rule applies (T63) |
 | Google indexes `/` before the landing page ships and keeps the log-in text for a while | Low | Indexing is requested only after T64 is live (Checkpoint 24) |
+| A page's tests wait on real time for the 5 seconds | Low (slow, flaky tests) | Fake timers in every test of the note (T67) |
+| The note shows on every fast answer too | Med (noise on every visit) | It shows only after 5 s; a test answers at 4.9 s and checks it never appears (T67) |
 
 ## Open Questions
 

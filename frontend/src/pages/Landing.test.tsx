@@ -18,6 +18,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  vi.useRealTimers();
   cleanup();
   vi.unstubAllGlobals();
   vi.unstubAllEnvs();
@@ -250,4 +251,28 @@ test("without IntersectionObserver, the blocks show at once", () => {
     name: "Questions",
   }).parentElement!;
   expect(block.dataset.shown).toBe("true");
+});
+
+test("Try the demo says so at once, and the note after 5 seconds, under that copy only", () => {
+  vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+  vi.stubGlobal("fetch", () => new Promise<Response>(() => {}));
+  renderAt("/");
+  const band = screen.getByRole("heading", {
+    name: "Try it on two sample builds",
+  }).parentElement!;
+
+  fireEvent.click(within(band).getByRole("button", { name: "Try the demo" }));
+
+  expect(
+    within(band).getByRole("button", { name: "Starting the demo…" }),
+  ).toBeTruthy();
+  act(() => vi.advanceTimersByTime(4900));
+  expect(screen.queryByText(/Waking up the server/)).toBeNull();
+  act(() => vi.advanceTimersByTime(100));
+  expect(screen.getAllByText(/Waking up the server/)).toHaveLength(1);
+  expect(within(band).getByText(/Waking up the server/)).toBeTruthy();
+  // The hero's copy is untouched.
+  expect(screen.getAllByRole("button", { name: "Try the demo" })).toHaveLength(
+    1,
+  );
 });

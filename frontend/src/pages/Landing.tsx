@@ -6,6 +6,7 @@ import { BuildChecklist } from "../components/BuildChecklist";
 import { BuildDiagram } from "../components/BuildDiagram";
 import { StatusTag } from "../components/StatusTag";
 import { Summary } from "../components/Summary";
+import { useSlow, WakingNote, Working } from "../components/Waiting";
 import { SOLD_BUILD } from "../landingDemo";
 import { formatMoney, formatSignedMoney } from "../money";
 import { SITE_NAME, SITE_URL } from "../site";
@@ -88,9 +89,11 @@ function WaysIn({
 }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const slow = useSlow(saving);
 
   // As on the log-in page: the session opens the demo's builds at `/`, or the same error.
   async function startDemo() {
+    if (saving) return;
     setSaving(true);
     setError("");
     try {
@@ -116,10 +119,11 @@ function WaysIn({
         <button
           type="button"
           onClick={startDemo}
-          disabled={saving}
+          // Pressed, it stays at full strength with its spinner (specs/waking-note.md).
+          aria-disabled={saving || undefined}
           className={buttonPrimary}
         >
-          Try the demo
+          {saving ? <Working>Starting the demo…</Working> : "Try the demo"}
         </button>
         <Link to="/signup" className={buttonSecondary}>
           Sign up
@@ -133,6 +137,7 @@ function WaysIn({
           {error}
         </p>
       )}
+      {slow && <WakingNote className={centered ? "mt-3" : ""} />}
       {note && <p className="text-[13px] leading-[18px] text-muted">{note}</p>}
     </>
   );

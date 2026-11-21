@@ -230,6 +230,7 @@ States each screen must handle:
 - **Builds list:** no builds yet (message plus "New build").
 - **Build detail:** no parts or extra costs yet, an empty bundle, a bundle with prices not fully assigned, no selling price (profit and margin show "—"), a loss (red), and a validation error on a field (e.g. negative price).
 - **Both:** loading and request failed. A 401 (token deleted or expired) logs out and goes to `/login` with "Your session ended. Log in again." (for a demo: "Your demo ended. Try it again or sign up.", since it has no password)
+- **Waiting on the server:** the pressed way in (log in, sign up, Google, Try the demo) shows a spinner and its working words; after 5 seconds of waiting, there or above a page's skeleton, a note says the server is waking up ([waking-note.md](waking-note.md))
 - **Log in / sign up:** wrong username or password, username taken, password rejected by the validators (their messages, under the field), and too many attempts (429).
 
 Visual design (colors, type, components, light/dark) follows [specs/design/brand.md](design/brand.md).
