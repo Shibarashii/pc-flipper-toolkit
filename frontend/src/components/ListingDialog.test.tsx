@@ -1,16 +1,9 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { afterEach, beforeAll, expect, test, vi } from "vitest";
+import { afterEach, expect, test, vi } from "vitest";
 import type { Part } from "../api";
 import { makeBuild } from "../test/fixtures";
 import { BuildHeader } from "./BuildHeader";
 import { ListingDialog } from "./ListingDialog";
-
-beforeAll(() => {
-  // jsdom doesn't implement modal dialogs.
-  HTMLDialogElement.prototype.showModal ??= function (this: HTMLDialogElement) {
-    this.open = true;
-  };
-});
 
 afterEach(() => {
   cleanup();

@@ -7,6 +7,7 @@ import {
 } from "../api";
 import { formatMoney } from "../money";
 import { buttonPrimary, buttonSecondary, input } from "../ui";
+import { DeleteDialog } from "./DeleteDialog";
 import { cleanMoney, Field, RowActions, useSave } from "./form";
 
 const EMPTY = { label: "", amount: "" };
@@ -24,22 +25,8 @@ export function ExtraCosts({
 }) {
   // One form at a time: the add row, or the cost being edited.
   const [open, setOpen] = useState<"new" | string | null>(null);
-  const [deleting, setDeleting] = useState<string | null>(null);
-  const [deleteFailed, setDeleteFailed] = useState(false);
+  const [confirming, setConfirming] = useState<ExtraCost | null>(null);
   const close = () => setOpen(null);
-
-  async function remove(cost: ExtraCost) {
-    setDeleting(cost.id);
-    setDeleteFailed(false);
-    try {
-      await deleteExtraCost(cost.id);
-      onChanged();
-    } catch {
-      setDeleteFailed(true);
-    } finally {
-      setDeleting(null);
-    }
-  }
 
   return (
     <section aria-labelledby="extra-costs-title">
@@ -62,12 +49,6 @@ export function ExtraCosts({
           Add cost
         </button>
       </div>
-
-      {deleteFailed && (
-        <p role="alert" className="pb-3 text-[13px] leading-[18px] text-loss">
-          Couldn’t delete the cost. Check your connection and try again.
-        </p>
-      )}
 
       <div className="border-t border-line-strong">
         {costs.length === 0 && open !== "new" && (
@@ -105,9 +86,9 @@ export function ExtraCosts({
                 <span className="tabular-nums">{formatMoney(c.amount)}</span>
                 <RowActions
                   name={c.label}
-                  deleting={deleting === c.id}
+                  deleting={confirming?.id === c.id}
                   onEdit={() => setOpen(c.id)}
-                  onDelete={() => remove(c)}
+                  onDelete={() => setConfirming(c)}
                 />
               </li>
             ),
@@ -120,6 +101,19 @@ export function ExtraCosts({
           </div>
         )}
       </div>
+
+      {confirming && (
+        <DeleteDialog
+          what="extra cost"
+          message={`“${confirming.label}” will be deleted. This can’t be undone.`}
+          onConfirm={async () => {
+            await deleteExtraCost(confirming.id);
+            setConfirming(null);
+            onChanged();
+          }}
+          onClose={() => setConfirming(null)}
+        />
+      )}
     </section>
   );
 }

@@ -7,7 +7,7 @@ import {
   within,
 } from "@testing-library/react";
 import { useState, type ComponentProps } from "react";
-import { afterEach, beforeAll, expect, test, vi } from "vitest";
+import { afterEach, expect, test, vi } from "vitest";
 import type { Bundle, Part } from "../api";
 import { EMPTY_TOTALS } from "../test/fixtures";
 import { PartsTable as Table, type PartsOpen } from "./PartsTable";
@@ -22,13 +22,6 @@ function PartsTable({
   const [open, setOpen] = useState<PartsOpen>(null);
   return <Table {...props} bundles={bundles} open={open} setOpen={setOpen} />;
 }
-
-beforeAll(() => {
-  // jsdom doesn't implement modal dialogs.
-  HTMLDialogElement.prototype.showModal ??= function (this: HTMLDialogElement) {
-    this.open = true;
-  };
-});
 
 afterEach(() => {
   cleanup();
@@ -311,12 +304,18 @@ test("only one form is open at a time", () => {
   ]);
 });
 
-test("deleting a part sends DELETE and refreshes", async () => {
+test("deleting a part asks first, then sends DELETE and refreshes", async () => {
   const { fetchMock, onChanged } = renderParts(
     new Response(null, { status: 204 }),
   );
 
   clickAction("Delete RX 7600");
+  const dialog = screen.getByRole("dialog", { name: "Delete this part?" });
+  expect(dialog.textContent).toContain(
+    "“RX 7600” will be deleted. This can’t be undone.",
+  );
+  expect(fetchMock).not.toHaveBeenCalled();
+  fireEvent.click(within(dialog).getByRole("button", { name: "Delete part" }));
 
   await waitFor(() => expect(onChanged).toHaveBeenCalled());
   const [url, init] = fetchMock.mock.calls[0];
@@ -324,12 +323,28 @@ test("deleting a part sends DELETE and refreshes", async () => {
   expect(init.method).toBe("DELETE");
 });
 
-test("a failed delete says so", async () => {
+test("Cancel keeps the part", () => {
+  const { fetchMock } = renderParts(new Response(null, { status: 204 }));
+
+  clickAction("Delete RX 7600");
+  fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+
+  expect(screen.queryByRole("dialog")).toBeNull();
+  expect(fetchMock).not.toHaveBeenCalled();
+});
+
+test("a failed delete keeps the dialog open with its error", async () => {
   const { onChanged } = renderParts(Response.json({}, { status: 500 }));
 
   clickAction("Delete RX 7600");
+  fireEvent.click(screen.getByRole("button", { name: "Delete part" }));
 
-  expect(await screen.findByRole("alert")).toBeTruthy();
+  expect((await screen.findByRole("alert")).textContent).toBe(
+    "Couldn’t delete the part. Check your connection and try again.",
+  );
+  expect(
+    screen.getByRole("dialog", { name: "Delete this part?" }),
+  ).toBeTruthy();
   expect(onChanged).not.toHaveBeenCalled();
 });
 
@@ -531,6 +546,17 @@ test("editing a bundle patches it", async () => {
   await waitFor(() => expect(onChanged).toHaveBeenCalled());
   expect(fetchMock.mock.calls[0][0]).toBe("/api/bundles/1/");
   expect(body()).toEqual({ name: "B550m deal", shop: "", bought_for: "8000" });
+});
+
+test("a part inside a bundle asks first too", () => {
+  const { fetchMock } = renderWithBundle(new Response(null, { status: 204 }));
+
+  clickAction("Delete Ryzen 5 7600");
+
+  expect(
+    screen.getByRole("dialog", { name: "Delete this part?" }).textContent,
+  ).toContain("“Ryzen 5 7600” will be deleted. This can’t be undone.");
+  expect(fetchMock).not.toHaveBeenCalled();
 });
 
 test("deleting a bundle asks first, naming its parts", async () => {

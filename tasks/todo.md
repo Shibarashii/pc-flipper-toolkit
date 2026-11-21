@@ -1774,7 +1774,7 @@ Spec: [docs/specs/confirm-dialogs.md](../docs/specs/confirm-dialogs.md). Designs
 dialogs section on Figma's Ready for development (approved 2026-11-21). Frontend only: no API
 change, no new dependencies.
 
-### - [ ] T58: Delete a part or an extra cost asks first
+### - [x] T58: Delete a part or an extra cost asks first
 
 **Description:**
 - `DeleteDialog.tsx`: `ConfirmDialog` takes the title, message, action, its running label and
@@ -1784,15 +1784,20 @@ change, no new dependencies.
   cost?" (the `confirming` state the bundle's dialog already uses) instead of deleting at once;
   the inline "Couldn’t delete…" lines go, the dialog shows the error.
 - SPEC.md's Build detail lines say deleting a part or a cost asks first. Tests first.
+- Built 2026-11-21: `DeleteDialog` already gives the spec's words for "part" and "extra cost",
+  so `ConfirmDialog` waits for T59, the first dialog that isn't a delete. The jsdom modal stub
+  moved into `test/setup.ts` (it was copied in three test files). Seven new tests (asks first,
+  Cancel, a failed delete, a bundled part). Checked locally on a demo build: Esc keeps the part
+  (desktop, light), and confirming deletes a cost (375px, dark).
 
 **Acceptance criteria:**
-- [ ] Each dialog reads word for word as in the spec; Cancel and Esc close it and send nothing
-- [ ] The action sends the DELETE and closes it; a failure keeps it open with its error
-- [ ] A part inside a bundle gets the same dialog; the build and bundle dialogs are unchanged
+- [x] Each dialog reads word for word as in the spec; Cancel and Esc close it and send nothing
+- [x] The action sends the DELETE and closes it; a failure keeps it open with its error
+- [x] A part inside a bundle gets the same dialog; the build and bundle dialogs are unchanged
 
 **Verification:**
-- [ ] Standard verification, `npx playwright test`
-- [ ] Manual: both dialogs at desktop and 375px, light and dark
+- [x] Standard verification, `npx playwright test`
+- [x] Manual: both dialogs at desktop and 375px, light and dark
 
 **Dependencies:** None
 **Files:** `frontend/src/components/DeleteDialog.tsx`, `PartsTable.tsx`, `ExtraCosts.tsx`, their tests, `frontend/src/pages/BuildDetail.test.tsx`, `SPEC.md`

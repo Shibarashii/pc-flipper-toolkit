@@ -160,6 +160,7 @@ test("a refetch that read the database before a header save doesn't undo it", as
   fireEvent.click(
     (await screen.findAllByRole("button", { name: "Delete Ryzen 5 7600" }))[0],
   );
+  fireEvent.click(screen.getByRole("button", { name: "Delete part" }));
   await waitFor(() => expect(gets).toBe(2));
   const price = screen.getByLabelText("Selling price");
   fireEvent.change(price, { target: { value: "50000" } });

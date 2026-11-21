@@ -8,3 +8,8 @@ beforeEach(() => saveSession({ token: "test-token", username: "alice" }));
 // test stubs it (vi.stubGlobal("matchMedia", …)).
 window.matchMedia = (query: string) =>
   ({ matches: false, media: query }) as MediaQueryList;
+
+// jsdom has no modal dialogs: opening one just marks it open.
+HTMLDialogElement.prototype.showModal ??= function (this: HTMLDialogElement) {
+  this.open = true;
+};

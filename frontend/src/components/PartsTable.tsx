@@ -9,6 +9,7 @@ import {
 import { formatMoney } from "../money";
 import { buttonSecondary } from "../ui";
 import { BundleForm, BundleItem, DeleteBundleDialog } from "./BundleRow";
+import { DeleteDialog } from "./DeleteDialog";
 import { PartForm, PartItem } from "./PartRow";
 
 /** Which form is open (one at a time), or null. */
@@ -47,27 +48,13 @@ export function PartsTable({
     open !== null && typeof open === "object" && "bundleForm" in open
       ? open.bundleForm
       : null;
-  const [deleting, setDeleting] = useState<string | null>(null);
-  const [deleteFailed, setDeleteFailed] = useState(false);
-  const [confirming, setConfirming] = useState<Bundle | null>(null);
+  const [confirmingBundle, setConfirmingBundle] = useState<Bundle | null>(null);
+  const [confirmingPart, setConfirmingPart] = useState<Part | null>(null);
   const close = () => setOpen(null);
   const saved = () => {
     close();
     onChanged();
   };
-
-  async function remove(part: Part) {
-    setDeleting(part.id);
-    setDeleteFailed(false);
-    try {
-      await deletePart(part.id);
-      onChanged();
-    } catch {
-      setDeleteFailed(true);
-    } finally {
-      setDeleting(null);
-    }
-  }
 
   const n = parts.length;
   const any = n > 0 || bundles.length > 0;
@@ -87,9 +74,9 @@ export function PartsTable({
       <PartItem
         key={p.id}
         part={p}
-        deleting={deleting === p.id}
+        deleting={confirmingPart?.id === p.id}
         onEdit={() => setOpen(p.id)}
-        onDelete={() => remove(p)}
+        onDelete={() => setConfirmingPart(p)}
       />
     );
 
@@ -136,12 +123,6 @@ export function PartsTable({
         </button>
       </div>
 
-      {deleteFailed && (
-        <p role="alert" className="pb-3 text-[13px] leading-[18px] text-loss">
-          Couldn’t delete the part. Check your connection and try again.
-        </p>
-      )}
-
       <div className="flex flex-col border-t border-line-strong">
         {!any && !adding && bundleForm === null && (
           <div className="px-3 py-6">
@@ -186,12 +167,12 @@ export function PartsTable({
                       <BundleItem
                         bundle={b}
                         count={inside.length}
-                        deleting={confirming?.id === b.id}
+                        deleting={confirmingBundle?.id === b.id}
                         onAddPart={() =>
                           setOpen({ category: "", bundle: b.id })
                         }
                         onEdit={() => setOpen({ bundleForm: b.id })}
-                        onDelete={() => setConfirming(b)}
+                        onDelete={() => setConfirmingBundle(b)}
                       />
                     )}
                     <ul
@@ -240,15 +221,27 @@ export function PartsTable({
         )}
       </div>
 
-      {confirming && (
+      {confirmingBundle && (
         <DeleteBundleDialog
-          bundle={confirming}
-          parts={parts.filter((p) => p.bundle === confirming.id)}
+          bundle={confirmingBundle}
+          parts={parts.filter((p) => p.bundle === confirmingBundle.id)}
           onDeleted={() => {
-            setConfirming(null);
+            setConfirmingBundle(null);
             onChanged();
           }}
-          onClose={() => setConfirming(null)}
+          onClose={() => setConfirmingBundle(null)}
+        />
+      )}
+      {confirmingPart && (
+        <DeleteDialog
+          what="part"
+          message={`“${confirmingPart.name}” will be deleted. This can’t be undone.`}
+          onConfirm={async () => {
+            await deletePart(confirmingPart.id);
+            setConfirmingPart(null);
+            onChanged();
+          }}
+          onClose={() => setConfirmingPart(null)}
         />
       )}
     </section>
