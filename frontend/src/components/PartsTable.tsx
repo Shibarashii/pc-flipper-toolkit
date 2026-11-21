@@ -48,7 +48,7 @@ export function PartsTable({
     open !== null && typeof open === "object" && "bundleForm" in open
       ? open.bundleForm
       : null;
-  const [confirming, setConfirming] = useState<Bundle | null>(null);
+  const [confirmingBundle, setConfirmingBundle] = useState<Bundle | null>(null);
   const [confirmingPart, setConfirmingPart] = useState<Part | null>(null);
   const close = () => setOpen(null);
   const saved = () => {
@@ -167,12 +167,12 @@ export function PartsTable({
                       <BundleItem
                         bundle={b}
                         count={inside.length}
-                        deleting={confirming?.id === b.id}
+                        deleting={confirmingBundle?.id === b.id}
                         onAddPart={() =>
                           setOpen({ category: "", bundle: b.id })
                         }
                         onEdit={() => setOpen({ bundleForm: b.id })}
-                        onDelete={() => setConfirming(b)}
+                        onDelete={() => setConfirmingBundle(b)}
                       />
                     )}
                     <ul
@@ -221,15 +221,15 @@ export function PartsTable({
         )}
       </div>
 
-      {confirming && (
+      {confirmingBundle && (
         <DeleteBundleDialog
-          bundle={confirming}
-          parts={parts.filter((p) => p.bundle === confirming.id)}
+          bundle={confirmingBundle}
+          parts={parts.filter((p) => p.bundle === confirmingBundle.id)}
           onDeleted={() => {
-            setConfirming(null);
+            setConfirmingBundle(null);
             onChanged();
           }}
-          onClose={() => setConfirming(null)}
+          onClose={() => setConfirmingBundle(null)}
         />
       )}
       {confirmingPart && (
