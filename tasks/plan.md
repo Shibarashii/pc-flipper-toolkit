@@ -333,7 +333,7 @@ a Google-only account.
 
 ### Phase 25: Ask before every action that can't be taken back ([docs/specs/confirm-dialogs.md](../docs/specs/confirm-dialogs.md))
 - [x] T58: Delete a part or an extra cost asks first
-- [ ] T59: Disconnect Google and Exit demo ask first
+- [x] T59: Disconnect Google and Exit demo ask first
 
 ```
 T58 ConfirmDialog + part and cost ── T59 Disconnect and Exit demo ── Checkpoint 23
