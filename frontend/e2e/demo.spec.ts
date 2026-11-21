@@ -21,7 +21,8 @@ test("try the demo: sample builds, then sign up instead", async ({ page }) => {
   await page.setViewportSize({ width: 320, height: viewport.height });
   expect(await scrollsSideways()).toBe(0);
   await page.setViewportSize(viewport);
-  await page.getByRole("button", { name: "Try the demo" }).click();
+  // The hero's button (the closing band has one too).
+  await page.getByRole("button", { name: "Try the demo" }).first().click();
 
   await expect(
     page.getByText("You’re trying a demo. It’s deleted after 24 hours."),

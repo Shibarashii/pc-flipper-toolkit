@@ -39,6 +39,10 @@ export const SOLD_BUILD = {
     part("650W 80+ Bronze", "psu", "3000.00", "2400.00", "new"),
     part("Tecware Nexus Air", "case", "2500.00", "1800.00", "new"),
   ],
+  extraCosts: [
+    { label: "Shipping", amount: "350.00" },
+    { label: "Thermal paste", amount: "150.00" },
+  ],
   sellingPrice: "32000.00",
   totals: {
     listed_total: "35900.00",
