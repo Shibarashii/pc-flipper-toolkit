@@ -1268,8 +1268,11 @@ test.each([
   });
   expect(document.activeElement).toBe(heading);
   expect(screen.getByText("Log in with your new password.")).toBeTruthy();
+  // The page's own link (the header has one too).
   expect(
-    screen.getByRole("link", { name: "Log in" }).getAttribute("href"),
+    within(screen.getByRole("main"))
+      .getByRole("link", { name: "Log in" })
+      .getAttribute("href"),
   ).toBe("/login");
   const { url, body } = requestTo(fetchMock, 0);
   expect(url).toBe("/api/auth/password-reset/confirm/");

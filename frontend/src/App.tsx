@@ -14,6 +14,7 @@ import { ConfirmDialog } from "./components/DeleteDialog";
 import { ThemeToggle } from "./components/ThemeToggle";
 import { BuildDetail } from "./pages/BuildDetail";
 import { BuildsList } from "./pages/BuildsList";
+import { Landing } from "./pages/Landing";
 import { Account } from "./pages/Account";
 import { Login } from "./pages/Login";
 import { Privacy } from "./pages/Privacy";
@@ -33,6 +34,11 @@ export default function App() {
   const [hadSession, setHadSession] = useState(session !== null);
   if (session && !hadSession) setHadSession(true);
   const [exiting, setExiting] = useState(false);
+  // Logged out, Log in or Sign up is the page itself; elsewhere the header has a button.
+  const logInButton =
+    !session &&
+    location.pathname !== "/login" &&
+    location.pathname !== "/signup";
 
   async function logOutEverywhere() {
     // Log out here even if the server can't be reached; the token just lingers there.
@@ -52,7 +58,8 @@ export default function App() {
       <header className="flex items-center justify-between gap-4 border-b border-line px-4 py-3 sm:px-10">
         {/* The logo, then the name: one link home. Logged in, beside "Exit demo", the name
             needs a ~408px window, so narrower phones show the logo alone (named for screen
-            readers). Logged out there's room, and the log-in page shows the name nowhere else. */}
+            readers). Logged out beside "Log in", below 330px too. On Log in and Sign up there's room,
+            and those pages show the name nowhere else. */}
         <Link
           to="/"
           aria-label="PC Flipper Toolkit"
@@ -60,12 +67,25 @@ export default function App() {
         >
           <img src="/logo-light.png" alt="" className="logo-light size-7" />
           <img src="/logo-dark.png" alt="" className="logo-dark size-7" />
-          <span className={session ? "hidden min-[410px]:inline" : undefined}>
+          <span
+            className={
+              session
+                ? "hidden min-[410px]:inline"
+                : logInButton
+                  ? "hidden min-[330px]:inline"
+                  : undefined
+            }
+          >
             PC Flipper Toolkit
           </span>
         </Link>
         <div className="flex min-w-0 items-center gap-2 sm:gap-4">
           <ThemeToggle />
+          {logInButton && (
+            <Link to="/login" className={`shrink-0 ${buttonSecondary}`}>
+              Log in
+            </Link>
+          )}
           {session && (
             <>
               {/* Opens Account: the username from 640px, an icon on phones. */}
@@ -149,6 +169,14 @@ export default function App() {
           </Routes>
         ) : (
           <Routes>
+            {/* Once a session ends here (Log out, Exit demo, the server), log-in is where
+                its message shows. */}
+            <Route
+              path="/"
+              element={
+                hadSession ? <Navigate to="/login" replace /> : <Landing />
+              }
+            />
             <Route path="/login" element={<Login key="login" mode="login" />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/verify-email" element={<VerifyEmail />} />

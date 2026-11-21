@@ -45,6 +45,7 @@ const canonicals = () =>
   );
 
 test.each([
+  ["/", "PC Flipper Toolkit · Track the profit on every PC you flip"],
   ["/login", "Log in · PC Flipper Toolkit"],
   ["/signup", "Sign up · PC Flipper Toolkit"],
   ["/privacy", "Privacy · PC Flipper Toolkit"],
@@ -66,7 +67,10 @@ test.each([
   await waitFor(() => expect(document.title).toBe(title));
 });
 
-test("only Privacy names its own address as canonical", async () => {
+test("only the landing page and Privacy name their own address as canonical", async () => {
+  renderAt("/");
+  await waitFor(() => expect(canonicals()).toEqual([`${SITE_URL}/`]));
+  cleanup();
   renderAt("/privacy");
   await waitFor(() => expect(canonicals()).toEqual([`${SITE_URL}/privacy`]));
   cleanup();
