@@ -51,13 +51,13 @@
       <img src="docs/images/diagram.png" alt="The Build section: a case filling up with parts beside the checklist">
       <br><sub>The case fills in as you add parts.</sub>
       <h3>Every flip, part by part</h3>
-      <p>Each build shows its parts, what's still missing, and the profit as it adds up.</p>
+      <p>Each build shows its parts, what's still missing, and the profit as it adds up, with the margin and what you saved.</p>
     </td>
     <td width="50%" valign="top">
-      <img src="docs/images/summary.png" alt="The summary: ₱4,200 profit, 13.13% margin, and the costs behind it">
-      <br><sub>Profit, margin and what you saved.</sub>
-      <h3>Profit, worked out</h3>
-      <p>Parts at shop prices and what you paid, plus shipping, fees and thermal paste. A bundle counts once.</p>
+      <img src="docs/images/parts.png" alt="The parts table: a bundle and its parts, each with its shop price and what was paid">
+      <br><sub>Shop price and what you paid, part by part.</sub>
+      <h3>What it tracks</h3>
+      <p>Parts with their shop price and what you paid; a bundle counts once. Extra costs like shipping, platform fees and thermal paste.</p>
     </td>
   </tr>
   <tr>
