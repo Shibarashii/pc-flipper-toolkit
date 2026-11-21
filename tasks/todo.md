@@ -1981,7 +1981,7 @@ change, no migration, no new dependencies. T60–T62 and T63–T64 don't depend 
 **Files:** `frontend/src/pages/Landing.tsx` (+ test), `frontend/src/landingDemo.ts`, `frontend/src/components/BuildDiagram.tsx`, `BuildChecklist.tsx`, `frontend/src/App.tsx` (+ test), `frontend/e2e/demo.spec.ts`, `SPEC.md`
 **Scope:** M
 
-### - [ ] T64: The landing page below the hero
+### - [x] T64: The landing page below the hero
 
 **Description:**
 - The blocks from the spec, in order: the build page panel (`BuildChecklist` and `Summary` from
@@ -1990,16 +1990,24 @@ change, no migration, no new dependencies. T60–T62 and T63–T64 don't depend 
   band with both buttons.
 - Pictures `inert`, as in T63. Tests first.
 
+- Built 2026-11-21: the build panel is the real `BuildChecklist` and `Summary` at natural size
+  (Figma shrank them to 94.6%), so the Cooler note wraps; below 1280px, where the build page
+  stacks, the panel shows the Summary only. Try the demo and Sign up are one `WaysIn`
+  component used twice, each with its own state, so an error shows under the button pressed.
+  The questions' plus and minus are inline SVG in `currentColor`; `<details>` gives the
+  keyboard. `demo.spec.ts` clicks the hero's Try the demo (`.first()`). Checked locally: 1280
+  light, 375 dark, 320 (no sideways scroll), Enter opens a question.
+
 **Acceptance criteria:**
-- [ ] Every block reads word for word as in the spec and looks as designed, desktop and 375px,
+- [x] Every block reads word for word as in the spec and looks as designed, desktop and 375px,
   light and dark
-- [ ] The questions open and close with the keyboard; all four answers are in the page's HTML
-- [ ] Nothing in the pictures can be clicked or focused
+- [x] The questions open and close with the keyboard; all four answers are in the page's HTML
+- [x] Nothing in the pictures can be clicked or focused
 
 **Verification:**
-- [ ] Standard verification
+- [x] Standard verification
 - [ ] Manual: desktop, 375px and 320px, light and dark, against the Figma frames; Lighthouse
-  (SEO and accessibility) on the preview
+  (SEO and accessibility) on the preview (the frames checked locally; Lighthouse not yet run)
 
 **Dependencies:** T63
 **Files:** `frontend/src/pages/Landing.tsx` (+ test), `frontend/src/landingDemo.ts`

@@ -39,10 +39,11 @@ test("logged out, / is the landing page with its two ways in", () => {
   renderAt("/");
   expect(heading()).toBeTruthy();
   expect(screen.getByText("For people who flip PCs")).toBeTruthy();
-  expect(screen.getByRole("button", { name: "Try the demo" })).toBeTruthy();
-  expect(
-    screen.getByRole("link", { name: "Sign up" }).getAttribute("href"),
-  ).toBe("/signup");
+  expect(screen.getAllByRole("button", { name: "Try the demo" })).toHaveLength(
+    2,
+  );
+  for (const link of screen.getAllByRole("link", { name: "Sign up" }))
+    expect(link.getAttribute("href")).toBe("/signup");
   expect(
     screen.getByText("No sign-up needed. Deleted after 24 hours."),
   ).toBeTruthy();
@@ -70,7 +71,7 @@ test("Try the demo opens the demo's builds", async () => {
     return Response.json([]);
   });
   renderAt("/");
-  fireEvent.click(screen.getByRole("button", { name: "Try the demo" }));
+  fireEvent.click(screen.getAllByRole("button", { name: "Try the demo" })[0]);
   expect(
     await screen.findByText(
       "You’re trying a demo. It’s deleted after 24 hours.",
@@ -84,7 +85,7 @@ test("if the demo can't start, it says so as the log-in page does", async () => 
     throw new TypeError("offline");
   });
   renderAt("/");
-  fireEvent.click(screen.getByRole("button", { name: "Try the demo" }));
+  fireEvent.click(screen.getAllByRole("button", { name: "Try the demo" })[0]);
   expect((await screen.findByRole("alert")).textContent).toBe(
     "Couldn’t reach the server. Check your connection and try again.",
   );
@@ -106,4 +107,94 @@ test("the header has Log in on the landing page, not on Log in or Sign up", () =
 test("logged out, other pages still send you to log in", () => {
   renderAt("/builds/x");
   expect(screen.getByRole("heading", { name: "Log in" })).toBeTruthy();
+});
+
+test("below the hero: the blocks in order, then the closing band", () => {
+  renderAt("/");
+  expect(
+    // The build panel's own "Build" and "Summary" are part of its picture (inert).
+    screen
+      .getAllByRole("heading", { level: 2 })
+      .filter((h) => !h.closest("[inert]"))
+      .map((h) => h.textContent),
+  ).toEqual([
+    "Every flip, part by part",
+    "What it tracks",
+    "How profit is worked out",
+    "Questions",
+    "Try it on two sample builds",
+  ]);
+  expect(
+    screen.getByText(
+      "Each build shows its parts, what’s still missing, and the profit as it adds up.",
+    ),
+  ).toBeTruthy();
+  for (const [name, line] of [
+    ["Parts", "Shop price and what you paid. A bundle counts once."],
+    ["Extra costs", "Shipping, platform fees, thermal paste."],
+    ["Status", "Planning, building, listed or sold: see where each PC is."],
+  ]) {
+    expect(screen.getByText(name, { selector: "h3" })).toBeTruthy();
+    expect(screen.getByText(line)).toBeTruthy();
+  }
+  expect(
+    screen.getByText("No sign-up needed. Your demo is deleted after 24 hours."),
+  ).toBeTruthy();
+});
+
+test("the equation is text: sold for, minus total cost, equals profit", () => {
+  renderAt("/");
+  const equation = screen.getByRole("heading", {
+    name: "How profit is worked out",
+  }).parentElement!;
+  expect(equation.textContent).toContain(
+    "₱32,000Sold for−₱27,800Parts ₱27,300 + extra costs ₱500=+₱4,200Profit · 13.13% of the selling price",
+  );
+});
+
+test("the questions are details rows, the first open, every answer in the page", () => {
+  const { container } = renderAt("/");
+  const rows = [...container.querySelectorAll("details")];
+  expect(rows.map((d) => d.querySelector("summary")!.textContent)).toEqual([
+    "How do I track profit when flipping PCs?",
+    "Is it free?",
+    "Can I try it without an account?",
+    "Where do the shop prices come from?",
+  ]);
+  expect(rows.map((d) => d.open)).toEqual([true, false, false, false]);
+  const answers = rows.map((d) => d.querySelector("p")!.textContent);
+  expect(answers).toEqual([
+    "Make a build for each PC, add every part with what you paid and the extra costs, then set the selling price. The app adds it up on each build and across all your builds.",
+    "Yes.",
+    "Yes. Try the demo gives you your own account with two sample builds to change as you like. It’s deleted after 24 hours.",
+    "When you add a part, you can search current prices from EasyPC and PC Express, refreshed once a day, or type a price yourself.",
+  ]);
+});
+
+test("the build panel and the small pictures can't be clicked or focused", () => {
+  const { container } = renderAt("/");
+  const panel = screen.getByRole("img", {
+    name: "The demo’s sold build on its build page: its parts and its summary",
+  });
+  expect(panel.querySelector(":scope > [inert]")).toBeTruthy();
+  // The checklist's Add buttons are in the page, but inside inert.
+  for (const button of within(panel).getAllByRole("button", { hidden: true }))
+    expect(button.closest("[inert]")).toBeTruthy();
+  // Each "What it tracks" picture is inert too; its words say what it shows.
+  expect(container.querySelectorAll("li > [inert]")).toHaveLength(3);
+});
+
+test("a demo that fails in the closing band says so there", async () => {
+  vi.stubGlobal("fetch", async () => {
+    throw new TypeError("offline");
+  });
+  renderAt("/");
+  const band = screen.getByRole("heading", {
+    name: "Try it on two sample builds",
+  }).parentElement!;
+  fireEvent.click(within(band).getByRole("button", { name: "Try the demo" }));
+  expect((await within(band).findByRole("alert")).textContent).toBe(
+    "Couldn’t reach the server. Check your connection and try again.",
+  );
+  expect(screen.getAllByRole("alert")).toHaveLength(1);
 });
