@@ -1885,7 +1885,7 @@ change, no migration, no new dependencies. T60–T62 and T63–T64 don't depend 
 **Files:** `frontend/vercel.json`, `frontend/public/404.html`, `frontend/public/404.css`, `frontend/src/seo.test.ts`
 **Scope:** S
 
-### - [ ] T61: Each page names itself (titles, canonicals)
+### - [x] T61: Each page names itself (titles, canonicals)
 
 **Description:**
 - `src/site.ts` exports `SITE_URL`.
@@ -1894,18 +1894,24 @@ change, no migration, no new dependencies. T60–T62 and T63–T64 don't depend 
 - Privacy renders its canonical; the static canonical leaves `index.html` (`og:url` stays).
 - `seo.test.ts`: `index.html` has no canonical. Tests first.
 
+- Built 2026-11-21: one `<title>` line per page, inside its `<main>`; a build's says "Build"
+  until it loads. Privacy's canonical uses `SITE_URL`. The share card test (`csp.test.ts`) no
+  longer expects the static canonical. `titles.test.tsx` renders each route, logged out and in,
+  and checks the title and the canonicals. In the browser React's `<title>` comes before
+  `index.html`'s, which stays as the fallback before the app runs.
+
 **Acceptance criteria:**
-- [ ] Each page's tab shows its title from the spec, and a build's shows its name
-- [ ] `/privacy` has exactly one canonical, to itself; no other page has one yet
-- [ ] The share card is unchanged
+- [x] Each page's tab shows its title from the spec, and a build's shows its name
+- [x] `/privacy` has exactly one canonical, to itself; no other page has one yet
+- [x] The share card is unchanged
 
 **Verification:**
-- [ ] Standard verification
-- [ ] Manual: tab titles on each page; `document.querySelectorAll('link[rel=canonical]')` on
+- [x] Standard verification
+- [x] Manual: tab titles on each page; `document.querySelectorAll('link[rel=canonical]')` on
   `/privacy` and `/login`
 
 **Dependencies:** None (T60 first by order only)
-**Files:** `frontend/src/site.ts`, `frontend/index.html`, `frontend/src/pages/*.tsx` (one line each), `frontend/src/seo.test.ts`
+**Files:** `frontend/src/site.ts`, `frontend/index.html`, `frontend/src/pages/*.tsx` (one line each), `frontend/src/seo.test.ts`, `frontend/src/titles.test.tsx`, `frontend/src/csp.test.ts`
 **Scope:** M
 
 ### - [ ] T62: A sitemap and the site's name for Google

@@ -3,6 +3,7 @@ import { Link } from "react-router";
 import { askForResetLink, generalError } from "../api";
 import { Field, focusOnMount, useSave } from "../components/form";
 import { buttonPrimary, input, link } from "../ui";
+import { pageTitle } from "../site";
 
 /** `/forgot`, logged in or out: emails the username and a reset link. The same message
  * whether or not an account has the email. */
@@ -21,6 +22,7 @@ export function Forgot() {
 
   return (
     <main className="mx-auto max-w-[400px] px-4 pt-12 pb-10 text-[15px] leading-[22px] sm:pt-20">
+      <title>{pageTitle("Forgot password")}</title>
       <h1 className="font-serif text-[40px] leading-[44px] font-medium tracking-[-0.01em]">
         Forgot your username or password?
       </h1>

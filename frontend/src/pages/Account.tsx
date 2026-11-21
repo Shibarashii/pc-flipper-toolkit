@@ -23,6 +23,7 @@ import { Field, useSave } from "../components/form";
 import { Bone, Skeleton } from "../components/Skeleton";
 import { GoogleButton, googleClientId } from "../google";
 import { buttonPrimary, buttonSecondary, input } from "../ui";
+import { pageTitle } from "../site";
 
 const section = "border-t border-line-strong pt-4";
 const heading = "font-serif text-[22px] leading-7 font-medium";
@@ -65,6 +66,7 @@ export function Account() {
 
   return (
     <main className="mx-auto max-w-[640px] px-4 pt-12 pb-16 text-[15px] leading-[22px] sm:pt-20">
+      <title>{pageTitle("Account")}</title>
       <h1 className="font-serif text-[40px] leading-[44px] font-medium tracking-[-0.01em]">
         Account
       </h1>

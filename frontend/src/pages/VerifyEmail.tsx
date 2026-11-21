@@ -3,6 +3,7 @@ import { Link, useSearchParams } from "react-router";
 import { ApiError, confirmEmail, generalError } from "../api";
 import { Bone, Skeleton } from "../components/Skeleton";
 import { link } from "../ui";
+import { pageTitle } from "../site";
 
 type Result =
   | { kind: "loading" }
@@ -50,6 +51,7 @@ export function VerifyEmail() {
 
   return (
     <main className="mx-auto max-w-[400px] px-4 pt-12 pb-10 text-[15px] leading-[22px] sm:pt-20">
+      <title>{pageTitle("Verify email")}</title>
       {result.kind === "loading" ? (
         <Skeleton label="Confirming your email">
           <Bone className="h-11 w-full" />

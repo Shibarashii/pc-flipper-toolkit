@@ -8,6 +8,7 @@ import { Notes } from "../components/Notes";
 import { PartsTable, type PartsOpen } from "../components/PartsTable";
 import { Bone, Skeleton } from "../components/Skeleton";
 import { Summary } from "../components/Summary";
+import { pageTitle } from "../site";
 
 // The page's two columns; the loading skeleton uses them too, so it keeps matching.
 // Below 1280px they stack with the summary first: it's the numbers you open a build
@@ -66,6 +67,15 @@ export function BuildDetail() {
 
   return (
     <main className="mx-auto max-w-[1216px] px-4 pt-6 pb-10 sm:px-8 sm:pt-8">
+      <title>
+        {pageTitle(
+          state.kind === "ok"
+            ? state.build.name
+            : state.kind === "not-found"
+              ? "Build not found"
+              : "Build",
+        )}
+      </title>
       <Link
         to="/"
         className="text-[13px] leading-[18px] font-medium text-muted hover:text-ink"
