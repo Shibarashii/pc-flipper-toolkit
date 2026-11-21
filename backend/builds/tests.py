@@ -1708,6 +1708,7 @@ class DemoTests(APITestCase):
                 "total_cost": "27800.00",
             },
         )
+        # The landing page shows this build (frontend/src/landingDemo.ts): change both.
         self.assertEqual(sold["totals"]["profit"], "4200.00")
         self.assertEqual(sold["totals"]["profit_margin"], "13.13")
         detail = self.client.get(f"/api/builds/{sold['id']}/").json()

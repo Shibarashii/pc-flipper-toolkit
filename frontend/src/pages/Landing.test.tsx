@@ -53,7 +53,10 @@ test("the picture is one labelled image that can't be clicked or focused", () =>
   const picture = screen.getByRole("img", {
     name: "A sold build: its parts in the case, and +₱4,200.00 profit",
   });
-  expect(picture.hasAttribute("inert")).toBe(true);
+  // Inert inside the label: an inert element is hidden from screen readers, label and all.
+  expect(picture.hasAttribute("inert")).toBe(false);
+  expect(picture.firstElementChild?.hasAttribute("inert")).toBe(true);
+  expect(picture.children).toHaveLength(1);
   // Phones and desktops each get their version; CSS shows one.
   expect(within(picture).getByText("₱9,500 bundle")).toBeTruthy();
   expect(within(picture).getAllByText("+₱4,200.00")).toHaveLength(2);

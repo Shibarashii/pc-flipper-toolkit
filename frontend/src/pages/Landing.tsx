@@ -72,15 +72,17 @@ export function Landing() {
         </p>
       </div>
 
-      {/* A picture, not controls: inert, and named once for screen readers. */}
+      {/* A picture, named once for screen readers. Its parts are inert, so nothing in them
+          can be clicked or focused; the label stays outside, since inert hides its own. */}
       <div
-        inert
         role="img"
         aria-label={`A sold build: its parts in the case, and ${profit} profit`}
         className="mt-10"
       >
-        <PhoneArt />
-        <DesktopArt />
+        <div inert>
+          <PhoneArt />
+          <DesktopArt />
+        </div>
       </div>
     </main>
   );
