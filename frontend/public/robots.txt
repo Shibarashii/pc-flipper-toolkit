@@ -1,2 +1,4 @@
 User-agent: *
 Allow: /
+
+Sitemap: https://pc-flipper-toolkit.vercel.app/sitemap.xml
