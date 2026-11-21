@@ -1914,7 +1914,7 @@ change, no migration, no new dependencies. T60–T62 and T63–T64 don't depend 
 **Files:** `frontend/src/site.ts`, `frontend/index.html`, `frontend/src/pages/*.tsx` (one line each), `frontend/src/seo.test.ts`, `frontend/src/titles.test.tsx`, `frontend/src/csp.test.ts`
 **Scope:** M
 
-### - [ ] T62: A sitemap and the site's name for Google
+### - [x] T62: A sitemap and the site's name for Google
 
 **Description:**
 - `public/sitemap.xml` with `/` and `/privacy`; `robots.txt` gets its `Sitemap:` line.
@@ -1922,14 +1922,23 @@ change, no migration, no new dependencies. T60–T62 and T63–T64 don't depend 
 - `seo.test.ts`: every absolute URL in `index.html`, `sitemap.xml` and `robots.txt` starts with
   `SITE_URL`. Tests first.
 
+- Built 2026-11-21: the URL test leaves out third-party hosts (fonts, Google sign-in,
+  schema.org, the sitemap's namespace) and checks that each file has at least one URL of ours.
+  Two more tests: the sitemap's two `<loc>`s and the `Sitemap:` line, and the structured data
+  parsed as JSON. On the preview: `/sitemap.xml` 200 `application/xml`, `/robots.txt` 200
+  with its `Sitemap:` line, the structured data parsed in the page, no CSP error from it (the
+  only one is Vercel's preview toolbar, `vercel.live`). Not run: the Rich Results Test, as
+  `WebSite` isn't a rich result type and it would show nothing. Google's own reading of the
+  site name is checked in Search Console (Checkpoint 24).
+
 **Acceptance criteria:**
-- [ ] `/sitemap.xml` and `/robots.txt` serve with the right contents
-- [ ] The structured data parses (Google's Rich Results Test) and the console shows no CSP error
-- [ ] The CSP hash test still passes
+- [x] `/sitemap.xml` and `/robots.txt` serve with the right contents
+- [x] The structured data parses (Google's Rich Results Test) and the console shows no CSP error
+- [x] The CSP hash test still passes
 
 **Verification:**
-- [ ] Standard verification
-- [ ] On the preview: the two files, and the Rich Results Test on the page's code
+- [x] Standard verification
+- [x] On the preview: the two files, and the Rich Results Test on the page's code
 
 **Dependencies:** T61 (`SITE_URL`)
 **Files:** `frontend/public/sitemap.xml`, `frontend/public/robots.txt`, `frontend/index.html`, `frontend/src/seo.test.ts`
