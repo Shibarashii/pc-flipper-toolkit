@@ -1,4 +1,5 @@
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -32,7 +33,7 @@ const renderAt = (path: string) =>
 const heading = () =>
   screen.queryByRole("heading", {
     level: 1,
-    name: "See the real profit on every PC you flip",
+    name: "Track your profit on every PC you flip",
   });
 
 test("logged out, / is the landing page with its two ways in", () => {
@@ -197,4 +198,56 @@ test("a demo that fails in the closing band says so there", async () => {
     "Couldn’t reach the server. Check your connection and try again.",
   );
   expect(screen.getAllByRole("alert")).toHaveLength(1);
+});
+
+test("the blocks below the hero fade in once, as they scroll into view", () => {
+  const seen: [IntersectionObserverCallback, Element[]][] = [];
+  vi.stubGlobal(
+    "IntersectionObserver",
+    class {
+      targets: Element[] = [];
+      constructor(callback: IntersectionObserverCallback) {
+        seen.push([callback, this.targets]);
+      }
+      observe(el: Element) {
+        this.targets.push(el);
+      }
+      disconnect() {}
+    },
+  );
+  renderAt("/");
+  const block = screen.getByRole("heading", {
+    name: "What it tracks",
+  }).parentElement!;
+  const band = screen.getByRole("heading", {
+    name: "Try it on two sample builds",
+  }).parentElement!;
+  // Hidden for the eye only: the words are in the page from the start.
+  expect(block.dataset.shown).toBe("false");
+  expect(band.dataset.shown).toBe("false");
+  expect(block.textContent).toContain("Shipping, platform fees");
+
+  const [callback] = seen.find(([, targets]) => targets.includes(block))!;
+  act(() =>
+    callback(
+      [
+        {
+          isIntersecting: true,
+          target: block,
+        } as unknown as IntersectionObserverEntry,
+      ],
+      {} as IntersectionObserver,
+    ),
+  );
+  expect(block.dataset.shown).toBe("true");
+  expect(band.dataset.shown).toBe("false");
+});
+
+test("without IntersectionObserver, the blocks show at once", () => {
+  vi.stubGlobal("IntersectionObserver", undefined);
+  renderAt("/");
+  const block = screen.getByRole("heading", {
+    name: "Questions",
+  }).parentElement!;
+  expect(block.dataset.shown).toBe("true");
 });

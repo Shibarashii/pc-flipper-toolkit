@@ -126,7 +126,7 @@ in them can be clicked or focused. The diagram moves out of `BuildChecklist` int
 ### Hero (the first screen at 1280×720; on a phone, through the buttons)
 
 - **Label:** For people who flip PCs (small, accent)
-- **Heading** (`h1`): See the real profit on every PC you flip
+- **Heading** (`h1`): Track your profit on every PC you flip (was "See the real profit…", changed 2026-11-21)
 - **Line:** Log each part, bundle and extra cost. The app does the math.
 - **Try the demo** (primary) and **Sign up** (secondary). Try the demo calls the same
   `tryDemo()` as the log-in page and shows the same error if it fails; then `/` becomes the
@@ -169,6 +169,10 @@ on desktop and 72px on phones. No cards except the pictures; hairlines between q
      from EasyPC and PC Express, refreshed once a day, or type a price yourself.
 5. **A closing band** on `sunken`, full width, centered: "Try it on two sample builds" (`h2`),
    "No sign-up needed. Your demo is deleted after 24 hours.", **Try the demo** and **Sign up**.
+
+Each block below the hero, and the closing band, fades in (from 16px lower) as it scrolls into
+view, once. Every block is in the HTML from the start, so search engines read it all; with
+reduce motion set, nothing moves (added 2026-11-21).
 
 Then the footer, as on every page.
 

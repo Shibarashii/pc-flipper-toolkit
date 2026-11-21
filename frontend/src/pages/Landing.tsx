@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link } from "react-router";
 import { ApiError, generalError, tryDemo } from "../api";
 import { saveSession } from "../auth";
@@ -30,7 +30,7 @@ export function Landing() {
               For people who flip PCs
             </p>
             <h1 className="font-serif text-[40px] leading-[44px] font-medium tracking-[-0.01em] sm:text-[60px] sm:leading-[64px]">
-              See the real profit on every PC you flip
+              Track your profit on every PC you flip
             </h1>
             <p className="text-[15px] leading-[22px] text-muted">
               Log each part, bundle and extra cost. The app does the math.
@@ -59,13 +59,13 @@ export function Landing() {
         <Questions />
       </div>
 
-      <section className="mt-[72px] border-t border-line bg-sunken px-4 py-14 text-center sm:mt-28 sm:py-20">
+      <FadeIn className="mt-[72px] border-t border-line bg-sunken px-4 py-14 text-center sm:mt-28 sm:py-20">
         <h2 className={sectionTitle}>Try it on two sample builds</h2>
         <WaysIn
           centered
           line="No sign-up needed. Your demo is deleted after 24 hours."
         />
-      </section>
+      </FadeIn>
     </main>
   );
 }
@@ -147,13 +147,47 @@ function Block({
   children: ReactNode;
 }) {
   return (
-    <section className="pt-[72px] sm:pt-28">
+    <FadeIn className="pt-[72px] sm:pt-28">
       <h2 className={sectionTitle}>{title}</h2>
       {line && (
         <p className="mt-3 max-w-[560px] text-[15px] leading-[22px] text-muted sm:mt-4">
           {line}
         </p>
       )}
+      {children}
+    </FadeIn>
+  );
+}
+
+/** A section that eases in from 16px lower the first time it scrolls into view. Its words
+ * are in the page from the start (for search); only its look waits. With reduce motion set,
+ * when printed, or without IntersectionObserver, it shows at once. Only opacity and position
+ * animate, so a theme switch doesn't fade its background. */
+function FadeIn({
+  className,
+  children,
+}: {
+  className: string;
+  children: ReactNode;
+}) {
+  const ref = useRef<HTMLElement>(null);
+  const [shown, setShown] = useState(
+    () => typeof IntersectionObserver === "undefined",
+  );
+  useEffect(() => {
+    if (shown) return;
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) setShown(true);
+    });
+    observer.observe(ref.current!);
+    return () => observer.disconnect();
+  }, [shown]);
+  return (
+    <section
+      ref={ref}
+      data-shown={shown}
+      className={`transition-[opacity,translate] duration-700 ease-out motion-safe:data-[shown=false]:translate-y-4 motion-safe:data-[shown=false]:opacity-0 print:translate-y-0! print:opacity-100! ${className}`}
+    >
       {children}
     </section>
   );
