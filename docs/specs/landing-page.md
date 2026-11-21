@@ -45,7 +45,7 @@ confirmed in conversation on 2026-11-21. Replaces two backlog entries ("A landin
 
 | Path | Title | Indexed |
 |---|---|---|
-| `/` logged out | `PC Flipper Toolkit · Track the profit on every PC you flip` | yes, canonical `/` |
+| `/` logged out | `PC Flipper Toolkit · Track your profit on every PC you flip` | yes, canonical `/` |
 | `/` logged in | `Builds · PC Flipper Toolkit` | (Google is never logged in) |
 | `/builds/:id` | `<build name> · PC Flipper Toolkit` | no |
 | `/privacy` | `Privacy · PC Flipper Toolkit` | yes, canonical `/privacy` |
@@ -102,8 +102,8 @@ changes often.)
 
 ### GitHub and Search Console (the author's part, no code)
 
-- **The repo:** its description becomes the meta description's line ("Track the profit on every
-  PC you flip…"), with `pc-flipper`, `profit-tracker` and `pc-building` added to its topics.
+- **The repo:** its description becomes the meta description's line ("For people who flip PCs.
+  Log each part…"), with `pc-flipper`, `profit-tracker` and `pc-building` added to its topics.
   Changed with `gh repo edit` once the author says yes.
 - **Search Console**, after the deploy: submit `sitemap.xml`, inspect `/` and press **Request
   indexing**, then do the same for `/privacy`.

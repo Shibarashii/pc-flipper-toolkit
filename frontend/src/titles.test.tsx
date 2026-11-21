@@ -45,7 +45,7 @@ const canonicals = () =>
   );
 
 test.each([
-  ["/", "PC Flipper Toolkit · Track the profit on every PC you flip"],
+  ["/", "PC Flipper Toolkit · Track your profit on every PC you flip"],
   ["/login", "Log in · PC Flipper Toolkit"],
   ["/signup", "Sign up · PC Flipper Toolkit"],
   ["/privacy", "Privacy · PC Flipper Toolkit"],

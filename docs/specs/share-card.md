@@ -37,17 +37,17 @@ stays the source of truth for everything else. Intent confirmed in conversation 
 ### Tags (`frontend/index.html`, in `<head>`, after `<title>`)
 
 ```html
-<meta name="description" content="Track the profit on every PC you flip: parts, extra costs, selling price and true profit. Try the demo, no sign-up needed." />
+<meta name="description" content="For people who flip PCs. Log each part, bundle and extra cost, and the app does the math. Try the demo, no sign-up needed." />
 <link rel="canonical" href="https://pc-flipper-toolkit.vercel.app/" />
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="PC Flipper Toolkit" />
-<meta property="og:title" content="PC Flipper Toolkit" />
+<meta property="og:title" content="PC Flipper Toolkit · Track your profit on every PC you flip" />
 <meta property="og:description" content="(the same line as the description)" />
 <meta property="og:url" content="https://pc-flipper-toolkit.vercel.app/" />
 <meta property="og:image" content="https://pc-flipper-toolkit.vercel.app/og-image.png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
-<meta property="og:image:alt" content="The builds list: each PC build with its status, cost, selling price and profit" />
+<meta property="og:image:alt" content="The landing page: “Track your profit on every PC you flip”, beside a sold build’s parts in its case and +₱4,200.00 profit" />
 ```
 
 - **The line** is under 155 characters, so Google doesn't cut it, and it ends on "Try the
@@ -63,11 +63,14 @@ stays the source of truth for everything else. Intent confirmed in conversation 
 
 - 1200×630 PNG, under 1 MB (LinkedIn and Facebook both accept it; Messenger uses Facebook's
   copy).
-- A fresh screenshot, not the README's (that one is from 2026-10-27, before the summary, the
-  header logo and the row inset): the builds list of a demo account, light theme, taken at a
-  1200×630 viewport, so nothing needs cropping or scaling.
-- The demo's two sample builds and the summary are visible; nothing personal (a demo
-  username like `demo-…` in the header is fine).
+- **Since 2026-11-21: the landing page's first screen** (it was the builds list), so the card
+  shows what a visitor lands on. Logged out, light theme: the heading, the line, Try the demo
+  and the case with the sold build's parts and its profit.
+- Taken from the running app, not drawn: the page at 1371×720 (the 1200×630 shape at the
+  page's 720px design height, so the hero isn't stacked) with a device scale of 1200/1371, so
+  the PNG comes out at 1200×630 with nothing cropped. Retake it when the hero changes.
+- **The words** follow the landing page: its title for `og:title`, and its label and line,
+  ending on the demo, for the description.
 
 ### `frontend/public/robots.txt`
 

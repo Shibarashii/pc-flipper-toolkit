@@ -20,7 +20,7 @@ const profit = formatSignedMoney(SOLD_BUILD.totals.profit);
 export function Landing() {
   return (
     <main>
-      <title>{`${SITE_NAME} · Track the profit on every PC you flip`}</title>
+      <title>{`${SITE_NAME} · Track your profit on every PC you flip`}</title>
       <link rel="canonical" href={`${SITE_URL}/`} />
 
       <div className="mx-auto max-w-[1280px] px-4 md:px-16">

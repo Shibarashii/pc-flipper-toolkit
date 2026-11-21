@@ -68,7 +68,9 @@ test("index.html has the share card's tags and its 1200×630 image", () => {
   expect(line.length).toBeLessThan(155);
   expect(line).toMatch(/Try the demo, no sign-up needed\.$/);
   expect(meta("property", "og:description")).toBe(line);
-  expect(meta("property", "og:title")).toBe("PC Flipper Toolkit");
+  expect(meta("property", "og:title")).toBe(
+    "PC Flipper Toolkit · Track your profit on every PC you flip",
+  );
   expect(meta("property", "og:type")).toBe("website");
   expect(meta("property", "og:url")).toBe(site);
   expect(meta("property", "og:image")).toBe(`${site}og-image.png`);
