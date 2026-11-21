@@ -2013,6 +2013,26 @@ change, no migration, no new dependencies. T60–T62 and T63–T64 don't depend 
 **Files:** `frontend/src/pages/Landing.tsx` (+ test), `frontend/src/landingDemo.ts`
 **Scope:** M
 
+### - [ ] T65: The blocks below the hero fade in as they scroll into view
+
+**Description:** Asked for on 2026-11-21 ("lazy loading, just like how developers do it"); the
+author picked a fade-in on scroll over loading the code or the blocks later, so every block
+stays in the HTML for search. Each block and the closing band starts 16px lower and
+transparent, and eases in once when it enters the viewport (`IntersectionObserver`).
+
+**Acceptance criteria:**
+- [ ] A block below the hero is hidden until it scrolls into view, then shows and stays shown
+- [ ] All the blocks' text is in the page from the start
+- [ ] With reduce motion set, or without `IntersectionObserver`, the blocks show at once
+
+**Verification:**
+- [ ] `npx vitest run src/pages/Landing.test.tsx`, lint, build, e2e
+- [ ] Manual: scroll the page at 1280 and 375; reduce motion shows everything at once
+
+**Dependencies:** T64
+**Files:** `frontend/src/pages/Landing.tsx` (+ test)
+**Scope:** S
+
 ### Checkpoint 24: A landing page, and pages Google can tell apart
 - Checked live 2026-11-21 (after #121): criteria 1–4 pass. `/` at 1280×720 fits the hero in
   light and dark; 375 light and dark, no sideways scroll; Try the demo opens the demo's two

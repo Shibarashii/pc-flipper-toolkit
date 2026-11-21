@@ -170,6 +170,10 @@ on desktop and 72px on phones. No cards except the pictures; hairlines between q
 5. **A closing band** on `sunken`, full width, centered: "Try it on two sample builds" (`h2`),
    "No sign-up needed. Your demo is deleted after 24 hours.", **Try the demo** and **Sign up**.
 
+Each block below the hero, and the closing band, fades in (from 16px lower) as it scrolls into
+view, once. Every block is in the HTML from the start, so search engines read it all; with
+reduce motion set, nothing moves (added 2026-11-21).
+
 Then the footer, as on every page.
 
 ## Commands

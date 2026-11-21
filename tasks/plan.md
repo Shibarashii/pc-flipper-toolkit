@@ -352,6 +352,7 @@ light and dark.
 - [x] T62: A sitemap and the site's name for Google
 - [x] T63: The landing page's hero at `/`
 - [x] T64: The landing page below the hero
+- [ ] T65: The blocks below the hero fade in as they scroll into view
 
 ```
 T60 404s + noindex ── T61 titles + canonicals ── T62 sitemap + site name ──┐
