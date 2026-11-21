@@ -1,5 +1,12 @@
 {
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }],
+  "rewrites": [
+    { "source": "/", "destination": "/index.html" },
+    {
+      "source": "/(login|signup|privacy|account|forgot|reset-password|verify-email)",
+      "destination": "/index.html"
+    },
+    { "source": "/builds/:id", "destination": "/index.html" }
+  ],
   "headers": [
     {
       "source": "/(.*)",
@@ -21,6 +28,14 @@
     {
       "source": "/(verify-email|reset-password)",
       "headers": [{ "key": "Referrer-Policy", "value": "no-referrer" }]
+    },
+    {
+      "source": "/(login|signup|account|forgot|reset-password|verify-email)",
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex" }]
+    },
+    {
+      "source": "/builds/(.*)",
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex" }]
     }
   ]
 }

@@ -347,7 +347,7 @@ is its own PR. Built from the Confirm dialogs section on Ready for development (
 light and dark.
 
 ### Phase 26: A landing page, and pages Google can tell apart ([docs/specs/landing-page.md](../docs/specs/landing-page.md))
-- [ ] T60: Unknown URLs return 404, private pages ask not to be indexed
+- [x] T60: Unknown URLs return 404, private pages ask not to be indexed
 - [ ] T61: Each page names itself (titles, canonicals)
 - [ ] T62: A sitemap and the site's name for Google
 - [ ] T63: The landing page's hero at `/`

@@ -1850,7 +1850,7 @@ Spec: [docs/specs/landing-page.md](../docs/specs/landing-page.md). Designs: the 
 section on Figma's Ready for development (approved 2026-11-21). Frontend and Vercel only: no API
 change, no migration, no new dependencies. T60–T62 and T63–T64 don't depend on each other.
 
-### - [ ] T60: Unknown URLs return 404, private pages ask not to be indexed
+### - [x] T60: Unknown URLs return 404, private pages ask not to be indexed
 
 **Description:**
 - `vercel.json` rewrites only the app's routes (`/`, `/login`, `/signup`, `/privacy`,
@@ -1860,18 +1860,23 @@ change, no migration, no new dependencies. T60–T62 and T63–T64 don't depend 
 - `X-Robots-Tag: noindex` on `/(login|signup|account|forgot|reset-password|verify-email)` and
   `/builds/(.*)`, listed one by one.
 - `src/seo.test.ts`: every `path` in `App.tsx` (but `*`) matches a rewrite. Tests first.
+- Built 2026-11-21: three rewrites (`/`, the seven named pages in one pattern, `/builds/:id`),
+  two `X-Robots-Tag` rules. `seo.test.ts` reads the routes from `App.tsx`, checks unknown paths
+  (`/anything`, `/builds/a/b`) aren't rewritten, and that `/`, `/privacy` and `/sitemap.xml` get
+  no `noindex`. The 404 page checked locally at 1280 light and 375 dark; its 404 status and the
+  headers can only be seen on the Vercel preview.
 
 **Acceptance criteria:**
-- [ ] Every app page still opens by its URL, including a build's; `google0717eefd8353a321.html`
+- [x] Every app page still opens by its URL, including a build's; `google0717eefd8353a321.html`
   and the other files in `public/` are served as before
-- [ ] An unknown path gets the not-found page with status 404, light and dark by the browser
-- [ ] The private paths send `noindex`; `/` and `/privacy` don't
+- [x] An unknown path gets the not-found page with status 404, light and dark by the browser
+- [x] The private paths send `noindex`; `/` and `/privacy` don't
 
 **Verification:**
-- [ ] Standard verification
+- [x] Standard verification
 - [ ] On the Vercel preview: deep links to each page and a build, `curl -sI` on `/anything`,
   `/login` and `/`
-- [ ] Manual: the 404 page at desktop and 375px, light and dark
+- [x] Manual: the 404 page at desktop and 375px, light and dark
 
 **Dependencies:** None
 **Files:** `frontend/vercel.json`, `frontend/public/404.html`, `frontend/public/404.css`, `frontend/src/seo.test.ts`
