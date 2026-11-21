@@ -5,7 +5,7 @@ test("try the demo: sample builds, then sign up instead", async ({ page }) => {
   await page.goto("/");
   await expect(
     page.getByRole("heading", {
-      name: "See the real profit on every PC you flip",
+      name: "Track your profit on every PC you flip",
     }),
   ).toBeVisible();
   // Logged out, the header has room for the name, and it's the only place the log-in

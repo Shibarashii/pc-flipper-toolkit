@@ -126,7 +126,7 @@ in them can be clicked or focused. The diagram moves out of `BuildChecklist` int
 ### Hero (the first screen at 1280×720; on a phone, through the buttons)
 
 - **Label:** For people who flip PCs (small, accent)
-- **Heading** (`h1`): See the real profit on every PC you flip
+- **Heading** (`h1`): Track your profit on every PC you flip (was "See the real profit…", changed 2026-11-21)
 - **Line:** Log each part, bundle and extra cost. The app does the math.
 - **Try the demo** (primary) and **Sign up** (secondary). Try the demo calls the same
   `tryDemo()` as the log-in page and shows the same error if it fails; then `/` becomes the

@@ -33,7 +33,7 @@ const renderAt = (path: string) =>
 const heading = () =>
   screen.queryByRole("heading", {
     level: 1,
-    name: "See the real profit on every PC you flip",
+    name: "Track your profit on every PC you flip",
   });
 
 test("logged out, / is the landing page with its two ways in", () => {

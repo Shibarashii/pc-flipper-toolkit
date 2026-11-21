@@ -30,7 +30,7 @@ export function Landing() {
               For people who flip PCs
             </p>
             <h1 className="font-serif text-[40px] leading-[44px] font-medium tracking-[-0.01em] sm:text-[60px] sm:leading-[64px]">
-              See the real profit on every PC you flip
+              Track your profit on every PC you flip
             </h1>
             <p className="text-[15px] leading-[22px] text-muted">
               Log each part, bundle and extra cost. The app does the math.
