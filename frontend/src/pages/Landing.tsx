@@ -161,7 +161,8 @@ function Block({
 
 /** A section that eases in from 16px lower the first time it scrolls into view. Its words
  * are in the page from the start (for search); only its look waits. With reduce motion set,
- * or without IntersectionObserver, it shows at once. */
+ * when printed, or without IntersectionObserver, it shows at once. Only opacity and position
+ * animate, so a theme switch doesn't fade its background. */
 function FadeIn({
   className,
   children,
@@ -175,12 +176,9 @@ function FadeIn({
   );
   useEffect(() => {
     if (shown) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) setShown(true);
-      },
-      { rootMargin: "0px 0px -10% 0px" },
-    );
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) setShown(true);
+    });
     observer.observe(ref.current!);
     return () => observer.disconnect();
   }, [shown]);
@@ -188,7 +186,7 @@ function FadeIn({
     <section
       ref={ref}
       data-shown={shown}
-      className={`transition duration-700 ease-out motion-safe:data-[shown=false]:translate-y-4 motion-safe:data-[shown=false]:opacity-0 ${className}`}
+      className={`transition-[opacity,translate] duration-700 ease-out motion-safe:data-[shown=false]:translate-y-4 motion-safe:data-[shown=false]:opacity-0 print:translate-y-0! print:opacity-100! ${className}`}
     >
       {children}
     </section>
