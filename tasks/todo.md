@@ -2038,6 +2038,33 @@ transparent, and eases in once when it enters the viewport (`IntersectionObserve
 **Files:** `frontend/src/pages/Landing.tsx` (+ test)
 **Scope:** S
 
+### - [x] T66: On desktop the hero fills the first screen
+
+**Description:** Asked for on 2026-11-21 ([intent](../docs/intent/landing-hero-height.md)): on a
+desktop screen taller than 720px, the next block's heading peeked into the first screen. The
+hero (1280px and wider) now takes the screen's height below the header, up to 960px, and
+centers its content as one block; shorter screens keep its own height.
+
+- Built 2026-11-21: the hero (`xl`) has `min-height: min(100svh − 65px header, 960px)` and
+  centers its row; the picture's top margin became the hero's padding, so at 1280×720 nothing
+  moves (picture ends at 703px). Measured: 1875×935, 133px above and 137px below, next heading
+  at 1061; 2560×1440, capped, next heading at 1135 (in view, as agreed); 375 unchanged.
+  `e2e/landing.spec.ts` checks all three desktop sizes. Not watched by eye in dark at 2560.
+
+**Acceptance criteria:**
+- [x] At 1875×935 the first block's heading starts below the first screen, and the hero's
+  content has about the same space above and below
+- [x] At 1280×720 the hero still fits, as before
+- [x] Phones and tablets are unchanged
+
+**Verification:**
+- [x] e2e (desktop project), Vitest, lint, build
+- [ ] Manual: 1875×935, 1280×720, 2560×1440, 375, light and dark
+
+**Dependencies:** T63
+**Files:** `frontend/src/pages/Landing.tsx`, `frontend/e2e/landing.spec.ts`
+**Scope:** S
+
 ### Checkpoint 24: A landing page, and pages Google can tell apart
 - Checked live 2026-11-21 (after #121): criteria 1–4 pass. `/` at 1280×720 fits the hero in
   light and dark; 375 light and dark, no sideways scroll; Try the demo opens the demo's two

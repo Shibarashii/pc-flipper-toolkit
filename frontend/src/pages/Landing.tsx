@@ -24,31 +24,36 @@ export function Landing() {
       <link rel="canonical" href={`${SITE_URL}/`} />
 
       <div className="mx-auto max-w-[1280px] px-4 md:px-16">
-        <div className="pt-10 xl:flex xl:justify-between xl:gap-[52px] xl:pt-0">
-          <div className="flex max-w-[460px] flex-col gap-3 sm:gap-4 xl:pt-[72px]">
-            <p className="text-[13px] leading-[18px] font-medium text-accent">
-              For people who flip PCs
-            </p>
-            <h1 className="font-serif text-[40px] leading-[44px] font-medium tracking-[-0.01em] sm:text-[60px] sm:leading-[64px]">
-              Track your profit on every PC you flip
-            </h1>
-            <p className="text-[15px] leading-[22px] text-muted">
-              Log each part, bundle and extra cost. The app does the math.
-            </p>
-            <WaysIn note="No sign-up needed. Deleted after 24 hours." />
-          </div>
+        {/* Desktop: the hero fills the screen below the header (65px), up to 960px, its
+            content centered as one block, so the next block doesn't peek in. A shorter
+            screen keeps the hero's own height. */}
+        <div className="pt-10 xl:flex xl:min-h-[min(calc(100svh-65px),960px)] xl:flex-col xl:justify-center xl:py-10">
+          <div className="xl:flex xl:justify-between xl:gap-[52px]">
+            <div className="flex max-w-[460px] flex-col gap-3 sm:gap-4 xl:pt-8">
+              <p className="text-[13px] leading-[18px] font-medium text-accent">
+                For people who flip PCs
+              </p>
+              <h1 className="font-serif text-[40px] leading-[44px] font-medium tracking-[-0.01em] sm:text-[60px] sm:leading-[64px]">
+                Track your profit on every PC you flip
+              </h1>
+              <p className="text-[15px] leading-[22px] text-muted">
+                Log each part, bundle and extra cost. The app does the math.
+              </p>
+              <WaysIn note="No sign-up needed. Deleted after 24 hours." />
+            </div>
 
-          {/* A picture, named once for screen readers. Its parts are inert, so nothing in
+            {/* A picture, named once for screen readers. Its parts are inert, so nothing in
               them can be clicked or focused; the label stays outside, since inert hides its
               own. */}
-          <div
-            role="img"
-            aria-label={`A sold build: its parts in the case, and ${profit} profit`}
-            className="mt-10"
-          >
-            <div inert>
-              <PhoneArt />
-              <DesktopArt />
+            <div
+              role="img"
+              aria-label={`A sold build: its parts in the case, and ${profit} profit`}
+              className="mt-10 xl:mt-0"
+            >
+              <div inert>
+                <PhoneArt />
+                <DesktopArt />
+              </div>
             </div>
           </div>
         </div>

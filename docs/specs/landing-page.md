@@ -139,6 +139,11 @@ in them can be clicked or focused. The diagram moves out of `BuildChecklist` int
   ₱32,000") overlaps the case's lower corner.
 - **Header:** logged out and not on `/login` or `/signup`, a **Log in** button (secondary) sits
   beside the theme button (Figma: Header `session=landing`).
+- **Height on desktop** (1280px and wider, added 2026-11-21): the hero fills the screen below the
+  header, up to 960px, with its content centered as one block, so the next block starts below
+  the first screen instead of peeking in. On a screen shorter than its content it keeps its
+  own height; phones and tablets are unchanged. Intent:
+  [landing-hero-height.md](../intent/landing-hero-height.md).
 
 ### Below the hero
 
