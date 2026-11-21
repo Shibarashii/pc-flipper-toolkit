@@ -16,6 +16,9 @@ import { GoogleButton, googleClientId } from "../google";
 import { buttonPrimary, buttonSecondary, focusRing, input, link } from "../ui";
 import { pageTitle } from "../site";
 
+/** The ways in that wait on the server, each with its own spinner and words. */
+type Way = "form" | "google" | "demo";
+
 const MODES = {
   login: {
     title: "Log in",
@@ -46,15 +49,11 @@ export function Login({ mode }: { mode: keyof typeof MODES }) {
   const [error, setError] = useState("");
   // Which way in is waiting on the server: only that one spins and gets the waking note
   // (specs/waking-note.md). The pressed button stays at full strength; the others fade.
-  const [saving, setSaving] = useState<"" | "form" | "google" | "demo">("");
+  const [saving, setSaving] = useState<Way | "">("");
   const slow = useSlow(saving !== "");
 
   // The form, Google and "Try the demo" all end in a session, with the same errors.
-  async function start(
-    way: "form" | "google" | "demo",
-    session: () => Promise<Session>,
-    notice = "",
-  ) {
+  async function start(way: Way, session: () => Promise<Session>, notice = "") {
     if (saving) return;
     setSaving(way);
     setErrors({});
@@ -152,11 +151,13 @@ export function Login({ mode }: { mode: keyof typeof MODES }) {
         <button
           type="submit"
           aria-disabled={saving === "form" || undefined}
+          // While it works, only another way in disables it; a cleared field doesn't.
           disabled={
-            (saving !== "" && saving !== "form") ||
-            !form.username.trim() ||
-            !form.password ||
-            (signingUp && !form.email.trim())
+            saving
+              ? saving !== "form"
+              : !form.username.trim() ||
+                !form.password ||
+                (signingUp && !form.email.trim())
           }
           className={`mt-2 ${buttonPrimary}`}
         >
@@ -186,7 +187,10 @@ export function Login({ mode }: { mode: keyof typeof MODES }) {
           />
         )}
         {saving === "google" && (
-          <p className="flex items-center gap-2 text-[13px] leading-[18px] text-muted">
+          <p
+            role="status"
+            className="flex items-center gap-2 text-[13px] leading-[18px] text-muted"
+          >
             <Spinner />
             Signing in with Google…
           </p>

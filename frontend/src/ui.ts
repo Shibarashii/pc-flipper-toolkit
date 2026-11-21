@@ -5,9 +5,11 @@ export const focusRing =
 
 const button = `rounded px-3.5 py-2 text-[14px] leading-5 font-medium disabled:opacity-45 ${focusRing}`;
 
-export const buttonPrimary = `${button} bg-accent text-on-accent hover:bg-accent-hover`;
+// A working button is aria-disabled (not disabled, so it keeps full strength): no hover then
+// (specs/waking-note.md).
+export const buttonPrimary = `${button} bg-accent text-on-accent hover:bg-accent-hover aria-disabled:hover:bg-accent`;
 
-export const buttonSecondary = `${button} border border-line-strong bg-surface text-ink hover:bg-sunken`;
+export const buttonSecondary = `${button} border border-line-strong bg-surface text-ink hover:bg-sunken aria-disabled:hover:bg-surface`;
 
 /** Secondary button with loss-coloured text, for destructive actions. */
 export const buttonDanger = `${button} border border-line-strong bg-surface text-loss hover:bg-sunken`;

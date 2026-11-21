@@ -1499,7 +1499,29 @@ test("Google sign-in says so under Google's button, then the note", async () => 
 
   fireEvent.click(google);
 
-  expect(screen.getByText("Signing in with Google…")).toBeTruthy();
+  // A live region, so a screen reader hears it: Google's button isn't ours to relabel.
+  expect(screen.getByRole("status").textContent).toBe(
+    "Signing in with Google…",
+  );
   after(5000);
   expect(screen.getAllByText(WAKING)).toHaveLength(1);
+});
+
+test("the working button stays at full strength, even if a field is cleared", () => {
+  stubSilentServer();
+  renderAt("/login");
+  fillIn("carol", "a long passphrase");
+  fireEvent.click(screen.getByRole("button", { name: "Log in" }));
+
+  fireEvent.change(screen.getByLabelText("Username"), {
+    target: { value: "" },
+  });
+
+  const working = screen.getByRole("button", { name: "Logging in…" });
+  expect((working as HTMLButtonElement).disabled).toBe(false);
+  expect(working.getAttribute("aria-disabled")).toBe("true");
+  expect(
+    (screen.getByRole("button", { name: "Try the demo" }) as HTMLButtonElement)
+      .disabled,
+  ).toBe(true);
 });

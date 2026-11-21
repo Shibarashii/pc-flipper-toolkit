@@ -77,9 +77,10 @@ body {
 }
 
 /* Tailwind v4 dropped the pointer cursor on buttons; bring it back for anything
-   clickable that isn't a link (links already have it). Disabled ones keep the arrow. */
+   clickable that isn't a link (links already have it). Disabled ones keep the arrow, and so
+   does a button that's working (aria-disabled, specs/waking-note.md). */
 @layer base {
-  button:not(:disabled),
+  button:not(:disabled):not([aria-disabled="true"]),
   select:not(:disabled),
   input[type="date"]::-webkit-calendar-picker-indicator {
     cursor: pointer;
