@@ -371,7 +371,7 @@ sitemap in Search Console and requests indexing; the repo's description changes 
 light and dark; criterion 6 (the name search) is looked at 1–2 weeks after the indexing request.
 
 ### Phase 27: Say when the API is waking up ([specs/waking-note.md](waking-note.md))
-- [ ] T67: A spinner while you get in, and the waking note after 5 seconds
+- [x] T67: A spinner while you get in, and the waking note after 5 seconds
 
 ```
 T67 spinner + waking note ── Checkpoint 25

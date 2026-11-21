@@ -2086,7 +2086,7 @@ Spec: [specs/waking-note.md](waking-note.md). Design: the "Waking note" section 
 for development (approved 2026-11-21). Frontend only: no API change, no migration, no new
 dependency.
 
-### - [ ] T67: A spinner while you get in, and the waking note after 5 seconds
+### - [x] T67: A spinner while you get in, and the waking note after 5 seconds
 
 **Description:**
 - `components/Waiting.tsx`: `Spinner` (14px, `currentColor`, `animate-spin`, still under reduced
@@ -2123,6 +2123,8 @@ dependency.
 **Scope:** M
 
 ### Checkpoint 25: Say when the API is waking up
-- [ ] The spec's success criteria 1–4 pass on the live site after a cold start, at desktop and
+- Checked live 2026-11-21 (after #131): the author confirmed it works on the live site. CI is
+  green on `main` (`1e1fdaa`). Reduced motion wasn't reported on separately.
+- [x] The spec's success criteria 1–4 pass on the live site after a cold start, at desktop and
   375px, light and dark
-- [ ] All tests pass on `main`
+- [x] All tests pass on `main`
