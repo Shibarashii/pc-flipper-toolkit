@@ -205,7 +205,8 @@ function WhatItTracks() {
             {gpu.name}
           </span>
           <span className="text-[13px] leading-[18px] text-muted">
-            Paid {round(gpu.bought_for)} · shop {round(gpu.listed_price)}
+            Paid {shortMoney(gpu.bought_for)} · shop{" "}
+            {shortMoney(gpu.listed_price)}
           </span>
         </>
       ),
@@ -264,22 +265,23 @@ function WhatItTracks() {
   );
 }
 
-// "4200.00" → "₱4,200": whole pesos read better in the equation.
-const round = (value: string | null) => formatMoney(value).replace(/\.00$/, "");
+// "4200.00" → "₱4,200": a whole amount reads better without the centavos.
+const wholePesos = (money: string) => money.replace(/\.00$/, "");
+const shortMoney = (value: string | null) => wholePesos(formatMoney(value));
 
 /** Sold for − total cost = profit, in the serif: a row on desktop, stacked on phones. */
 function Equation() {
   const { totals } = SOLD_BUILD;
   const terms = [
-    { op: "", value: round(SOLD_BUILD.sellingPrice), label: "Sold for" },
+    { op: "", value: shortMoney(SOLD_BUILD.sellingPrice), label: "Sold for" },
     {
       op: "−",
-      value: round(totals.total_cost),
-      label: `Parts ${round(totals.parts_cost)} + extra costs ${round(totals.extra_costs)}`,
+      value: shortMoney(totals.total_cost),
+      label: `Parts ${shortMoney(totals.parts_cost)} + extra costs ${shortMoney(totals.extra_costs)}`,
     },
     {
       op: "=",
-      value: `+${round(totals.profit)}`,
+      value: wholePesos(formatSignedMoney(totals.profit)),
       label: `Profit · ${totals.profit_margin}% of the selling price`,
       profit: true,
     },
@@ -391,7 +393,7 @@ function ProfitCard() {
       </p>
       <p className="mt-0.5 text-[13px] leading-[18px] font-medium text-profit">
         {SOLD_BUILD.totals.profit_margin}% margin · sold for{" "}
-        {round(SOLD_BUILD.sellingPrice)}
+        {shortMoney(SOLD_BUILD.sellingPrice)}
       </p>
     </div>
   );
