@@ -8,6 +8,7 @@ import {
 import { findPrices, type PriceSearch, type ShopProduct } from "../api";
 import { formatMoney } from "../money";
 import { buttonSecondary, input, link } from "../ui";
+import { composing } from "./form";
 
 type State =
   | { status: "idle" | "short" | "loading" | "failed" }
@@ -67,6 +68,7 @@ export function PriceLookup({
   }
 
   function keys(e: KeyboardEvent) {
+    if (composing(e)) return;
     if (e.key === "Escape") {
       e.stopPropagation(); // keep the part form open
       onClose();
@@ -85,7 +87,7 @@ export function PriceLookup({
           onKeyDown={(e) => {
             if (e.key === "Enter") {
               e.preventDefault(); // not the part form's Save
-              search(query);
+              if (!composing(e)) search(query);
             }
           }}
           placeholder="e.g. rtx 3060"

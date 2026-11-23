@@ -150,6 +150,21 @@ test("Enter in the search box searches instead of saving the part", async () => 
   expect(onSaved).not.toHaveBeenCalled();
 });
 
+test("the Enter that finishes a word in an input method (Chinese, Japanese…) doesn't search", async () => {
+  const { fetchMock, onSaved } = setup([Response.json(SEARCH)]);
+  openLookup();
+  await screen.findByText(/^Prices from/);
+
+  const box = screen.getByLabelText("Search the shops");
+  fireEvent.change(box, { target: { value: "rx 6600" } });
+  fireEvent.keyDown(box, { key: "Enter", isComposing: true });
+  // Safari: the confirming Enter arrives after composition ends, with keyCode 229.
+  fireEvent.keyDown(box, { key: "Enter", keyCode: 229 });
+
+  expect(fetchMock).toHaveBeenCalledTimes(1); // only the lookup's first search
+  expect(onSaved).not.toHaveBeenCalled();
+});
+
 test("Esc closes the lookup but keeps the part open; a second Esc closes the part", async () => {
   const { onClose } = setup([Response.json(SEARCH)]);
   openLookup();

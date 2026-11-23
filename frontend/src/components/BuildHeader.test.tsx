@@ -145,6 +145,22 @@ test("renaming saves the new name on Enter", async () => {
   expect(sent()).toEqual({ name: "Budget 1080p" });
 });
 
+test("Enter and Esc inside an input method (Chinese, Japanese…) don't end the rename", () => {
+  const { onUpdated } = renderHeader(makeBuild());
+
+  fireEvent.click(screen.getByRole("button", { name: "Rename build" }));
+  const name = screen.getByLabelText("Build name");
+  fireEvent.change(name, { target: { value: "Budget" } });
+  fireEvent.keyDown(name, { key: "Enter", isComposing: true });
+  fireEvent.keyDown(name, { key: "Enter", keyCode: 229 });
+  fireEvent.keyDown(name, { key: "Escape", isComposing: true });
+
+  expect(onUpdated).not.toHaveBeenCalled();
+  expect((screen.getByLabelText("Build name") as HTMLInputElement).value).toBe(
+    "Budget",
+  );
+});
+
 test("Esc cancels a rename", () => {
   const { fetchMock } = renderHeader(makeBuild());
 
