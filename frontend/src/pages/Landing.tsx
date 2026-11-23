@@ -40,7 +40,7 @@ export function Landing() {
               <p className="text-[15px] leading-[22px] text-muted">
                 Log each part, bundle and extra cost. The app does the math.
               </p>
-              <WaysIn note="No sign-up needed. Deleted after 24 hours." />
+              <WaysIn note="No sign-up needed. Demo accounts are deleted after 24 hours." />
             </div>
 
             {/* A picture, named once for screen readers. Its parts are inert, so nothing in
@@ -367,7 +367,7 @@ const QUESTIONS = [
   ["Is it free?", "Yes."],
   [
     "Can I try it without an account?",
-    "Yes. Try the demo gives you your own account with two sample builds to change as you like. It’s deleted after 24 hours.",
+    "Yes. Try the demo gives you a demo account with two sample builds to change as you like. Demo accounts are deleted after 24 hours.",
   ],
   [
     "Where do the shop prices come from?",
