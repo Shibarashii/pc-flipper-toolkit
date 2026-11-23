@@ -265,6 +265,33 @@ test("Log out deletes the token on the server and goes to log in", async () => {
   expect(getToken()).toBe("");
 });
 
+test("after Log out, the logo opens the landing page", async () => {
+  saveSession({ token: "abc", username: "carol" });
+  stubFetch(
+    () => Response.json([]),
+    () => new Response(null, { status: 204 }),
+  );
+  renderAt("/");
+  await screen.findByText("No builds yet");
+
+  fireEvent.click(screen.getByRole("button", { name: "Log out" }));
+  await screen.findByRole("heading", { name: "Log in" });
+  fireEvent.click(screen.getByRole("link", { name: "PC Flipper Toolkit" }));
+
+  expect(screen.getByText("For people who flip PCs")).toBeTruthy();
+});
+
+test("once log-in has said the session ended, the logo opens the landing page", async () => {
+  saveSession({ token: "old", username: "carol" });
+  stubFetch(() => Response.json({ detail: "Invalid token." }, { status: 401 }));
+  renderAt("/");
+  await screen.findByText("Your session ended. Log in again.");
+
+  fireEvent.click(screen.getByRole("link", { name: "PC Flipper Toolkit" }));
+
+  expect(screen.getByText("For people who flip PCs")).toBeTruthy();
+});
+
 // The page you were on belonged to the account that left, so the next one starts at home.
 test.each([
   ["Exit demo", "demo-abc"],
