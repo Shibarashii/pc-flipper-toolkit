@@ -47,7 +47,9 @@ test("logged out, / is the landing page with its two ways in", () => {
   for (const link of screen.getAllByRole("link", { name: "Sign up" }))
     expect(link.getAttribute("href")).toBe("/signup");
   expect(
-    screen.getByText("No sign-up needed. Deleted after 24 hours."),
+    screen.getByText(
+      "No sign-up needed. Demo accounts are deleted after 24 hours.",
+    ),
   ).toBeTruthy();
 });
 
@@ -168,7 +170,7 @@ test("the questions are details rows, the first open, every answer in the page",
   expect(answers).toEqual([
     "Make a build for each PC, add every part with what you paid and the extra costs, then set the selling price. The app adds it up on each build and across all your builds.",
     "Yes.",
-    "Yes. Try the demo gives you your own account with two sample builds to change as you like. It’s deleted after 24 hours.",
+    "Yes. Try the demo gives you a demo account with two sample builds to change as you like. Demo accounts are deleted after 24 hours.",
     "When you add a part, you can search current prices from EasyPC and PC Express, refreshed once a day, or type a price yourself.",
   ]);
 });

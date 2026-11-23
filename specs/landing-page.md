@@ -131,7 +131,7 @@ in them can be clicked or focused. The diagram moves out of `BuildChecklist` int
 - **Try the demo** (primary) and **Sign up** (secondary). Try the demo calls the same
   `tryDemo()` as the log-in page and shows the same error if it fails; then `/` becomes the
   builds list.
-- **Under the buttons:** No sign-up needed. Deleted after 24 hours.
+- **Under the buttons:** No sign-up needed. Demo accounts are deleted after 24 hours.
 - **The picture,** to the right on desktop and under the text on phones: the build diagram, 1.3×
   on desktop. Hairlines with an accent dot run from three parts to price tags ("Board + CPU + RAM
   ₱9,500 bundle", "RX 6600 8GB ₱11,000", "650W PSU ₱2,400"; on phones only the first two, shorter
@@ -168,8 +168,8 @@ on desktop and 72px on phones. No cards except the pictures; hairlines between q
      what you paid and the extra costs, then set the selling price. The app adds it up on each
      build and across all your builds.
    - *Is it free?* Yes.
-   - *Can I try it without an account?* Yes. Try the demo gives you your own account with two
-     sample builds to change as you like. It’s deleted after 24 hours.
+   - *Can I try it without an account?* Yes. Try the demo gives you a demo account with two
+     sample builds to change as you like. Demo accounts are deleted after 24 hours.
    - *Where do the shop prices come from?* When you add a part, you can search current prices
      from EasyPC and PC Express, refreshed once a day, or type a price yourself.
 5. **A closing band** on `sunken`, full width, centered: "Try it on two sample builds" (`h2`),
