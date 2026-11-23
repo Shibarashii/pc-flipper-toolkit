@@ -9,20 +9,26 @@ type Theme = "light" | "dark";
 export function currentTheme(): Theme {
   const saved = document.documentElement.dataset.theme;
   if (saved === "light" || saved === "dark") return saved;
-  return window.matchMedia("(prefers-color-scheme: dark)").matches
-    ? "dark"
-    : "light";
+  return deviceTheme();
 }
 
-/** Header button that flips light/dark and remembers the choice in this browser. */
+const deviceTheme = (): Theme =>
+  window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+
+/** Header button that flips light/dark and remembers the choice in this browser. Flipping
+ * back to the device's theme forgets the choice, so the page follows the device again. */
 export function ThemeToggle() {
   const [theme, setTheme] = useState(currentTheme);
   const next: Theme = theme === "dark" ? "light" : "dark";
 
   function toggle() {
-    document.documentElement.dataset.theme = next;
+    const root = document.documentElement;
+    const followDevice = next === deviceTheme();
+    if (followDevice) delete root.dataset.theme;
+    else root.dataset.theme = next;
     try {
-      localStorage.setItem("theme", next);
+      if (followDevice) localStorage.removeItem("theme");
+      else localStorage.setItem("theme", next);
     } catch {
       // Still switched for this visit; it just won't survive a reload.
     }

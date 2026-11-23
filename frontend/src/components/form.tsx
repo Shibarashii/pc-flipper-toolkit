@@ -1,8 +1,19 @@
 // Pieces shared by the inline add/edit forms for parts, bundles and extra costs.
-import { useState, type ComponentProps, type ReactNode } from "react";
+import {
+  useState,
+  type ComponentProps,
+  type KeyboardEvent,
+  type ReactNode,
+} from "react";
 import { ApiError, type FieldErrors } from "../api";
 import chevron from "../assets/chevron.svg";
 import { iconButton, iconButtonBordered, input } from "../ui";
+
+/** True while an input method (Chinese, Japanese, Korean…) is building a word: its Enter
+ * picks the word and its Esc drops it, so key handlers must leave them alone. Safari sends
+ * the confirming Enter after composition ends, so it shows only as keyCode 229. */
+export const composing = (e: KeyboardEvent) =>
+  e.nativeEvent.isComposing || e.keyCode === 229;
 
 /** "₱12,500" → "12500": people type (or paste from shops) the peso sign and
  * thousands separators; the API accepts neither. */

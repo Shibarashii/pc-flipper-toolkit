@@ -18,6 +18,26 @@ test("switches the theme and saves the choice", () => {
   fireEvent.click(screen.getByRole("button", { name: "Switch to dark mode" }));
   expect(html.dataset.theme).toBe("dark");
   expect(localStorage.getItem("theme")).toBe("dark");
+});
+
+test("switching back to the device's theme forgets the choice, so the page follows the device again", () => {
+  render(<ThemeToggle />);
+
+  fireEvent.click(screen.getByRole("button", { name: "Switch to dark mode" }));
+  fireEvent.click(screen.getByRole("button", { name: "Switch to light mode" }));
+
+  expect(html.dataset.theme).toBeUndefined();
+  expect(localStorage.getItem("theme")).toBeNull();
+  expect(
+    screen.getByRole("button", { name: "Switch to dark mode" }),
+  ).toBeTruthy();
+});
+
+test("on a dark device, switching to light saves it", () => {
+  vi.stubGlobal("matchMedia", (query: string) => ({
+    matches: query === "(prefers-color-scheme: dark)",
+  }));
+  render(<ThemeToggle />);
 
   fireEvent.click(screen.getByRole("button", { name: "Switch to light mode" }));
   expect(html.dataset.theme).toBe("light");

@@ -8,7 +8,7 @@ import {
 } from "react";
 import { findPrices, type ShopProduct } from "../api";
 import { input } from "../ui";
-import { Field } from "./form";
+import { composing, Field } from "./form";
 import { ProductFacts } from "./PriceLookup";
 
 const PAUSE = 300; // ms after the last keystroke
@@ -96,6 +96,7 @@ export function PartSearch({
   }
 
   function keys(e: KeyboardEvent) {
+    if (composing(e)) return;
     if (e.key === "Enter") {
       if (active >= 0) {
         e.preventDefault(); // not the part form's Save

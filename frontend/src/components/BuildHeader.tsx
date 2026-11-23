@@ -13,6 +13,7 @@ import { input } from "../ui";
 import { DeleteBuildDialog } from "./DeleteBuildDialog";
 import {
   cleanMoney,
+  composing,
   Field,
   IconButton,
   SaveStatus,
@@ -47,6 +48,7 @@ const priceText = (price: string | null) =>
  * value, so the blur that follows has nothing to save. */
 const saveKeys =
   (restore: () => void) => (e: KeyboardEvent<HTMLInputElement>) => {
+    if (composing(e)) return;
     if (e.key === "Enter") e.currentTarget.blur();
     if (e.key === "Escape") restore();
   };
@@ -151,6 +153,7 @@ export function BuildHeader({
             onChange={(e) => setName(e.target.value)}
             onBlur={saveName}
             onKeyDown={(e) => {
+              if (composing(e)) return;
               if (e.key === "Enter") e.currentTarget.blur();
               if (e.key === "Escape") {
                 renameCancelled.current = true;
