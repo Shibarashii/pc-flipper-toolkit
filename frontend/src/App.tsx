@@ -24,7 +24,7 @@ import { VerifyEmail } from "./pages/VerifyEmail";
 import { buttonSecondary, focusRing, iconButton, link } from "./ui";
 
 export default function App() {
-  const { session } = useAuth();
+  const { session, notice } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   // The redirect to /login remembers the page you wanted, so logging in goes back to it. Only
@@ -44,6 +44,9 @@ export default function App() {
     // Log out here even if the server can't be reached; the token just lingers there.
     await logOut().catch(() => {});
     endSession();
+    // The builds list would turn into the landing page, so Log in instead. Pages open to
+    // everyone stay, and the rest send you to Log in themselves.
+    if (location.pathname === "/") navigate("/login", { replace: true });
   }
 
   // Ends the demo (its account is cleaned up later) and opens sign-up.
@@ -169,13 +172,10 @@ export default function App() {
           </Routes>
         ) : (
           <Routes>
-            {/* Once a session ends here (Log out, Exit demo, the server), log-in is where
-                its message shows. */}
+            {/* When the server ends a session, log-in is where its message shows. */}
             <Route
               path="/"
-              element={
-                hadSession ? <Navigate to="/login" replace /> : <Landing />
-              }
+              element={notice ? <Navigate to="/login" replace /> : <Landing />}
             />
             <Route path="/login" element={<Login key="login" mode="login" />} />
             <Route path="/privacy" element={<Privacy />} />

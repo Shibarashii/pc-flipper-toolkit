@@ -1,4 +1,4 @@
-import { useState, type SubmitEvent } from "react";
+import { useEffect, useState, type SubmitEvent } from "react";
 import { Link, useLocation } from "react-router";
 import {
   ApiError,
@@ -9,7 +9,7 @@ import {
   tryDemo,
   type FieldErrors,
 } from "../api";
-import { saveSession, useAuth, type Session } from "../auth";
+import { clearNotice, saveSession, useAuth, type Session } from "../auth";
 import { Field } from "../components/form";
 import { Spinner, useSlow, WakingNote, Working } from "../components/Waiting";
 import { GoogleButton, googleClientId } from "../google";
@@ -39,7 +39,10 @@ const MODES = {
 /** Log in (`/login`) or sign up (`/signup`). Logged out, every other page sends you here. */
 export function Login({ mode }: { mode: keyof typeof MODES }) {
   const { title, submit, working, password, other } = MODES[mode];
-  const { notice } = useAuth();
+  // Why the last session ended, shown once: after that, / is the landing page again.
+  const { notice: pending } = useAuth();
+  const [notice] = useState(pending);
+  useEffect(clearNotice, []);
   // The page that sent you here: kept when switching between log in and sign up, and
   // App goes back to it once the session is saved.
   const from = (useLocation().state as { from?: string } | null)?.from ?? "/";
