@@ -8,7 +8,7 @@ import {
 import { formatMoney } from "../money";
 import { buttonPrimary, buttonSecondary, input } from "../ui";
 import { DeleteDialog } from "./DeleteDialog";
-import { cleanMoney, Field, RowActions, useSave } from "./form";
+import { cleanMoney, composing, Field, RowActions, useSave } from "./form";
 
 const EMPTY = { label: "", amount: "" };
 
@@ -160,7 +160,7 @@ function CostForm({
       noValidate
       onSubmit={submit}
       // Esc drops the draft; an edited row goes back to its saved values.
-      onKeyDown={(e) => e.key === "Escape" && onClose()}
+      onKeyDown={(e) => e.key === "Escape" && !composing(e) && onClose()}
       aria-label={cost ? `Edit ${cost.label}` : "New cost"}
     >
       <div className="flex flex-col gap-3 rounded bg-sunken p-3">

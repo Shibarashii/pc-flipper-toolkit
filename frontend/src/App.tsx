@@ -40,9 +40,12 @@ export default function App() {
     location.pathname !== "/login" &&
     location.pathname !== "/signup";
 
-  async function logOutEverywhere() {
-    // Log out here even if the server can't be reached; the token just lingers there.
-    await logOut().catch(() => {});
+  function logOutEverywhere() {
+    // The request takes the token before anything else, so the session ends here at once,
+    // without waiting for the server: a 401 from a request still running can't then say
+    // "Your session ended". If the server can't be reached, the token lingers there until
+    // it expires.
+    logOut().catch(() => {});
     endSession();
     // The builds list would turn into the landing page, so Log in instead. Pages open to
     // everyone stay, and the rest send you to Log in themselves.
@@ -50,8 +53,8 @@ export default function App() {
   }
 
   // Ends the demo (its account is cleaned up later) and opens sign-up.
-  async function signUpInstead() {
-    await logOutEverywhere();
+  function signUpInstead() {
+    logOutEverywhere();
     navigate("/signup");
   }
 
@@ -139,8 +142,7 @@ export default function App() {
           message="Its builds can’t be opened again and are deleted after 24 hours."
           action="Exit demo"
           onConfirm={async () => {
-            // Stays open (its button disabled) while the server answers, which can be slow.
-            await logOutEverywhere();
+            logOutEverywhere();
             setExiting(false);
           }}
           onClose={() => setExiting(false)}

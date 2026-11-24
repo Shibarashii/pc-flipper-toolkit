@@ -12,7 +12,14 @@ import {
 } from "../api";
 import { formatMoney } from "../money";
 import { buttonPrimary, buttonSecondary, input } from "../ui";
-import { cleanMoney, Field, RowActions, Select, useSave } from "./form";
+import {
+  cleanMoney,
+  composing,
+  Field,
+  RowActions,
+  Select,
+  useSave,
+} from "./form";
 import { PartSearch } from "./PartSearch";
 import { PriceLookup } from "./PriceLookup";
 
@@ -146,7 +153,7 @@ export function PartForm({
       noValidate
       onSubmit={submit}
       // Esc drops the draft; an edited row goes back to its saved values.
-      onKeyDown={(e) => e.key === "Escape" && onClose()}
+      onKeyDown={(e) => e.key === "Escape" && !composing(e) && onClose()}
       aria-label={part ? `Edit ${part.name}` : title}
     >
       <div className="rounded bg-sunken">

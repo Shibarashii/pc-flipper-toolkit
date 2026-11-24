@@ -165,6 +165,24 @@ test("the Enter that finishes a word in an input method (Chinese, Japanese…) d
   expect(onSaved).not.toHaveBeenCalled();
 });
 
+test("Esc inside an input method (Chinese, Japanese…) closes neither the lookup nor the part", async () => {
+  const { onClose } = setup([Response.json(SEARCH)]);
+  openLookup();
+  await screen.findByText(/^Prices from/);
+
+  fireEvent.keyDown(screen.getByLabelText("Search the shops"), {
+    key: "Escape",
+    isComposing: true,
+  });
+  fireEvent.keyDown(screen.getByLabelText("Shop"), {
+    key: "Escape",
+    isComposing: true,
+  });
+
+  expect(screen.getByRole("group", { name: "Find prices" })).toBeTruthy();
+  expect(onClose).not.toHaveBeenCalled();
+});
+
 test("Esc closes the lookup but keeps the part open; a second Esc closes the part", async () => {
   const { onClose } = setup([Response.json(SEARCH)]);
   openLookup();
