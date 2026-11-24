@@ -1,9 +1,7 @@
 import type { BuildsSummary as Summary } from "../api";
 import { formatMoney, formatSignedMoney, profitColor } from "../money";
+import { plural } from "../words";
 import { Bone, Skeleton } from "./Skeleton";
-
-const plural = (n: number, one: string, many: string) =>
-  `${n} ${n === 1 ? one : many}`;
 
 // Shared with the placeholder, so the list doesn't move when the figures arrive. On phones,
 // This month is the headline across the top and the other two sit under it; on desktop,
@@ -71,7 +69,7 @@ export function BuildsSummary({ summary }: { summary: Summary | null }) {
         <Figure
           label="Tied up"
           amount={formatMoney(tied_up.cost)}
-          line={`in ${plural(tied_up.builds, "build", "builds")}`}
+          line={`in ${plural(tied_up.builds, "build")}`}
         />
       </dl>
     </section>

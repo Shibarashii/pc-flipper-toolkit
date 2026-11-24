@@ -8,6 +8,7 @@ import {
 } from "react";
 import { findPrices, type ShopProduct } from "../api";
 import { input } from "../ui";
+import { plural } from "../words";
 import { composing, Field } from "./form";
 import { ProductFacts } from "./PriceLookup";
 
@@ -145,7 +146,7 @@ export function PartSearch({
       {/* Always in the page, so screen readers announce each change. */}
       <p role="status" className="sr-only">
         {open &&
-          `${rows.length} ${rows.length === 1 ? "product" : "products"} found. Use the up and down arrows to choose.`}
+          `${plural(rows.length, "product")} found. Use the up and down arrows to choose.`}
       </p>
       {open && (
         <ul

@@ -7,6 +7,7 @@ import {
   type Part,
 } from "../api";
 import { formatMoney } from "../money";
+import { plural } from "../words";
 import { buttonPrimary, buttonSecondary, input, link } from "../ui";
 import { DeleteDialog } from "./DeleteDialog";
 import { cleanMoney, Field, RowActions, useSave } from "./form";
@@ -30,9 +31,7 @@ export function BundleItem({
   onEdit: () => void;
   onDelete: () => void;
 }) {
-  const meta = [bundle.shop, `${count} ${count === 1 ? "part" : "parts"}`]
-    .filter(Boolean)
-    .join(" · ");
+  const meta = [bundle.shop, plural(count, "part")].filter(Boolean).join(" · ");
   const unassigned = Number(bundle.unassigned) > 0 && (
     <p className="text-[13px] leading-[18px] whitespace-nowrap text-muted">
       {formatMoney(bundle.unassigned)} not assigned
@@ -254,7 +253,7 @@ export function DeleteBundleDialog({
   const n = parts.length;
   const its =
     n > 0
-      ? ` and its ${n} ${n === 1 ? "part" : "parts"} (${parts.map((p) => p.name).join(", ")})`
+      ? ` and its ${plural(n, "part")} (${parts.map((p) => p.name).join(", ")})`
       : "";
   return (
     <DeleteDialog

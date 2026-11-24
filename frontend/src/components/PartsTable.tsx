@@ -8,6 +8,7 @@ import {
 } from "../api";
 import { formatMoney } from "../money";
 import { buttonSecondary } from "../ui";
+import { plural } from "../words";
 import { BundleForm, BundleItem, DeleteBundleDialog } from "./BundleRow";
 import { DeleteDialog } from "./DeleteDialog";
 import { PartForm, PartItem } from "./PartRow";
@@ -103,7 +104,7 @@ export function PartsTable({
           Parts
         </h2>
         <p className="flex-1 text-[13px] leading-[18px] text-muted">
-          {n} {n === 1 ? "item" : "items"}
+          {plural(n, "item")}
         </p>
         <button
           type="button"
