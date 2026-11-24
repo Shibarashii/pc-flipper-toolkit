@@ -7,7 +7,7 @@ import {
   type BuildStatus,
   type FieldErrors,
 } from "../api";
-import { buildNo } from "../buildNo";
+import { buildNo } from "../words";
 import { formatMoney } from "../money";
 import { input } from "../ui";
 import { DeleteBuildDialog } from "./DeleteBuildDialog";

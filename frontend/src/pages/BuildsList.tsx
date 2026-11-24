@@ -6,7 +6,7 @@ import {
   type Build,
   type BuildsSummary as Summary,
 } from "../api";
-import { buildNo } from "../buildNo";
+import { buildNo, plural } from "../words";
 import { BuildsSummary } from "../components/BuildsSummary";
 import { NewBuildDialog } from "../components/NewBuildDialog";
 import { Bone, Skeleton } from "../components/Skeleton";
@@ -41,7 +41,7 @@ export function BuildsList() {
   if (builds) {
     const sold = builds.filter((b) => b.status === "sold").length;
     const n = builds.length;
-    subtitle = `${n} ${n === 1 ? "build" : "builds"} · ${sold} sold`;
+    subtitle = `${plural(n, "build")} · ${sold} sold`;
   }
 
   return (

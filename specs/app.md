@@ -291,7 +291,7 @@ pc-flipper-toolkit/
 │       ├── auth.ts        The logged-in session, saved in the browser
 │       ├── ui.ts          Shared class strings for Button and Field (the brand's sizes)
 │       ├── money.ts       ₱ formatting
-│       ├── buildNo.ts     Build numbers, zero-padded ("01")
+│       ├── words.ts       Build numbers, zero-padded ("01"), and plurals ("3 parts")
 │       ├── slots.ts       Which part categories a build has filled, is missing, or may skip
 │       ├── listing.ts     The copy-listing text
 │       ├── google.tsx     Google's sign-in button

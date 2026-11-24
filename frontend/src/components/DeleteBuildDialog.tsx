@@ -1,18 +1,15 @@
 import { useNavigate } from "react-router";
 import { deleteBuild, type BuildDetail } from "../api";
+import { plural } from "../words";
 import { DeleteDialog } from "./DeleteDialog";
-
-const count = (n: number, one: string, many: string) =>
-  `${n} ${n === 1 ? one : many}`;
 
 /** "“X” and its 7 parts, 1 bundle and 1 extra cost will be deleted.", leaving out empty lists. */
 function deleteMessage(build: BuildDetail): string {
   const children = [
-    build.parts.length > 0 && count(build.parts.length, "part", "parts"),
-    build.bundles.length > 0 &&
-      count(build.bundles.length, "bundle", "bundles"),
+    build.parts.length > 0 && plural(build.parts.length, "part"),
+    build.bundles.length > 0 && plural(build.bundles.length, "bundle"),
     build.extra_costs.length > 0 &&
-      count(build.extra_costs.length, "extra cost", "extra costs"),
+      plural(build.extra_costs.length, "extra cost"),
   ].filter((c) => c !== false);
   // en-GB: "7 parts, 1 bundle and 3 extra costs", no Oxford comma.
   const list = new Intl.ListFormat("en-GB").format(children);

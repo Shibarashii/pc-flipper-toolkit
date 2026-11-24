@@ -152,41 +152,38 @@ export function generalError(err: unknown, errors: FieldErrors): string {
 
 const BASE = `${import.meta.env.VITE_API_URL ?? ""}/api`;
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+/** Sends `data` (if any) as JSON, with the session's token. */
+async function request<T>(
+  path: string,
+  method = "GET",
+  data?: unknown,
+): Promise<T> {
   const token = getToken();
-  const headers = new Headers(init?.headers);
-  if (init?.body) headers.set("Content-Type", "application/json");
+  const headers = new Headers();
+  const body = data === undefined ? undefined : JSON.stringify(data);
+  if (body) headers.set("Content-Type", "application/json");
   if (token) headers.set("Authorization", `Token ${token}`);
-  const res = await fetch(BASE + path, { ...init, headers });
-  const body = res.status === 204 ? null : await res.json().catch(() => null);
+  const res = await fetch(BASE + path, { method, headers, body });
+  const answer = res.status === 204 ? null : await res.json().catch(() => null);
   // The token was deleted (logged out elsewhere) or is no longer valid. Only if it's
   // still the current one: a request from before a log-out must not end a newer session.
   if (res.status === 401 && token && token === getToken()) sessionEnded();
-  if (!res.ok) throw new ApiError(res.status, body);
-  return body as T;
+  if (!res.ok) throw new ApiError(res.status, answer);
+  return answer as T;
 }
 
 export type Credentials = { username: string; password: string };
 
 /** The email gets a link to confirm it; it's saved once the link is opened. */
 export const signUp = (credentials: Credentials & { email: string }) =>
-  request<Session>("/auth/signup/", {
-    method: "POST",
-    body: JSON.stringify(credentials),
-  });
+  request<Session>("/auth/signup/", "POST", credentials);
 
 export const logIn = (credentials: Credentials) =>
-  request<Session>("/auth/login/", {
-    method: "POST",
-    body: JSON.stringify(credentials),
-  });
+  request<Session>("/auth/login/", "POST", credentials);
 
 /** Signs in with the ID token from Google's button; the first time makes the account. */
 export const googleSignIn = (credential: string) =>
-  request<Session>("/auth/google/", {
-    method: "POST",
-    body: JSON.stringify({ credential }),
-  });
+  request<Session>("/auth/google/", "POST", { credential });
 
 /** Who's logged in, and how they can get in (the Account page). */
 export type Me = {
@@ -202,70 +199,46 @@ export const getMe = () => request<Me>("/auth/me/");
 
 /** The sign-up rules apply; changing only your own name's case is fine. */
 export const renameUser = (username: string) =>
-  request<Me>("/auth/me/", {
-    method: "PATCH",
-    body: JSON.stringify({ username }),
-  });
+  request<Me>("/auth/me/", "PATCH", { username });
 
 /** Replaces the token, so every other device is logged out; returns the new one. */
 export const changePassword = (passwords: {
   current_password: string;
   new_password: string;
-}) =>
-  request<Session>("/auth/password/", {
-    method: "POST",
-    body: JSON.stringify(passwords),
-  });
+}) => request<Session>("/auth/password/", "POST", passwords);
 
 /** Emails a confirmation link; nothing is saved until it's opened. */
 export const sendEmailLink = (email: string) =>
-  request<null>("/auth/email/", {
-    method: "POST",
-    body: JSON.stringify({ email }),
-  });
+  request<null>("/auth/email/", "POST", { email });
 
 /** Saves the email from a confirmation link; works logged in or out. */
 export const confirmEmail = (token: string) =>
-  request<{ email: string }>("/auth/email/confirm/", {
-    method: "POST",
-    body: JSON.stringify({ token }),
-  });
+  request<{ email: string }>("/auth/email/confirm/", "POST", { token });
 
 /** Emails the account with this address its username and a reset link; the same answer
  * either way. */
 export const askForResetLink = (email: string) =>
-  request<{ detail: string }>("/auth/password-reset/", {
-    method: "POST",
-    body: JSON.stringify({ email }),
-  });
+  request<{ detail: string }>("/auth/password-reset/", "POST", { email });
 
 /** Sets a new password from a reset link; every device is logged out, nothing logs in. */
 export const resetPassword = (reset: {
   uid: string;
   token: string;
   new_password: string;
-}) =>
-  request<null>("/auth/password-reset/confirm/", {
-    method: "POST",
-    body: JSON.stringify(reset),
-  });
+}) => request<null>("/auth/password-reset/confirm/", "POST", reset);
 
 /** Links the Google account in the ID token to this account. */
 export const connectGoogle = (credential: string) =>
-  request<Pick<Me, "google">>("/auth/google/connect/", {
-    method: "POST",
-    body: JSON.stringify({ credential }),
-  });
+  request<Pick<Me, "google">>("/auth/google/connect/", "POST", { credential });
 
 export const disconnectGoogle = () =>
-  request<null>("/auth/google/connect/", { method: "DELETE" });
+  request<null>("/auth/google/connect/", "DELETE");
 
 /** A throwaway account with two sample builds, deleted after 24 hours. */
-export const tryDemo = () =>
-  request<Session>("/auth/demo/", { method: "POST" });
+export const tryDemo = () => request<Session>("/auth/demo/", "POST");
 
 /** Deletes the token on the server, so it stops working everywhere. */
-export const logOut = () => request<null>("/auth/logout/", { method: "POST" });
+export const logOut = () => request<null>("/auth/logout/", "POST");
 
 export const listBuilds = () => request<Build[]>("/builds/");
 
@@ -277,70 +250,49 @@ export const getBuild = (id: string) =>
   request<BuildDetail>(`/builds/${encodeURIComponent(id)}/`);
 
 export const createBuild = (name: string) =>
-  request<Build>("/builds/", {
-    method: "POST",
-    body: JSON.stringify({ name }),
-  });
+  request<Build>("/builds/", "POST", { name });
 
 export type BuildPatch = Partial<
   Pick<Build, "name" | "status" | "selling_price" | "sold_at" | "notes">
 >;
 
 export const updateBuild = (id: string, patch: BuildPatch) =>
-  request<BuildDetail>(`/builds/${id}/`, {
-    method: "PATCH",
-    body: JSON.stringify(patch),
-  });
+  request<BuildDetail>(`/builds/${id}/`, "PATCH", patch);
 
 export const deleteBuild = (id: string) =>
-  request<null>(`/builds/${id}/`, { method: "DELETE" });
+  request<null>(`/builds/${id}/`, "DELETE");
 
 export const createPart = (part: NewPart) =>
-  request<Part>("/parts/", { method: "POST", body: JSON.stringify(part) });
+  request<Part>("/parts/", "POST", part);
 
 export const updatePart = (id: string, patch: Partial<NewPart>) =>
-  request<Part>(`/parts/${id}/`, {
-    method: "PATCH",
-    body: JSON.stringify(patch),
-  });
+  request<Part>(`/parts/${id}/`, "PATCH", patch);
 
 export const deletePart = (id: string) =>
-  request<null>(`/parts/${id}/`, { method: "DELETE" });
+  request<null>(`/parts/${id}/`, "DELETE");
 
 export type NewBundle = Pick<Bundle, "build" | "name" | "shop" | "bought_for">;
 
 export const createBundle = (bundle: NewBundle) =>
-  request<Bundle>("/bundles/", {
-    method: "POST",
-    body: JSON.stringify(bundle),
-  });
+  request<Bundle>("/bundles/", "POST", bundle);
 
 export const updateBundle = (id: string, patch: Partial<NewBundle>) =>
-  request<Bundle>(`/bundles/${id}/`, {
-    method: "PATCH",
-    body: JSON.stringify(patch),
-  });
+  request<Bundle>(`/bundles/${id}/`, "PATCH", patch);
 
 /** Its parts go with it. */
 export const deleteBundle = (id: string) =>
-  request<null>(`/bundles/${id}/`, { method: "DELETE" });
+  request<null>(`/bundles/${id}/`, "DELETE");
 
 export type NewExtraCost = Omit<ExtraCost, "id">;
 
 export const createExtraCost = (cost: NewExtraCost) =>
-  request<ExtraCost>("/extra-costs/", {
-    method: "POST",
-    body: JSON.stringify(cost),
-  });
+  request<ExtraCost>("/extra-costs/", "POST", cost);
 
 export const updateExtraCost = (id: string, patch: Partial<NewExtraCost>) =>
-  request<ExtraCost>(`/extra-costs/${id}/`, {
-    method: "PATCH",
-    body: JSON.stringify(patch),
-  });
+  request<ExtraCost>(`/extra-costs/${id}/`, "PATCH", patch);
 
 export const deleteExtraCost = (id: string) =>
-  request<null>(`/extra-costs/${id}/`, { method: "DELETE" });
+  request<null>(`/extra-costs/${id}/`, "DELETE");
 
 export const findPrices = (q: string) =>
   request<PriceSearch>(`/prices/?${new URLSearchParams({ q })}`);
