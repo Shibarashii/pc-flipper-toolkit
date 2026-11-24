@@ -10,7 +10,7 @@ import { formatMoney } from "../money";
 import { plural } from "../words";
 import { buttonPrimary, buttonSecondary, input, link } from "../ui";
 import { DeleteDialog } from "./DeleteDialog";
-import { cleanMoney, Field, RowActions, useSave } from "./form";
+import { cleanMoney, composing, Field, RowActions, useSave } from "./form";
 
 const tag =
   "inline-block rounded border border-line-strong px-[7px] text-[13px] leading-[18px]";
@@ -167,7 +167,7 @@ export function BundleForm({
     <form
       noValidate
       onSubmit={submit}
-      onKeyDown={(e) => e.key === "Escape" && onClose()}
+      onKeyDown={(e) => e.key === "Escape" && !composing(e) && onClose()}
       aria-label={bundle ? `Edit ${bundle.name}` : title}
     >
       <div className="flex flex-col gap-3 rounded bg-sunken p-3 sm:flex-row sm:items-start sm:gap-2 sm:p-2">
