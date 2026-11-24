@@ -50,7 +50,8 @@ const requestTo = (fetchMock: ReturnType<typeof stubFetch>, i: number) => {
 
 function renderAt(path: string) {
   render(
-    <MemoryRouter initialEntries={[path]}>
+    // As in main.tsx.
+    <MemoryRouter initialEntries={[path]} useTransitions={false}>
       <App />
     </MemoryRouter>,
   );
@@ -265,6 +266,31 @@ test("Log out deletes the token on the server and goes to log in", async () => {
   expect(getToken()).toBe("");
 });
 
+test("a 401 that lands while Log out is in flight doesn't say the session ended", async () => {
+  saveSession({ token: "abc", username: "carol" });
+  let finishLogout: (r: Response) => void = () => {};
+  vi.stubGlobal("fetch", (url: string) =>
+    url.endsWith("/builds/summary/")
+      ? Promise.resolve(Response.json(EMPTY_SUMMARY))
+      : url.endsWith("/auth/logout/")
+        ? new Promise<Response>((resolve) => (finishLogout = resolve))
+        : url.includes("/builds/3/")
+          ? Promise.resolve(
+              Response.json({ detail: "Invalid token." }, { status: 401 }),
+            )
+          : Promise.resolve(Response.json([])),
+  );
+  renderAt("/");
+  await screen.findByText("No builds yet");
+
+  fireEvent.click(screen.getByRole("button", { name: "Log out" }));
+  await act(() => getBuild("3").catch(() => {}));
+  await act(async () => finishLogout(new Response(null, { status: 204 })));
+
+  expect(screen.getByRole("heading", { name: "Log in" })).toBeTruthy();
+  expect(screen.queryByText("Your session ended. Log in again.")).toBeNull();
+});
+
 test("after Log out, the logo opens the landing page", async () => {
   saveSession({ token: "abc", username: "carol" });
   stubFetch(
@@ -442,6 +468,22 @@ test("the banner's Sign up ends the demo and opens sign-up", async () => {
   expect(requestTo(fetchMock, 1).url).toBe("/api/auth/logout/");
   expect(getToken()).toBe("");
   expect(screen.queryByText(DEMO_BANNER)).toBeNull();
+});
+
+test("the banner's Sign up on a build page opens sign-up, not log-in", async () => {
+  saveSession({ token: "d1", username: "demo-abc" });
+  stubFetch(
+    () => Response.json(makeBuild()),
+    () => new Response(null, { status: 204 }),
+  );
+  renderAt("/builds/3");
+  await screen.findByText("Ryzen 5 7600 + RTX 4060");
+
+  fireEvent.click(
+    screen.getByRole("button", { name: "Sign up for your own account" }),
+  );
+
+  expect(await screen.findByRole("heading", { name: "Sign up" })).toBeTruthy();
 });
 
 test("a failed demo shows the same messages as log-in", async () => {
