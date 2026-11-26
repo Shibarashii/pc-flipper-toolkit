@@ -1,0 +1,17 @@
+/* The app's tokens and @theme, and its components' classes (specs/showcase-video.md). */
+@import "../../frontend/src/index.css";
+@source "../../frontend/src";
+
+/* The phone layout at any frame width: sm: and up never apply. */
+@theme {
+  --breakpoint-sm: 999rem;
+  --breakpoint-md: 999rem;
+  --breakpoint-lg: 999rem;
+  --breakpoint-xl: 999rem;
+  --breakpoint-2xl: 999rem;
+}
+
+/* The light theme (the spec's decision 1). */
+:root {
+  color-scheme: light;
+}

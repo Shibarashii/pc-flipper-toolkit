@@ -384,7 +384,7 @@ the "Waking note" section on Ready for development (approved 2026-11-21).
 (15+ minutes idle), at desktop and 375px, light and dark.
 
 ### Phase 28: A 60-second showcase video ([specs/showcase-video.md](showcase-video.md))
-- [ ] T68: `video/` renders the whole 60 seconds: every caption on time over a still phone
+- [x] T68: `video/` renders the whole 60 seconds: every caption on time over a still phone
 - [ ] T69: Beats 1–2: the hook, then parts, the bundle and extra costs going in
 - [ ] T70: Beats 3–4: the price lookup, then the profit counting up
 - [ ] T71: Beats 5–6: copying the listing, then the builds list
@@ -464,7 +464,7 @@ and would post it as it is (the spec's success criteria 1–6).
 | A page's tests wait on real time for the 5 seconds | Low (slow, flaky tests) | Fake timers in every test of the note (T67) |
 | The note shows on every fast answer too | Med (noise on every visit) | It shows only after 5 s; a test answers at 4.9 s and checks it never appears (T67) |
 | Files under `frontend/src` load the frontend's own React (and `react/jsx-runtime`), so two Reacts meet inside Remotion and any hook breaks | High (nothing renders) | `resolve.alias` points `react` and `react-dom` (with their subpaths) at `video/node_modules`; T68 checks the bundle has one copy of React before any scene is built |
-| A component file imports `api.ts`, which reads Vite's `import.meta.env` and crashes under webpack | High | `import.meta.env` is defined as `{}` in `remotion.config.ts`; T68's still imports `PartItem` from `PartRow.tsx`, which pulls in `api.ts` |
+| A component file imports `api.ts`, which reads Vite's `import.meta.env` and crashes under webpack | High | T68's still imports `PartItem` from `PartRow.tsx`, which pulls in `api.ts`. Done: webpack compiles `import.meta.env.VITE_API_URL` to `undefined`, so nothing needs defining |
 | Tailwind in `video/` misses classes used only in `frontend/src` | Med (unstyled UI in the video) | `@source "../../frontend/src"` in `video/src/index.css`; T68's still is compared with the app's phone layout |
 | A narration line doesn't fit its beat once the author records it | Med | The beat lengths live in one list (`beats.ts`); a beat grows there and the rest move with it (T68) |
 | The video's numbers drift from the demo's | Med | Scenes read `SOLD_BUILD` from `landingDemo.ts`, which already follows `builds/demo.py`; only the price rows and month totals are the video's own (`data.ts`) |
