@@ -2128,3 +2128,139 @@ dependency.
 - [x] The spec's success criteria 1–4 pass on the live site after a cold start, at desktop and
   375px, light and dark
 - [x] All tests pass on `main`
+
+## Phase 28: A 60-second showcase video
+
+Spec: [specs/showcase-video.md](showcase-video.md) (approved 2026-11-26). A new `video/` package
+at the root: no change under `frontend/` or `backend/`, no migration, not in CI or any deploy.
+Remotion is the author's choice, so its packages (the spec's list) are agreed. One PR per task.
+
+### - [ ] T68: `video/` renders the whole 60 seconds: every caption on time over a still phone
+
+**Description:**
+- `video/package.json` with the spec's packages pinned and its scripts (`studio`, `still`,
+  `render`, `typecheck`); `tsconfig.json`; `.gitignore` (`node_modules/`, `out/`).
+- `remotion.config.ts`: `enableTailwind`, `react` and `react-dom` (and their subpaths) aliased to
+  `video/node_modules`, `import.meta.env` defined as `{}`.
+- `src/index.ts`, `Root.tsx` (1080×1350, 30 fps, 1,800 frames), `index.css` (the frontend's
+  tokens plus `@source "../../frontend/src"`), fonts through `@remotion/google-fonts`.
+- `beats.ts`: the eight beats (id, frames, caption) from the spec's table. `Showcase.tsx`: a
+  `Series` of them, each a caption (10-frame cross-fade) over `Phone.tsx`.
+- `Phone.tsx`: the app's header in a 390px hairline frame, scaled to the frame's width less 80px
+  each side. For now every beat shows the same still phone: the sold build's parts, from
+  `SOLD_BUILD`, through the app's `PartItem`.
+- `data.ts` starts empty of samples (the price rows and month totals come with their beats).
+- One line for `video/` in `specs/app.md`'s project structure.
+
+**Acceptance criteria:**
+- [ ] `npm run render` writes `out/showcase.mp4`: 60.0 s, 1080×1350, 30 fps, H.264
+- [ ] Each beat's caption shows over its frames in the spec's table, in Newsreader 500 64px
+- [ ] The phone's parts are the app's own component, styled as on the live site's phone layout
+- [ ] The bundle has one copy of React
+
+**Verification:**
+- [ ] `npm run typecheck`
+- [ ] Stills at frames 75 and 1725 look like the app (fonts, colours, hairlines)
+- [ ] `git diff --stat main -- frontend backend` is empty; the frontend's tests, lint and build
+  pass
+
+**Dependencies:** None
+**Files:** `video/` (`package.json`, `package-lock.json`, `remotion.config.ts`, `tsconfig.json`,
+`.gitignore`, `src/index.ts`, `Root.tsx`, `index.css`, `beats.ts`, `Showcase.tsx`, `Phone.tsx`,
+`data.ts`), `specs/app.md`
+**Scope:** M
+
+### - [ ] T69: Beats 1–2: the hook, then parts, the bundle and extra costs going in
+
+**Description:**
+- `scenes/Hook.tsx`: the empty build diagram (`BuildDiagram`, `buildSlots`); parts drop into
+  their slots one after another.
+- `scenes/Parts.tsx`: parts appear one by one with what was paid (`PartItem`); three fold into
+  the "Board + CPU + RAM" bundle (`BundleItem`, ₱9,500, Facebook Marketplace); Shipping and
+  Thermal paste go in as extra costs; `BuildChecklist` counts up to "6 of 6 required parts".
+- What's shown is derived from the frame (named timings at the top of each file), no effects.
+
+**Acceptance criteria:**
+- [ ] Beat 1 and beat 2 show what the spec's table says, with the demo's numbers
+- [ ] Every frame renders the same on its own (a still at any frame matches the studio)
+
+**Verification:**
+- [ ] `npm run typecheck`; stills at frames 75 and 375, compared with the app
+- [ ] The studio, played through beats 1–2: no cuts, only springs and fades
+
+**Dependencies:** T68
+**Files:** `video/src/scenes/Hook.tsx`, `Parts.tsx`, `video/src/Showcase.tsx`
+**Scope:** M
+
+### - [ ] T70: Beats 3–4: the price lookup, then the profit counting up
+
+**Description:**
+- `data.ts`: one sample RX 6600 row from EasyPC and one from PC Express (`ShopProduct`, in
+  stock), marked as samples; the picked one is ₱11,000, as on the landing page.
+- `scenes/Prices.tsx`: "rx 6600" types into the lookup; the rows slide in (the app's
+  `ProductFacts`); one is picked and fills the listed price.
+- `scenes/Profit.tsx`: ₱32,000 types into the selling price; `Summary` counts up to +₱4,200 and
+  13.13%.
+
+**Acceptance criteria:**
+- [ ] The lookup looks like the app's, with only the sample rows
+- [ ] The count-up ends on exactly +₱4,200 and 13.13%, held to the end of the beat
+- [ ] No network request while rendering
+
+**Verification:**
+- [ ] `npm run typecheck`; stills at frames 735 and 1005, compared with the app
+- [ ] The studio, played through beats 3–4
+
+**Dependencies:** T68
+**Files:** `video/src/data.ts`, `scenes/Prices.tsx`, `Profit.tsx`, `video/src/Showcase.tsx`
+**Scope:** M
+
+### - [ ] T71: Beats 5–6: copying the listing, then the builds list
+
+**Description:**
+- `scenes/Listing.tsx`: the listing text from `listingText(SOLD_BUILD…)` appears, then "Copied".
+- `data.ts`: the month's totals for the builds list, from the demo's two builds.
+- `scenes/Builds.tsx`: both builds ("Ryzen 5 5600 + RX 6600" sold, "i5-12400F + RTX 3060" in
+  progress, with `StatusTag`) and `BuildsSummary` above them.
+
+**Acceptance criteria:**
+- [ ] The listing text is exactly what the app would copy for the sold build
+- [ ] The builds list's totals match the demo account's
+
+**Verification:**
+- [ ] `npm run typecheck`; stills at frames 1215 and 1365, compared with the demo on the live
+  site
+- [ ] The studio, played through beats 5–6
+
+**Dependencies:** T68
+**Files:** `video/src/data.ts`, `scenes/Listing.tsx`, `Builds.tsx`, `video/src/Showcase.tsx`
+**Scope:** S
+
+### - [ ] T72: Beats 7–8: the stack and the end card, and the final render
+
+**Description:**
+- `scenes/Stack.tsx`: the phone slides out; the stack comes in as a row of hairline chips (React,
+  TypeScript, Tailwind CSS, Django REST Framework, PostgreSQL, live shop prices).
+- `scenes/End.tsx`: the logo, "Try the demo, no sign-up needed" and
+  pc-flipper-toolkit.vercel.app.
+- The final `npm run render`, watched muted and with the narration draft read aloud; any beat
+  that's too short grows in `beats.ts`.
+
+**Acceptance criteria:**
+- [ ] Beats 7 and 8 show what the spec's table says, with the name as in the LICENSE
+- [ ] The spec's success criteria 1–5 hold on the final render
+
+**Verification:**
+- [ ] `npm run typecheck`; stills at frames 1545 and 1725
+- [ ] All eight stills (75, 375, 735, 1005, 1215, 1365, 1545, 1725): no clipped text, no wrong
+  numbers
+- [ ] `git diff --stat main -- frontend backend` is empty; the frontend's checks pass
+
+**Dependencies:** T68 (and T69–T71 for the final render)
+**Files:** `video/src/scenes/Stack.tsx`, `End.tsx`, `video/src/Showcase.tsx`, `beats.ts`
+**Scope:** S
+
+### Checkpoint 26: A 60-second showcase video
+- [ ] The author watches the final MP4 muted, then with the narration read aloud, and would post
+  it as it is (the spec's success criteria 1–6)
+- [ ] Nothing under `frontend/` or `backend/` changed; CI is green on `main`
