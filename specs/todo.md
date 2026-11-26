@@ -2135,7 +2135,7 @@ Spec: [specs/showcase-video.md](showcase-video.md) (approved 2026-11-26). A new 
 at the root: no change under `frontend/` or `backend/`, no migration, not in CI or any deploy.
 Remotion is the author's choice, so its packages (the spec's list) are agreed. One PR per task.
 
-### - [ ] T68: `video/` renders the whole 60 seconds: every caption on time over a still phone
+### - [x] T68: `video/` renders the whole 60 seconds: every caption on time over a still phone
 
 **Description:**
 - `video/package.json` with the spec's packages pinned and its scripts (`studio`, `still`,
@@ -2152,22 +2152,32 @@ Remotion is the author's choice, so its packages (the spec's list) are agreed. O
 - `data.ts` starts empty of samples (the price rows and month totals come with their beats).
 - One line for `video/` in `specs/app.md`'s project structure.
 
+- Built 2026-11-26: `remotion.config.ts` only aliases React: webpack compiles
+  `import.meta.env.VITE_API_URL` to `undefined`, which `api.ts` already handles. `tsconfig.json`
+  maps React's types the same way, and `src/env.d.ts` types the frontend's image imports.
+  `index.css` sets every breakpoint out of reach, so the components keep their phone layout in a
+  1080px frame, and sets `color-scheme: light`. `@types/react` and `@types/react-dom` (19.3.0,
+  as in the frontend) came with TypeScript. The still phone is the header (`Phone.tsx`, drawn
+  from `App.tsx`'s) over the sold build's four loose parts (`scenes/PartsStill.tsx`). `data.ts`
+  waits for T70. The fonts come from Google Fonts while rendering, the only network use.
+  Found: the app's edit buttons draw `<path d="pencil" />`, so no pencil shows on them, here or
+  on the live site, since #101.
+
 **Acceptance criteria:**
-- [ ] `npm run render` writes `out/showcase.mp4`: 60.0 s, 1080×1350, 30 fps, H.264
-- [ ] Each beat's caption shows over its frames in the spec's table, in Newsreader 500 64px
-- [ ] The phone's parts are the app's own component, styled as on the live site's phone layout
-- [ ] The bundle has one copy of React
+- [x] `npm run render` writes `out/showcase.mp4`: 60.0 s, 1080×1350, 30 fps, H.264
+- [x] Each beat's caption shows over its frames in the spec's table, in Newsreader 500 64px
+- [x] The phone's parts are the app's own component, styled as on the live site's phone layout
+- [x] The bundle has one copy of React
 
 **Verification:**
-- [ ] `npm run typecheck`
-- [ ] Stills at frames 75 and 1725 look like the app (fonts, colours, hairlines)
-- [ ] `git diff --stat main -- frontend backend` is empty; the frontend's tests, lint and build
-  pass
+- [x] `npm run typecheck`
+- [x] Stills at frames 75 and 1725 look like the app (fonts, colours, hairlines)
+- [x] `git diff --stat main -- frontend backend` is empty, so the frontend's checks are main's
 
 **Dependencies:** None
 **Files:** `video/` (`package.json`, `package-lock.json`, `remotion.config.ts`, `tsconfig.json`,
-`.gitignore`, `src/index.ts`, `Root.tsx`, `index.css`, `beats.ts`, `Showcase.tsx`, `Phone.tsx`,
-`data.ts`), `specs/app.md`
+`.gitignore`, `src/index.ts`, `Root.tsx`, `index.css`, `env.d.ts`, `fonts.ts`, `beats.ts`,
+`Showcase.tsx`, `Phone.tsx`, `scenes/PartsStill.tsx`), `specs/app.md`
 **Scope:** M
 
 ### - [ ] T69: Beats 1–2: the hook, then parts, the bundle and extra costs going in

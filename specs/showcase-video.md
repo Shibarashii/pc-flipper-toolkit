@@ -81,15 +81,18 @@ samples. The landing page already shows "RX 6600 ₱11,000", so the picked row u
   `BuildsSummary`, `StatusTag`, `listingText`, `buildSlots`, `formatMoney`, `SOLD_BUILD`). Where a
   piece only exists inside a page (the landing page's price tags), the video draws its own from
   the same tokens rather than changing the app.
-- **`remotion.config.ts`** sets three things on the bundler:
+- **`remotion.config.ts`** sets two things on the bundler:
   - Tailwind v4 (`enableTailwind`).
   - One React: `resolve.alias` sends `react` and `react-dom` to `video/node_modules`, because
     files under `frontend/src` would otherwise load the frontend's own copy, and two Reacts
-    break hooks.
-  - `import.meta.env` defined as `{}`, because some component files import `api.ts`, which
-    reads Vite's `import.meta.env` when it loads. The video makes no requests.
-- **Styles:** `video/src/index.css` imports the frontend's `index.css` (the tokens and `@theme`)
-  and adds `@source "../../frontend/src"`, so Tailwind finds the components' classes.
+    break hooks. `tsconfig.json`'s `paths` does the same for their types.
+- **`import.meta.env`:** some component files import `api.ts`, which reads Vite's
+  `import.meta.env` when it loads. Webpack compiles it to `undefined`, which `api.ts` already
+  handles, so nothing defines it. The video makes no requests.
+- **Styles:** `video/src/index.css` imports the frontend's `index.css` (the tokens and `@theme`),
+  adds `@source "../../frontend/src"`, so Tailwind finds the components' classes, sets every
+  breakpoint out of reach, so the components keep their phone layout in a 1080px frame, and sets
+  `color-scheme: light`.
 - **Fonts:** Instrument Sans and Newsreader through `@remotion/google-fonts`, loaded once before
   the first frame.
 - **Animation state is a function of the frame:** each scene reads `useCurrentFrame()` and
@@ -113,7 +116,7 @@ npm run typecheck     # tsc --noEmit
 ```
 video/
 ├── package.json         Remotion and React, pinned; the scripts above
-├── remotion.config.ts   Tailwind, one React, import.meta.env
+├── remotion.config.ts   Tailwind, one React
 ├── tsconfig.json
 ├── .gitignore           node_modules/, out/
 └── src/
