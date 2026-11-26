@@ -2,7 +2,7 @@
 
 A silent, captioned video of the app for LinkedIn and Facebook, made with Remotion from the app's
 own components. On top of [specs/app.md](app.md), which stays the source of truth. Intent:
-[specs/intent/showcase-video.md](intent/showcase-video.md). Not approved yet.
+[specs/intent/showcase-video.md](intent/showcase-video.md). Approved 2026-11-26.
 
 ## Objective
 
@@ -168,10 +168,12 @@ hard-coded colours. A scene file holds its own timings relative to its beat's st
 5. Nothing under `frontend/` or `backend/` changes, and the frontend's checks still pass.
 6. The author would post it as it is.
 
-## Open Questions
+## Decisions
 
-1. **Light or dark?** The spec says light (warm paper), because it stands out in a mostly white
-   feed. Dark would match a recruiter's idea of a developer's video better. One switch either way.
-2. **The name on beat 7:** "Seanrei Valdeabella", as in the LICENSE, or a handle?
-3. **Real prices:** sample rows are safe and never date. Real rows from one live search would
-   be truer but will be out of date in a week.
+Settled when the spec was approved, as written:
+
+1. **Light, not dark:** warm paper stands out in a mostly white feed. Changing it later is one
+   switch.
+2. **The name on beat 7** is "Seanrei Valdeabella", as in the LICENSE.
+3. **Sample prices, not a live search:** sample rows never go out of date; a real search would
+   within a week.
