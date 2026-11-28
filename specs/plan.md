@@ -385,7 +385,7 @@ the "Waking note" section on Ready for development (approved 2026-11-21).
 
 ### Phase 28: A 35-second demo video ([specs/demo-video.md](demo-video.md))
 - [x] T68: `video/` records steps 1–2 on the live site and plays them with the cursor
-- [ ] T69: The camera follows the cursor
+- [x] T69: The camera follows the cursor
 - [ ] T70: Steps 3–4: the bundle and the price lookup
 - [ ] T71: Steps 5–6: the profit and copying the listing
 - [ ] T72: Captions, the end card and the final render

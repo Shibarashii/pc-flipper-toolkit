@@ -2174,13 +2174,13 @@ lists (approved with it).
 **Verification:**
 - [x] `npm run lint` and `npm run render` succeed
 - [x] Stills of each click checked by eye
-- [ ] CI is unchanged (`backend`, `frontend`, `e2e` pass on the PR)
+- [x] CI is unchanged (`backend`, `frontend`, `e2e` pass on the PR)
 
 **Dependencies:** None
 **Files:** `video/package.json`, `video/package-lock.json`, `video/src/{events.ts,events.test.ts,theme.ts,fonts.ts}`, `specs/demo-video.md`, `specs/app.md`, `video/tsconfig.json`, `video/remotion.config.ts`, `video/.gitignore`, `video/record.ts`, `video/src/{index.ts,Root.tsx,Demo.tsx,Window.tsx,Cursor.tsx}`
 **Scope:** M
 
-### - [ ] T69: The camera follows the cursor
+### - [x] T69: The camera follows the cursor
 
 **Description:**
 - `src/steps.ts`: per step, where the camera looks and how far in (1× to about 1.8×), keyed to
@@ -2192,14 +2192,14 @@ lists (approved with it).
   stays inside the window; on a click the cursor is at the logged position on screen.
 
 **Acceptance criteria:**
-- [ ] Steps 1–2 push in on Try the demo and on the build's row, and back out between them,
+- [x] Steps 1–2 push in on Try the demo and on the build's row, and back out between them,
   with no jump
-- [ ] The view never shows past the window's edges
-- [ ] The cursor and its ripples move with the camera and stay on what was clicked
+- [x] The view never shows past the window's edges
+- [x] The cursor and its ripples move with the camera and stay on what was clicked
 
 **Verification:**
-- [ ] `npm test` and `npm run lint` pass
-- [ ] Stills before, during and after each zoom checked by eye
+- [x] `npm test` and `npm run lint` pass
+- [x] Stills before, during and after each zoom checked by eye
 
 **Dependencies:** T68
 **Files:** `video/src/steps.ts`, `video/src/camera.ts`, `video/src/camera.test.ts`, `video/src/Demo.tsx`
