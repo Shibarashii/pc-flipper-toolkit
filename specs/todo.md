@@ -2137,7 +2137,7 @@ Spec: [specs/demo-video.md](demo-video.md) (approved 2026-11-28). Intent:
 `frontend/` or `backend/`, no API change, no migration. The new dependencies are the ones the spec
 lists (approved with it).
 
-### - [ ] T68: `video/` records steps 1–2 on the live site and plays them with the cursor
+### - [x] T68: `video/` records steps 1–2 on the live site and plays them with the cursor
 
 **Description:**
 - `video/` with its own `package.json` (pinned: `remotion`, `@remotion/cli`,
@@ -2156,20 +2156,28 @@ lists (approved with it).
   2× device scale factor, then screenshots per frame; write the choice into the spec's Open
   Questions.
 - Commands as in the spec: `npm run record`, `studio`, `render`, `test`, `lint`.
+- Built 2026-11-28: Playwright's video, Chrome's screencast and plain CDP screenshots all came
+  out 1280×720 at a 2× scale, soft at 1.8×. Screenshots with a 2× `clip` are 2560×1440 at
+  ~15 a second and sharp, so the recorder takes those and stitches a 30 fps MP4 with
+  `npx remotion ffmpeg` (decision in the spec). Capture starts once the landing page has
+  loaded; a screenshot that fails mid-paint is skipped. The cursor's maths is in
+  `src/events.ts` with 5 Vitest tests (written first). Checked: zoomed stills at 1× and 2×,
+  stills at both clicks (the tip on Try the demo and on the build's row, ripples showing),
+  and a 7.8 s 1920×1080 render. npm blocks esbuild's postinstall; rendering works without it.
 
 **Acceptance criteria:**
-- [ ] `npm run record` then `npm run render` give an MP4 of steps 1–2 on the live site, with no
+- [x] `npm run record` then `npm run render` give an MP4 of steps 1–2 on the live site, with no
   waking note
-- [ ] In stills at each click, the drawn cursor's tip is on what was clicked, and the ripple shows
-- [ ] A zoomed still is sharp enough, or the spec says which fallback was chosen and it is
+- [x] In stills at each click, the drawn cursor's tip is on what was clicked, and the ripple shows
+- [x] A zoomed still is sharp enough, or the spec says which fallback was chosen and it is
 
 **Verification:**
-- [ ] `npm run lint` and `npm run render` succeed
-- [ ] Stills of each click checked by eye
+- [x] `npm run lint` and `npm run render` succeed
+- [x] Stills of each click checked by eye
 - [ ] CI is unchanged (`backend`, `frontend`, `e2e` pass on the PR)
 
 **Dependencies:** None
-**Files:** `video/package.json`, `video/tsconfig.json`, `video/remotion.config.ts`, `video/.gitignore`, `video/record.ts`, `video/src/{index.ts,Root.tsx,Demo.tsx,Window.tsx,Cursor.tsx}`
+**Files:** `video/package.json`, `video/package-lock.json`, `video/src/{events.ts,events.test.ts,theme.ts,fonts.ts}`, `specs/demo-video.md`, `specs/app.md`, `video/tsconfig.json`, `video/remotion.config.ts`, `video/.gitignore`, `video/record.ts`, `video/src/{index.ts,Root.tsx,Demo.tsx,Window.tsx,Cursor.tsx}`
 **Scope:** M
 
 ### - [ ] T69: The camera follows the cursor

@@ -79,9 +79,12 @@ The selling price is chosen so the profit is positive.
 
 - **Two steps, two commands:**
   1. **Record:** a Playwright script drives Chromium on the live site at a 1280×720 viewport,
-     light colour scheme, and saves the recording plus an event log (`events.json`): every
-     cursor position, click and step start, with its time. The cursor moves with Playwright's
-     `mouse.move` in steps, so it travels like a hand would, not in jumps.
+     2× device scale, light colour scheme. It takes screenshots one after another at 2560×1440
+     (about 15 a second) and stitches them into a constant 30 fps MP4 with Remotion's ffmpeg,
+     plus an event log (`events.json`): every cursor position, click and step start, with its
+     time. The cursor moves with Playwright's `mouse.move` in eased steps, each one logged, so
+     it travels like a hand would, not in jumps. Capture starts once the landing page has
+     loaded.
   2. **Render:** Remotion plays the recording and draws the frame, cursor, ripples, camera
      and captions from the event log.
 - **The live site:** https://pc-flipper-toolkit.vercel.app through **Try the demo**. Before
@@ -106,7 +109,7 @@ From `video/`:
 ```
 npm install
 npx playwright install chromium   # one-time, if the frontend's isn't there
-npm run record                     # records the live site → recording/demo.webm + events.json
+npm run record                     # records the live site → recording/demo.mp4 + events.json
 npm run studio                     # preview in Remotion Studio
 npm run render                     # → out/demo.mp4
 npm test                           # vitest run: the camera and cursor maths
@@ -176,10 +179,7 @@ export function cameraAt(frame: number, events: VideoEvent[], fps: number): Came
 
 ## Open Questions
 
-1. **Recording sharpness:** Playwright's video is a modest-quality WebM, and zooming in 1.8×
-   may blur it. The first task checks this; if it's too soft, record at a 2× device scale
-   factor, or fall back to frame-by-frame screenshots. Which fallback is chosen goes back into
-   this spec.
+None.
 
 ## Decided
 
@@ -187,3 +187,8 @@ export function cameraAt(frame: number, events: VideoEvent[], fps: number): Came
   name (2026-11-28).
 - The motherboard is the first in-stock "B660M" result on the day of recording (2026-11-28).
 - A bundle is shown, in steps 3 and 4 (2026-11-28).
+- **Recording sharpness** (T68, 2026-11-28): Playwright's video, Chrome's screencast and plain
+  screenshots all capture 1280×720 whatever the device scale, which goes soft at 1.8×. A
+  screenshot with a 2× clip is 2560×1440 at about 15 a second, sharp at 1.8×. So the recorder
+  takes those; the page updates at ~15 fps while the cursor and camera, drawn by Remotion,
+  move at 30.

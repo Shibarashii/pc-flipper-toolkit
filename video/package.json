@@ -1,0 +1,29 @@
+{
+  "name": "pc-flipper-toolkit-video",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "record": "node record.ts",
+    "studio": "remotion studio src/index.ts",
+    "still": "remotion still src/index.ts Demo --frame",
+    "render": "remotion render src/index.ts Demo out/demo.mp4 --codec=h264 --crf=18",
+    "test": "vitest run",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.547",
+    "@remotion/google-fonts": "4.0.547",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "remotion": "4.0.547"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.1",
+    "@types/node": "24.19.2",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "typescript": "6.0.3",
+    "vitest": "5.0.5"
+  }
+}
