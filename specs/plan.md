@@ -386,7 +386,7 @@ the "Waking note" section on Ready for development (approved 2026-11-21).
 ### Phase 28: A 35-second demo video ([specs/demo-video.md](demo-video.md))
 - [x] T68: `video/` records steps 1–2 on the live site and plays them with the cursor
 - [x] T69: The camera follows the cursor
-- [ ] T70: Steps 3–4: the bundle and the price lookup
+- [x] T70: Steps 3–4: the bundle and the price lookup
 - [ ] T71: Steps 5–6: the profit and copying the listing
 - [ ] T72: Captions, the end card and the final render
 
@@ -465,7 +465,7 @@ post it as it is (the spec's success criteria 1–6).
 | Playwright's recording is too soft once the camera zooms in 1.8× | High (the point is a polished look) | T68 records first and checks a zoomed still; if it's soft, try a 2× device scale factor, then screenshots per frame, and write the choice into the spec |
 | The drawn cursor drifts from what was really clicked | High (it looks fake) | The recorder logs each click's position and time from the element it clicked; T68 checks stills at clicks, and a test checks the cursor sits at the logged position on a click (T69) |
 | The live site changes and the recording breaks or shows something else | Med | The recorder finds everything by role and name, like the e2e tests, and fails loudly when a step's element is missing |
-| Today's shop copy has no in-stock "B660M" | Low | The recorder fails with a clear message; the author picks another search word in `record.ts` (T70) |
+| Today's shop copy has no in-stock "B660M" (it happened on 2026-11-28: H610M instead) | Low | The recorder fails with a clear message; the author picks another search word in `record.ts` (T70) |
 | Render is asleep, so the waking note shows in the recording | Med | The recorder asks the API until it answers before opening the site (T68) |
 | Repeated recordings hit the limit of 10 log-ins a minute | Low | One demo per run; the recorder stops on a 429 instead of retrying |
 | Clipboard access is refused in headless Chromium, so "Copied" never shows | Low | The recorder grants `clipboard-write` to the site's origin (T71) |

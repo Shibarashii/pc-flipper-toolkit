@@ -42,7 +42,7 @@ whole window) and about 1.8× (the area around the cursor).
 | 1 | 0–3 s | Flip PCs? Know what each one really made you. | The landing page; the cursor moves to the hero's **Try the demo** and clicks | 1×, pushes in on the button just before the click |
 | 2 | 3–6 s | Every flip in one place | The builds list; the cursor clicks **i5-12400F + RTX 3060** | Out to 1×, then in on the row |
 | 3 | 6–11 s | Bought a bundle? Log it as one price. | **Add bundle**: "Board + PSU", Facebook Marketplace, ₱7,500 is typed; Save | In on the new bundle's row at about 1.6× |
-| 4 | 11–19 s | Check today's shop prices | **Add part to Board + PSU**: a motherboard's name is typed, **Find prices**, a real in-stock result is picked and fills Listed price and Shop; Save. Then "650W 80+ Bronze" and its listed price go in quickly; Save | Follows the cursor and the typing at about 1.6×, out a little to show both parts inside the bundle |
+| 4 | 11–19 s | Check today's shop prices | **Add part to Board + PSU**: "H610M" is typed and the shop results pop up under the name; a real in-stock one is picked and fills the name, Listed price and Shop; Motherboard; Save. Then the PSU, its category and listed price go in quickly; Save | Follows the cursor and the typing at about 1.6×, out a little to show both parts inside the bundle |
 | 5 | 19–25 s | Know your profit, to the peso | The selling price is set in the build header; the Summary shows the profit and margin | In on the selling price, then pans to the profit |
 | 6 | 25–29 s | Post the listing in one tap | **Copy listing**, then **Copy**; "Copied" shows | In on the dialog |
 | 7 | 29–34 s | Track your profit on every PC you flip | An end card on paper: the logo, "Try the demo, no sign-up needed" and pc-flipper-toolkit.vercel.app | Still |
@@ -70,7 +70,7 @@ The demo account's in-progress build "i5-12400F + RTX 3060" (Intel Core i5-12400
 12GB, 16GB DDR4), as made by [demo.py](../backend/builds/demo.py). A bundle is added to it:
 "Board + PSU" from Facebook Marketplace for ₱7,500, holding a motherboard and a "650W 80+
 Bronze" PSU (listed ₱3,000). Bundled parts' bought-for is optional, so neither is typed. The
-motherboard is the first in-stock result for "B660M" in the live shop copy on the day of
+motherboard is the first in-stock result for "H610M" in the live shop copy on the day of
 recording, so the video shows a real price. The PSU is typed quickly (the recorder fills it
 instead of typing key by key), so it doesn't slow the step down.
 The selling price is chosen so the profit is positive.
@@ -185,8 +185,13 @@ None.
 
 - The end card shows only the logo, "Try the demo, no sign-up needed" and the link; no
   name (2026-11-28).
-- The motherboard is the first in-stock "B660M" result on the day of recording (2026-11-28).
+- The motherboard is the first in-stock "H610M" result on the day of recording (2026-11-28;
+  "B660M" at first, but none of its 17 results was in stock that day, and H610M fits the
+  build's i5-12400F, LGA 1700, too).
 - A bundle is shown, in steps 3 and 4 (2026-11-28).
+- **Step 4 uses the name field's pop-up, not Find prices** (T70, 2026-11-28): typing a part's
+  name already pops up the shop results, so it's the app's quickest way to a real price, and
+  it shows more on screen. Steps 3–4 came to about 16 s, not 13; the total still fits 32–37 s.
 - **Recording sharpness** (T68, 2026-11-28): Playwright's video, Chrome's screencast and plain
   screenshots all capture 1280×720 whatever the device scale, which goes soft at 1.8×. A
   screenshot with a 2× clip is 2560×1440 at about 15 a second, sharp at 1.8×. So the recorder

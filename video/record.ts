@@ -7,7 +7,7 @@
 // cursor and camera are drawn at 30 fps by Remotion; only the page itself updates at ~15.
 import { execFileSync } from "node:child_process";
 import { mkdir, rm, writeFile } from "node:fs/promises";
-import { chromium, type Locator, type Page } from "@playwright/test";
+import { chromium, expect, type Locator, type Page } from "@playwright/test";
 import type { VideoEvent } from "./src/events.ts";
 
 const SITE = "https://pc-flipper-toolkit.vercel.app";
@@ -40,30 +40,69 @@ let at = { x: 900, y: 520 };
 const pause = (page: Page, ms: number) => page.waitForTimeout(ms);
 const step = (n: number) => events.push({ t: now(), type: "step", step: n });
 
-/** Moves the cursor like a hand: eased, logged at every point it passes. */
-async function moveTo(page: Page, x: number, y: number, ms = 700) {
+/** Moves the cursor like a hand: eased, logged at every point it passes. Paced by the clock,
+ * so a move takes `ms` however long each mouse event waits behind the screenshots. */
+async function moveTo(page: Page, x: number, y: number, ms = 600) {
   const from = at;
-  const n = Math.max(8, Math.round(ms / 16));
-  for (let i = 1; i <= n; i++) {
-    const k = i / n;
+  const begin = now();
+  for (;;) {
+    const k = Math.min(1, ((now() - begin) * 1000) / ms);
     const e = k < 0.5 ? 4 * k ** 3 : 1 - (-2 * k + 2) ** 3 / 2; // ease in-out
     at = { x: from.x + (x - from.x) * e, y: from.y + (y - from.y) * e };
     await page.mouse.move(at.x, at.y);
     events.push({ t: now(), type: "move", ...at });
-    await page.waitForTimeout(ms / n);
+    if (k === 1) return;
+    await page.waitForTimeout(12);
   }
+}
+
+/** Scrolls with the wheel, a little at a time, until the element is well inside the window. */
+async function reveal(page: Page, target: Locator) {
+  const margin = 90;
+  for (let i = 0; i < 200; i++) {
+    const box = await target.boundingBox();
+    if (!box) throw new Error(`Not on screen: ${target}`);
+    const below = box.y + box.height - (VIEWPORT.height - margin);
+    const above = margin - box.y;
+    if (below <= 0 && above <= 0) return box;
+    await page.mouse.wheel(0, below > 0 ? Math.min(30, below) : -Math.min(30, above));
+    await pause(page, 20);
+  }
+  throw new Error(`Couldn't scroll to: ${target}`);
 }
 
 /** Moves to the middle of an element and clicks it there. */
 async function click(page: Page, target: Locator, ms?: number) {
-  await target.scrollIntoViewIfNeeded();
-  const box = await target.boundingBox();
-  if (!box) throw new Error(`Not on screen: ${target}`);
+  const box = await reveal(page, target);
   await moveTo(page, box.x + box.width / 2, box.y + box.height / 2, ms);
-  await pause(page, 150);
+  await pause(page, 120);
   await page.mouse.down();
   events.push({ t: now(), type: "click", ...at });
   await page.mouse.up();
+}
+
+/** Clicks a field and types into it key by key, or all at once when `fast`. */
+async function typeInto(page: Page, field: Locator, text: string, fast = false) {
+  await click(page, field, 450);
+  if (fast) {
+    await field.fill(text);
+    events.push({ t: now(), type: "type", ...at });
+    return;
+  }
+  for (const key of text) {
+    await page.keyboard.type(key);
+    events.push({ t: now(), type: "type", ...at });
+    await pause(page, 35);
+  }
+}
+
+/** Points at a native select and picks an option (its own pop-up isn't in screenshots). */
+async function choose(page: Page, select: Locator, label: string) {
+  const box = await reveal(page, select);
+  await moveTo(page, box.x + box.width / 2, box.y + box.height / 2, 450);
+  await pause(page, 120);
+  events.push({ t: now(), type: "click", ...at });
+  await select.selectOption({ label });
 }
 
 /** Each frame stays until the next one came; the result is a constant 30 fps MP4. */
@@ -100,7 +139,6 @@ async function main() {
   await rm(FRAMES, { recursive: true, force: true });
   await mkdir(FRAMES, { recursive: true });
 
-  // Step 1: the landing page, then the hero's Try the demo.
   await page.goto(SITE);
   await page
     .getByRole("heading", { name: "Track your profit on every PC you flip" })
@@ -115,12 +153,16 @@ async function main() {
   const capture = (async () => {
     while (recording) {
       const t = now();
+      // A clip is measured from the top of the page, so it follows the scroll.
       const shot = await cdp
-        .send("Page.captureScreenshot", {
-          format: "jpeg",
-          quality: 92,
-          clip: { x: 0, y: 0, ...VIEWPORT, scale: SCALE },
-        })
+        .send("Page.getLayoutMetrics")
+        .then(({ cssVisualViewport: { pageX, pageY } }) =>
+          cdp.send("Page.captureScreenshot", {
+            format: "jpeg",
+            quality: 92,
+            clip: { x: pageX, y: pageY, ...VIEWPORT, scale: SCALE },
+          }),
+        )
         .catch(() => null); // mid-paint; the next one will do
       if (!shot) continue;
       const { data } = shot;
@@ -129,6 +171,32 @@ async function main() {
       await writeFile(`${FRAMES}/${file}`, Buffer.from(data, "base64"));
     }
   })();
+  try {
+    await steps(page);
+  } catch (e) {
+    // A screenshot of where it stopped, to see why.
+    recording = false;
+    await capture;
+    await page.screenshot({ path: `${OUT}/failed.png` }).catch(() => {});
+    await browser.close();
+    throw e;
+  }
+
+  const duration = now();
+  recording = false;
+  await capture;
+  await browser.close();
+  await stitch(frames, duration);
+  await writeFile(
+    `${OUT}/events.json`,
+    JSON.stringify({ duration, scale: SCALE, events }, null, 1),
+  );
+  console.log(`Recorded ${duration.toFixed(1)} s → ${OUT}/demo.mp4, ${OUT}/events.json`);
+}
+
+/** The video's steps, from the loaded landing page (specs/demo-video.md#steps). */
+async function steps(page: Page) {
+  // Step 1: the landing page, then the hero's Try the demo.
   await page.mouse.move(at.x, at.y);
   events.push({ t: now(), type: "move", ...at });
   step(1);
@@ -144,18 +212,54 @@ async function main() {
   await pause(page, 700);
   await click(page, build);
   await page.getByRole("region", { name: "Summary", exact: true }).waitFor();
-  await pause(page, 1500);
+  await pause(page, 900);
 
-  const duration = now();
-  recording = false;
-  await capture;
-  await browser.close();
-  await stitch(frames, duration);
-  await writeFile(
-    `${OUT}/events.json`,
-    JSON.stringify({ duration, scale: SCALE, events }, null, 1),
-  );
-  console.log(`Recorded ${duration.toFixed(1)} s → ${OUT}/demo.mp4, ${OUT}/events.json`);
+  // Step 3: a bundle, bought for one price.
+  step(3);
+  await click(page, page.getByRole("button", { name: "Add bundle" }));
+  const bundle = page.getByRole("form", { name: "New bundle" });
+  await typeInto(page, bundle.getByPlaceholder("Bundle name"), "Board + PSU");
+  await typeInto(page, bundle.getByPlaceholder("Shop"), "Facebook Marketplace");
+  await typeInto(page, bundle.getByPlaceholder("Price ₱"), "7500");
+  await click(page, bundle.getByRole("button", { name: "Save" }), 500);
+  await bundle.waitFor({ state: "detached" });
+  await pause(page, 500);
+
+  // Step 4: a motherboard from today's shop prices, then a PSU typed in quickly.
+  step(4);
+  const addToBundle = page
+    .getByRole("button", { name: "Add part to Board + PSU" })
+    .filter({ visible: true });
+  await click(page, addToBundle);
+  // After a save the app opens a fresh form in the same bundle, for the next part.
+  const part = page.getByRole("form", { name: "New part" });
+  const name = part.getByRole("combobox", { name: "Part" });
+  await typeInto(page, name, "H610M");
+  const inStock = page
+    .getByRole("listbox", { name: "Shop products" })
+    .getByRole("option")
+    .filter({ hasNotText: "Out of stock" })
+    .first();
+  await inStock.waitFor({ timeout: 15_000 }).catch(() => {
+    throw new Error('No in-stock "H610M" in today\'s shop copy: change the search word in record.ts');
+  });
+  await pause(page, 700);
+  await click(page, inStock, 550);
+  await pause(page, 300);
+  await choose(page, part.getByLabel("Category"), "Motherboard");
+  await click(page, part.getByRole("button", { name: "Save" }), 500);
+  await expect(name).toHaveValue("");
+  await pause(page, 300);
+
+  await choose(page, part.getByLabel("Category"), "PSU");
+  await typeInto(page, part.getByPlaceholder("Listed ₱"), "3000", true);
+  // The name last: its shop search pops up as it's filled, and Enter saves the form anyway.
+  await typeInto(page, name, "650W 80+ Bronze", true);
+  await page.keyboard.press("Enter");
+  await expect(name).toHaveValue("");
+  await page.keyboard.press("Escape"); // the fresh form isn't needed
+  await part.waitFor({ state: "detached" });
+  await pause(page, 1000);
 }
 
 await main();
