@@ -64,3 +64,19 @@ test("the zoom never jumps from one frame to the next", () => {
     expect(Math.abs(b - a)).toBeLessThan(0.08);
   }
 });
+
+test("while typing in a field the camera stays in on it", () => {
+  const typing: VideoEvent[] = [
+    { t: 0, type: "move", x: 640, y: 360 },
+    { t: 1, type: "click", x: 300, y: 300 },
+    ...Array.from({ length: 30 }, (_, i): VideoEvent => ({
+      t: 1.2 + i * 0.1,
+      type: "type",
+      x: 300,
+      y: 300,
+    })),
+    { t: 8, type: "move", x: 640, y: 360 },
+  ];
+  // Halfway through 3 seconds of typing, long after the click's own zoom would have ended.
+  expect(cameraAt(2.8 * FPS, typing, FPS, zoomFor).zoom).toBeGreaterThan(1.6);
+});

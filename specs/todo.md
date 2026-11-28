@@ -2205,7 +2205,7 @@ lists (approved with it).
 **Files:** `video/src/steps.ts`, `video/src/camera.ts`, `video/src/camera.test.ts`, `video/src/Demo.tsx`
 **Scope:** S
 
-### - [ ] T70: Steps 3–4: the bundle and the price lookup
+### - [x] T70: Steps 3–4: the bundle and the price lookup
 
 **Description:**
 - `record.ts`, step 3: Add bundle, "Board + PSU", Facebook Marketplace, ₱7,500, Save.
@@ -2215,15 +2215,24 @@ lists (approved with it).
 - `steps.ts`: camera targets for both steps, out a little at the end of step 4 to show both
   parts inside the bundle.
 
+- Built 2026-11-28: no in-stock "B660M" that day, so "H610M" (it fits the i5-12400F too).
+  Typing the name already pops up the shop results, so the recorder picks from that pop-up
+  instead of Find prices (spec updated). After a save the app opens a fresh form in the same
+  bundle, so the PSU goes into it and Escape closes the last one. The camera now also stays in
+  on typing (a `type` event per key; one more Vitest test, written first). The recorder
+  scrolls with the wheel, offsets the screenshot clip by the scroll (it was blank below the
+  fold), paces each move by the clock (moves had taken twice as long behind the screenshots),
+  and saves `recording/failed.png` when a step fails. Steps 3–4 take about 16 s.
+
 **Acceptance criteria:**
-- [ ] The recording shows the bundle saved with both parts inside it, the motherboard's price
+- [x] The recording shows the bundle saved with both parts inside it, the motherboard's price
   and shop filled from a real result
-- [ ] Steps 3–4 together last about 13 seconds
-- [ ] The camera follows the typing and the picked result
+- [x] Steps 3–4 together last about 13 seconds (16 s; the spec notes it)
+- [x] The camera follows the typing and the picked result
 
 **Verification:**
-- [ ] `npm test`, `npm run lint` and `npm run render` pass
-- [ ] The rendered steps 1–4 watched by eye
+- [x] `npm test`, `npm run lint` and `npm run render` pass
+- [x] The rendered steps 1–4 watched by eye
 
 **Dependencies:** T69
 **Files:** `video/record.ts`, `video/src/steps.ts`
