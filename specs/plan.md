@@ -383,6 +383,27 @@ the "Waking note" section on Ready for development (approved 2026-11-21).
 **Checkpoint 25:** the spec's success criteria 1–4 pass on the live site after a cold start
 (15+ minutes idle), at desktop and 375px, light and dark.
 
+### Phase 28: A 35-second demo video ([specs/demo-video.md](demo-video.md))
+- [ ] T68: `video/` records steps 1–2 on the live site and plays them with the cursor
+- [ ] T69: The camera follows the cursor
+- [ ] T70: Steps 3–4: the bundle and the price lookup
+- [ ] T71: Steps 5–6: the profit and copying the listing
+- [ ] T72: Captions, the end card and the final render
+
+```
+T68 recorder + cursor ── T69 camera ── T70 steps 3–4 ── T71 steps 5–6 ── T72 captions + render ── Checkpoint 26
+```
+A new package in `video/` (Remotion 4.0.547 and Playwright 1.64.1, pinned), outside `frontend/`
+and `backend/`, so Vercel, Render and CI never build it. No change under `frontend/` or
+`backend/`; no API change, no migration. T68 proves the risky parts first: a sharp enough
+recording of the live site, and a cursor drawn from the event log that lands exactly on what was
+clicked. The tasks run in order because each one adds to `record.ts` and `steps.ts`. One PR per
+task. Each recording makes one demo account on the live site (deleted after 24 hours); a few
+runs a minute at most.
+
+**Checkpoint 26:** the author watches the final MP4 muted, at full size and on a phone, and would
+post it as it is (the spec's success criteria 1–6).
+
 ## Risks and Mitigations
 
 | Risk | Impact | Mitigation |
@@ -441,6 +462,13 @@ the "Waking note" section on Ready for development (approved 2026-11-21).
 | Google indexes `/` before the landing page ships and keeps the log-in text for a while | Low | Indexing is requested only after T64 is live (Checkpoint 24) |
 | A page's tests wait on real time for the 5 seconds | Low (slow, flaky tests) | Fake timers in every test of the note (T67) |
 | The note shows on every fast answer too | Med (noise on every visit) | It shows only after 5 s; a test answers at 4.9 s and checks it never appears (T67) |
+| Playwright's recording is too soft once the camera zooms in 1.8× | High (the point is a polished look) | T68 records first and checks a zoomed still; if it's soft, try a 2× device scale factor, then screenshots per frame, and write the choice into the spec |
+| The drawn cursor drifts from what was really clicked | High (it looks fake) | The recorder logs each click's position and time from the element it clicked; T68 checks stills at clicks, and a test checks the cursor sits at the logged position on a click (T69) |
+| The live site changes and the recording breaks or shows something else | Med | The recorder finds everything by role and name, like the e2e tests, and fails loudly when a step's element is missing |
+| Today's shop copy has no in-stock "B660M" | Low | The recorder fails with a clear message; the author picks another search word in `record.ts` (T70) |
+| Render is asleep, so the waking note shows in the recording | Med | The recorder asks the API until it answers before opening the site (T68) |
+| Repeated recordings hit the limit of 10 log-ins a minute | Low | One demo per run; the recorder stops on a 429 instead of retrying |
+| Clipboard access is refused in headless Chromium, so "Copied" never shows | Low | The recorder grants `clipboard-write` to the site's origin (T71) |
 
 ## Open Questions
 
