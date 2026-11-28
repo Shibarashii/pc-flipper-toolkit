@@ -80,3 +80,13 @@ test("while typing in a field the camera stays in on it", () => {
   // Halfway through 3 seconds of typing, long after the click's own zoom would have ended.
   expect(cameraAt(2.8 * FPS, typing, FPS, zoomFor).zoom).toBeGreaterThan(1.6);
 });
+
+test("the camera goes in on what the cursor points at, without a click", () => {
+  const looking: VideoEvent[] = [
+    { t: 0, type: "move", x: 640, y: 360 },
+    { t: 2, type: "look", x: 900, y: 200 },
+    { t: 6, type: "move", x: 640, y: 360 },
+  ];
+  expect(cameraAt(2 * FPS, looking, FPS, zoomFor).zoom).toBeGreaterThan(1.6);
+  expect(cameraAt(5 * FPS, looking, FPS, zoomFor).zoom).toBeLessThan(1.1);
+});

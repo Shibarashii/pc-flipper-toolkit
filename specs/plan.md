@@ -387,7 +387,7 @@ the "Waking note" section on Ready for development (approved 2026-11-21).
 - [x] T68: `video/` records steps 1–2 on the live site and plays them with the cursor
 - [x] T69: The camera follows the cursor
 - [x] T70: Steps 3–4: the bundle and the price lookup
-- [ ] T71: Steps 5–6: the profit and copying the listing
+- [x] T71: Steps 5–6: the profit and copying the listing
 - [ ] T72: Captions, the end card and the final render
 
 ```
