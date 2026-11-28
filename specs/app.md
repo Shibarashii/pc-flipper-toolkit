@@ -299,8 +299,6 @@ pc-flipper-toolkit/
 │       ├── pages/         Landing, BuildsList, BuildDetail, Login, Account, Forgot, ResetPassword,
 │       │                  VerifyEmail, Privacy
 │       └── components/    PartsTable.tsx, ExtraCosts.tsx, Summary.tsx, ... (tests sit beside them)
-├── video/                 The 60-second showcase video, in Remotion: its own package, outside CI
-│                          and every deploy (specs/showcase-video.md)
 ├── specs/                 Everything for building the app (not for its users)
 │   ├── app.md             This spec: the app as a whole
 │   ├── <feature>.md       Specs for later features built on this one (price lookup, Google sign-in, …)
