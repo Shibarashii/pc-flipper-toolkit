@@ -2,6 +2,7 @@
 export const color = {
   bg: "#f5f2ec",
   surface: "#fffdf9",
+  line: "#e2dcd0",
   lineStrong: "#cfc7b8",
   ink: "#1d1b17",
   muted: "#6e685d",

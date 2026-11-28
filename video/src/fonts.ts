@@ -1,4 +1,6 @@
 // The brand's fonts, loaded before the first frame renders (specs/design/brand.md).
-import { loadFont } from "@remotion/google-fonts/InstrumentSans";
+import { loadFont as loadInstrumentSans } from "@remotion/google-fonts/InstrumentSans";
+import { loadFont as loadNewsreader } from "@remotion/google-fonts/Newsreader";
 
-loadFont("normal", { weights: ["400", "500"], subsets: ["latin"] });
+loadInstrumentSans("normal", { weights: ["400", "500"], subsets: ["latin"] });
+loadNewsreader("normal", { weights: ["500"], subsets: ["latin"] });
