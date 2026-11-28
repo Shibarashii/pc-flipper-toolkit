@@ -14,6 +14,12 @@ export const steps: Record<number, { caption: string }> = {
 
 const FADE = 0.3; // seconds each side of a change of step
 
+/** How long a step must last for its caption to be read: a second to notice it, about 3 words
+ * a second (a relaxed pace for a feed), and the two fades. The recorder holds each step at
+ * least this long. */
+export const readingTime = (caption: string) =>
+  1 + caption.split(/\s+/).length / 3 + 2 * FADE;
+
 /** The step under way at time t (the last one that started), or 0 before the first. */
 export function stepAt(t: number, events: VideoEvent[]): number {
   let step = 0;

@@ -2287,7 +2287,7 @@ lists (approved with it).
 **Dependencies:** T71
 **Files:** `video/src/Caption.tsx`, `video/src/EndCard.tsx`, `video/src/Demo.tsx`, `video/src/Root.tsx`, `video/src/steps.ts`
 **Scope:** S
-- Built 2026-11-28: 1920×1080, 30 fps, 34.4 s (29.3 s of recording and the 5 s end card).
+- Built 2026-11-28: 1920×1080, 30 fps, 34.4 s at first (29.3 s of recording and the 5 s end card).
   Captions in Newsreader 56 px on a paper pill under the window, fading out 0.3 s before a
   step ends and in 0.3 s after the next starts (5 Vitest tests, written first). The end card
   fades in over the last half second of the recording. Checked as frames at phone width (390
@@ -2295,6 +2295,9 @@ lists (approved with it).
 - Changed 2026-11-28: the author found the zooms too distracting, so the camera (T69's
   `camera.ts` and its 8 tests) was removed; the whole window stays on screen. Spec criterion 4
   is dropped.
+- Changed 2026-11-28: each step now lasts at least its caption's reading time (1 s + 3 words
+  a second + the fades; 2 Vitest tests, written first). The first caption has 4.6 s, not 2.8.
+  Re-recorded: 31.4 s, rendered 36.4 s.
 
 ### Checkpoint 26: A 35-second demo video
 - [ ] The spec's success criteria 1–5 pass on the final MP4

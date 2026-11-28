@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 import type { VideoEvent } from "./events.ts";
-import { captionAt, steps } from "./steps.ts";
+import { captionAt, readingTime, steps } from "./steps.ts";
 
 const events: VideoEvent[] = [
   { t: 0, type: "step", step: 1 },
@@ -29,4 +29,13 @@ test("the first caption is there from the first frame", () => {
 
 test("every step of the video has a caption", () => {
   for (const step of [1, 2, 3, 4, 5, 6, 7]) expect(steps[step].caption).toBeTruthy();
+});
+
+test("a caption's reading time grows with its words, at about 3 words a second", () => {
+  expect(readingTime("Every flip in one place")).toBeCloseTo(1 + 5 / 3 + 0.6);
+  expect(readingTime(steps[1].caption)).toBeGreaterThan(readingTime(steps[2].caption));
+});
+
+test("even the longest caption gets over 4 seconds", () => {
+  expect(readingTime(steps[1].caption)).toBeGreaterThan(4);
 });

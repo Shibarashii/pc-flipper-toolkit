@@ -61,6 +61,8 @@ the time its step is on screen.
   background. Each click shrinks it briefly and sends out a green (`accent`) ripple.
 - **Captions:** Newsreader, large, `ink` on a paper pill at the bottom of the frame, under
   the window. They fade between steps.
+  Each step lasts at least its caption's reading time (a second, plus 3 words a second, plus
+  the fades); the recorder holds a step until then.
 
 ### Data
 
@@ -194,3 +196,7 @@ None.
 - **No zoom** (T72, 2026-11-28): the author found the camera's zooms too distracting, so the
   camera was removed; the whole window stays on screen. The 2× recording stays, as the window
   is still scaled up to fill the 1080p frame.
+- **Caption timing** (T72, 2026-11-28): the first caption went before the author could read
+  it (2.8 s for 9 words). `readingTime` in `steps.ts` sets each step's minimum length, and the
+  recorder waits for it before the next step. The recording came to 31.4 s, 36.4 s with the
+  end card.
