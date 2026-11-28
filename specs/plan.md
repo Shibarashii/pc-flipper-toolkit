@@ -388,7 +388,7 @@ the "Waking note" section on Ready for development (approved 2026-11-21).
 - [x] T69: The camera follows the cursor
 - [x] T70: Steps 3–4: the bundle and the price lookup
 - [x] T71: Steps 5–6: the profit and copying the listing
-- [ ] T72: Captions, the end card and the final render
+- [x] T72: Captions, the end card and the final render
 
 ```
 T68 recorder + cursor ── T69 camera ── T70 steps 3–4 ── T71 steps 5–6 ── T72 captions + render ── Checkpoint 26

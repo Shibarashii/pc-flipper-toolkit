@@ -2,13 +2,14 @@
 // (specs/demo-video.md). Run with `npm run record`; writes recording/demo.mp4 and events.json.
 //
 // Playwright's video, Chrome's screencast and plain screenshots all capture 1280×720 whatever
-// the scale, which blurs once the camera zooms in. A screenshot with a 2× clip is 2560×1440 at
+// the scale, which blurs once scaled up to 1080p. A screenshot with a 2× clip is 2560×1440 at
 // about 15 a second, so the recorder takes them one after another and stitches them. The
-// cursor and camera are drawn at 30 fps by Remotion; only the page itself updates at ~15.
+// cursor is drawn at 30 fps by Remotion; only the page itself updates at ~15.
 import { execFileSync } from "node:child_process";
 import { mkdir, rm, writeFile } from "node:fs/promises";
 import { chromium, expect, type Locator, type Page } from "@playwright/test";
 import type { VideoEvent } from "./src/events.ts";
+import { readingTime, steps as captions } from "./src/steps.ts";
 
 const SITE = "https://pc-flipper-toolkit.vercel.app";
 const API = "https://pc-flipper-toolkit.onrender.com/api/schema/";
@@ -38,7 +39,15 @@ const now = () => Date.now() / 1000 - start;
 let at = { x: 900, y: 520 };
 
 const pause = (page: Page, ms: number) => page.waitForTimeout(ms);
-const step = (n: number) => events.push({ t: now(), type: "step", step: n });
+/** Starts step n, once the step before has been on screen long enough to read its caption. */
+async function step(page: Page, n?: number) {
+  const last = events.findLast((e) => e.type === "step");
+  if (last?.type === "step") {
+    const left = last.t + readingTime(captions[last.step].caption) - now();
+    if (left > 0) await pause(page, left * 1000);
+  }
+  if (n) events.push({ t: now(), type: "step", step: n });
+}
 
 /** Moves the cursor like a hand: eased, logged at every point it passes. Paced by the clock,
  * so a move takes `ms` however long each mouse event waits behind the screenshots. */
@@ -96,8 +105,8 @@ async function typeInto(page: Page, field: Locator, text: string, fast = false) 
   }
 }
 
-/** Rests the cursor just right of something worth seeing (so it doesn't hide it), and the
- * camera goes in on it for `ms`. */
+/** Rests the cursor just right of something worth seeing (so it doesn't hide it), for
+ * `ms`. */
 async function lookAt(page: Page, target: Locator, ms: number) {
   const box = await reveal(page, target);
   await moveTo(page, box.x + box.width + 24, box.y + box.height / 2, 600);
@@ -213,8 +222,8 @@ async function steps(page: Page) {
   // Step 1: the landing page, then the hero's Try the demo.
   await page.mouse.move(at.x, at.y);
   events.push({ t: now(), type: "move", ...at });
-  step(1);
-  await pause(page, 900);
+  await step(page, 1);
+  await pause(page, 1700); // long enough to read the first, longest caption on the landing page
   await click(page, page.getByRole("button", { name: "Try the demo" }).first(), 900);
 
   // Step 2: the builds list, then the build in progress.
@@ -222,14 +231,14 @@ async function steps(page: Page) {
     .getByRole("link", { name: "i5-12400F + RTX 3060" })
     .filter({ visible: true });
   await build.waitFor();
-  step(2);
+  await step(page, 2);
   await pause(page, 700);
   await click(page, build);
   await page.getByRole("region", { name: "Summary", exact: true }).waitFor();
   await pause(page, 900);
 
   // Step 3: a bundle, bought for one price.
-  step(3);
+  await step(page, 3);
   await click(page, page.getByRole("button", { name: "Add bundle" }));
   const bundle = page.getByRole("form", { name: "New bundle" });
   await typeInto(page, bundle.getByPlaceholder("Bundle name"), "Board + PSU");
@@ -240,7 +249,7 @@ async function steps(page: Page) {
   await pause(page, 500);
 
   // Step 4: a motherboard from today's shop prices, then a PSU typed in quickly.
-  step(4);
+  await step(page, 4);
   const addToBundle = page
     .getByRole("button", { name: "Add part to Board + PSU" })
     .filter({ visible: true });
@@ -276,7 +285,7 @@ async function steps(page: Page) {
   await pause(page, 800);
 
   // Step 5: a selling price, then the profit it makes.
-  step(5);
+  await step(page, 5);
   const price = page.getByLabel("Selling price");
   await typeInto(page, price, "33000");
   await page.keyboard.press("Enter"); // saves on blur
@@ -286,13 +295,14 @@ async function steps(page: Page) {
   await lookAt(page, summary.getByText(/^\+₱/), 1800);
 
   // Step 6: the listing, copied in one tap.
-  step(6);
+  await step(page, 6);
   await click(page, page.getByRole("button", { name: "Copy listing" }).filter({ visible: true }));
   const dialog = page.getByRole("dialog", { name: "Copy listing" });
   await pause(page, 900);
   await click(page, dialog.getByRole("button", { name: "Copy", exact: true }), 550);
   await dialog.getByText("Copied").waitFor();
   await pause(page, 1300);
+  await step(page); // the last caption too, before the end card
 }
 
 await main();
