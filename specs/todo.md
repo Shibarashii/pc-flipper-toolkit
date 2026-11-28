@@ -2128,3 +2128,146 @@ dependency.
 - [x] The spec's success criteria 1–4 pass on the live site after a cold start, at desktop and
   375px, light and dark
 - [x] All tests pass on `main`
+
+
+## Phase 28: A 35-second demo video
+
+Spec: [specs/demo-video.md](demo-video.md) (approved 2026-11-28). Intent:
+[specs/intent/demo-video.md](intent/demo-video.md). A new `video/` package only: no change under
+`frontend/` or `backend/`, no API change, no migration. The new dependencies are the ones the spec
+lists (approved with it).
+
+### - [ ] T68: `video/` records steps 1–2 on the live site and plays them with the cursor
+
+**Description:**
+- `video/` with its own `package.json` (pinned: `remotion`, `@remotion/cli`,
+  `@remotion/google-fonts` 4.0.547, `@playwright/test` 1.64.1, `react`/`react-dom` 19.3.1,
+  `typescript` 6.0.3, `vitest` 5.0.5), `tsconfig.json`, `remotion.config.ts` and a `.gitignore`
+  for `recording/`, `out/` and `node_modules/`.
+- `record.ts`: asks the API until it answers, then opens the live site in Chromium at 1280×720,
+  light colour scheme, recording video. Step 1: the landing page, the cursor moves to the hero's
+  Try the demo and clicks. Step 2: the builds list, a click on "i5-12400F + RTX 3060". The cursor
+  moves with `mouse.move` in steps; every move, click and step start goes into
+  `recording/events.json` with its time from the start of the video.
+- `src/`: one 1920×1080, 30 fps composition that plays the recording inside `Window.tsx` (paper
+  background, hairline border, rounded corners, a thin bar with the address) and draws
+  `Cursor.tsx` from the event log, with a ripple on each click. No camera or captions yet.
+- **Sharpness:** a still at a click, scaled to 1.8×, is checked by eye. If it's too soft, try a
+  2× device scale factor, then screenshots per frame; write the choice into the spec's Open
+  Questions.
+- Commands as in the spec: `npm run record`, `studio`, `render`, `test`, `lint`.
+
+**Acceptance criteria:**
+- [ ] `npm run record` then `npm run render` give an MP4 of steps 1–2 on the live site, with no
+  waking note
+- [ ] In stills at each click, the drawn cursor's tip is on what was clicked, and the ripple shows
+- [ ] A zoomed still is sharp enough, or the spec says which fallback was chosen and it is
+
+**Verification:**
+- [ ] `npm run lint` and `npm run render` succeed
+- [ ] Stills of each click checked by eye
+- [ ] CI is unchanged (`backend`, `frontend`, `e2e` pass on the PR)
+
+**Dependencies:** None
+**Files:** `video/package.json`, `video/tsconfig.json`, `video/remotion.config.ts`, `video/.gitignore`, `video/record.ts`, `video/src/{index.ts,Root.tsx,Demo.tsx,Window.tsx,Cursor.tsx}`
+**Scope:** M
+
+### - [ ] T69: The camera follows the cursor
+
+**Description:**
+- `src/steps.ts`: per step, where the camera looks and how far in (1× to about 1.8×), keyed to
+  the step starts in the event log.
+- `src/camera.ts`: `cameraAt(frame, events, fps)`, a plain function. It eases toward each
+  click and typing area with `spring` (no bounce) or eased `interpolate`, and never shows past
+  the window's edges. `Demo.tsx` applies it to the window, cursor and ripples together.
+- Tests first (Vitest): the camera is 1× at frame 0; at every frame of a sample log the view
+  stays inside the window; on a click the cursor is at the logged position on screen.
+
+**Acceptance criteria:**
+- [ ] Steps 1–2 push in on Try the demo and on the build's row, and back out between them,
+  with no jump
+- [ ] The view never shows past the window's edges
+- [ ] The cursor and its ripples move with the camera and stay on what was clicked
+
+**Verification:**
+- [ ] `npm test` and `npm run lint` pass
+- [ ] Stills before, during and after each zoom checked by eye
+
+**Dependencies:** T68
+**Files:** `video/src/steps.ts`, `video/src/camera.ts`, `video/src/camera.test.ts`, `video/src/Demo.tsx`
+**Scope:** S
+
+### - [ ] T70: Steps 3–4: the bundle and the price lookup
+
+**Description:**
+- `record.ts`, step 3: Add bundle, "Board + PSU", Facebook Marketplace, ₱7,500, Save.
+- Step 4: Add part to Board + PSU, type "B660M", Find prices, pick the first in-stock result
+  (fails with a clear message if there's none), Save. Then "650W 80+ Bronze" (PSU), listed
+  ₱3,000, filled at once instead of typed key by key; Save.
+- `steps.ts`: camera targets for both steps, out a little at the end of step 4 to show both
+  parts inside the bundle.
+
+**Acceptance criteria:**
+- [ ] The recording shows the bundle saved with both parts inside it, the motherboard's price
+  and shop filled from a real result
+- [ ] Steps 3–4 together last about 13 seconds
+- [ ] The camera follows the typing and the picked result
+
+**Verification:**
+- [ ] `npm test`, `npm run lint` and `npm run render` pass
+- [ ] The rendered steps 1–4 watched by eye
+
+**Dependencies:** T69
+**Files:** `video/record.ts`, `video/src/steps.ts`
+**Scope:** S
+
+### - [ ] T71: Steps 5–6: the profit and copying the listing
+
+**Description:**
+- `record.ts`, step 5: set a selling price in the build header that gives a positive profit
+  (above the build's total cost after step 4), Save; the Summary shows the profit and margin.
+- Step 6: Copy listing, then Copy; "Copied" shows. The context grants `clipboard-write` to the
+  site's origin.
+- `steps.ts`: in on the selling price, a pan to the profit, then in on the dialog.
+
+**Acceptance criteria:**
+- [ ] The recording shows a positive profit and margin, then "Copied"
+- [ ] Steps 5–6 together last about 10 seconds
+
+**Verification:**
+- [ ] `npm test`, `npm run lint` and `npm run render` pass
+- [ ] The rendered steps 1–6 watched by eye
+
+**Dependencies:** T70
+**Files:** `video/record.ts`, `video/src/steps.ts`
+**Scope:** S
+
+### - [ ] T72: Captions, the end card and the final render
+
+**Description:**
+- `Caption.tsx`: the step's caption from `steps.ts` in Newsreader on a paper pill at the bottom,
+  outside the camera, fading between steps.
+- `EndCard.tsx`: the logo, "Try the demo, no sign-up needed" and pc-flipper-toolkit.vercel.app
+  on paper, for about 5 seconds after the recording.
+- The composition's length comes from the recording plus the end card; the final render to
+  `out/demo.mp4`.
+
+**Acceptance criteria:**
+- [ ] The MP4 is 1920×1080, 30 fps, 32–37 seconds (spec criterion 1)
+- [ ] Every caption is readable on a phone in the feed, and on screen long enough to read
+- [ ] The end card shows only the logo, the line and the link
+
+**Verification:**
+- [ ] `npm test`, `npm run lint` and `npm run render` pass
+- [ ] `ffprobe out/demo.mp4` shows the size, frame rate and length
+- [ ] Watched muted on a desktop and on a phone
+
+**Dependencies:** T71
+**Files:** `video/src/Caption.tsx`, `video/src/EndCard.tsx`, `video/src/Demo.tsx`, `video/src/Root.tsx`, `video/src/steps.ts`
+**Scope:** S
+
+### Checkpoint 26: A 35-second demo video
+- [ ] The spec's success criteria 1–5 pass on the final MP4
+- [ ] The author watches it muted, at full size and on a phone, and would post it as it is
+  (criterion 6)
+- [ ] CI is green on `main`
