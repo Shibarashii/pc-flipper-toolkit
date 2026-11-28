@@ -2,8 +2,9 @@
 // Positions are CSS pixels in the 1280×720 viewport; times are seconds from the video's start.
 
 export type VideoEvent =
-  // "type": a key typed into the field at (x, y); the camera stays in on it.
-  | { t: number; type: "move" | "click" | "type"; x: number; y: number }
+  // "type": a key typed into the field at (x, y); "look": the cursor resting on something
+  // worth seeing. The camera stays in on both.
+  | { t: number; type: "move" | "click" | "type" | "look"; x: number; y: number }
   | { t: number; type: "step"; step: number };
 
 export type PointEvent = Extract<VideoEvent, { x: number }>;

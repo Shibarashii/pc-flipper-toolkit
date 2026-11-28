@@ -96,6 +96,18 @@ async function typeInto(page: Page, field: Locator, text: string, fast = false) 
   }
 }
 
+/** Rests the cursor just right of something worth seeing (so it doesn't hide it), and the
+ * camera goes in on it for `ms`. */
+async function lookAt(page: Page, target: Locator, ms: number) {
+  const box = await reveal(page, target);
+  await moveTo(page, box.x + box.width + 24, box.y + box.height / 2, 600);
+  const until = now() + ms / 1000;
+  while (now() < until) {
+    events.push({ t: now(), type: "look", ...at });
+    await pause(page, 200);
+  }
+}
+
 /** Points at a native select and picks an option (its own pop-up isn't in screenshots). */
 async function choose(page: Page, select: Locator, label: string) {
   const box = await reveal(page, select);
@@ -135,6 +147,8 @@ async function main() {
     deviceScaleFactor: SCALE,
     colorScheme: "light",
   });
+  // Copy listing writes to the clipboard; headless Chromium asks first otherwise.
+  await context.grantPermissions(["clipboard-read", "clipboard-write"], { origin: SITE });
   const page = await context.newPage();
   await rm(FRAMES, { recursive: true, force: true });
   await mkdir(FRAMES, { recursive: true });
@@ -259,7 +273,26 @@ async function steps(page: Page) {
   await expect(name).toHaveValue("");
   await page.keyboard.press("Escape"); // the fresh form isn't needed
   await part.waitFor({ state: "detached" });
-  await pause(page, 1000);
+  await pause(page, 800);
+
+  // Step 5: a selling price, then the profit it makes.
+  step(5);
+  const price = page.getByLabel("Selling price");
+  await typeInto(page, price, "33000");
+  await page.keyboard.press("Enter"); // saves on blur
+  const summary = page.getByRole("region", { name: "Summary", exact: true });
+  const margin = summary.getByText(/% margin$/);
+  await margin.waitFor();
+  await lookAt(page, summary.getByText(/^\+₱/), 1800);
+
+  // Step 6: the listing, copied in one tap.
+  step(6);
+  await click(page, page.getByRole("button", { name: "Copy listing" }).filter({ visible: true }));
+  const dialog = page.getByRole("dialog", { name: "Copy listing" });
+  await pause(page, 900);
+  await click(page, dialog.getByRole("button", { name: "Copy", exact: true }), 550);
+  await dialog.getByText("Copied").waitFor();
+  await pause(page, 1300);
 }
 
 await main();

@@ -2238,7 +2238,7 @@ lists (approved with it).
 **Files:** `video/record.ts`, `video/src/steps.ts`
 **Scope:** S
 
-### - [ ] T71: Steps 5–6: the profit and copying the listing
+### - [x] T71: Steps 5–6: the profit and copying the listing
 
 **Description:**
 - `record.ts`, step 5: set a selling price in the build header that gives a positive profit
@@ -2247,13 +2247,18 @@ lists (approved with it).
   site's origin.
 - `steps.ts`: in on the selling price, a pan to the profit, then in on the dialog.
 
+- Built 2026-11-28: ₱33,000 against a total cost of ₱28,800 gives +₱4,200.00 at 12.73%.
+  The camera goes in on the profit through a new `look` event (the cursor resting just right
+  of the number, so it doesn't hide it; one more Vitest test, written first). The context
+  grants clipboard access to the site. Steps 5–6 take about 8 s; the whole recording 29.3 s.
+
 **Acceptance criteria:**
-- [ ] The recording shows a positive profit and margin, then "Copied"
-- [ ] Steps 5–6 together last about 10 seconds
+- [x] The recording shows a positive profit and margin, then "Copied"
+- [x] Steps 5–6 together last about 10 seconds
 
 **Verification:**
-- [ ] `npm test`, `npm run lint` and `npm run render` pass
-- [ ] The rendered steps 1–6 watched by eye
+- [x] `npm test`, `npm run lint` and `npm run render` pass
+- [x] The rendered steps 1–6 watched by eye
 
 **Dependencies:** T70
 **Files:** `video/record.ts`, `video/src/steps.ts`

@@ -12,8 +12,8 @@ const OMEGA = 7; // the spring's speed: settles in about 0.7 s, critically dampe
 
 const WHOLE: Camera = { x: W / 2, y: H / 2, zoom: 1 };
 
-/** What the camera is heading for at time t: the nearest click or keystroke around it, or the
- * whole window. */
+/** What the camera is heading for at time t: the nearest click, keystroke or look around it,
+ * or the whole window. */
 function target(t: number, clicks: PointEvent[], zoomFor: (t: number) => number): Camera {
   const near = clicks.filter((c) => c.t - LEAD <= t && t <= c.t + LINGER);
   if (near.length === 0) return WHOLE;
@@ -53,7 +53,7 @@ export function cameraAt(
   if (!frames) byFps.set(key, (frames = []));
 
   const clicks = events.filter(
-    (e): e is PointEvent => e.type === "click" || e.type === "type",
+    (e): e is PointEvent => e.type !== "move" && e.type !== "step",
   );
   const dt = 1 / fps;
   if (frames.length === 0) frames.push(WHOLE);
