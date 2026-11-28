@@ -2,9 +2,9 @@
 // (specs/demo-video.md). Run with `npm run record`; writes recording/demo.mp4 and events.json.
 //
 // Playwright's video, Chrome's screencast and plain screenshots all capture 1280×720 whatever
-// the scale, which blurs once the camera zooms in. A screenshot with a 2× clip is 2560×1440 at
+// the scale, which blurs once scaled up to 1080p. A screenshot with a 2× clip is 2560×1440 at
 // about 15 a second, so the recorder takes them one after another and stitches them. The
-// cursor and camera are drawn at 30 fps by Remotion; only the page itself updates at ~15.
+// cursor is drawn at 30 fps by Remotion; only the page itself updates at ~15.
 import { execFileSync } from "node:child_process";
 import { mkdir, rm, writeFile } from "node:fs/promises";
 import { chromium, expect, type Locator, type Page } from "@playwright/test";
@@ -96,8 +96,8 @@ async function typeInto(page: Page, field: Locator, text: string, fast = false) 
   }
 }
 
-/** Rests the cursor just right of something worth seeing (so it doesn't hide it), and the
- * camera goes in on it for `ms`. */
+/** Rests the cursor just right of something worth seeing (so it doesn't hide it), for
+ * `ms`. */
 async function lookAt(page: Page, target: Locator, ms: number) {
   const box = await reveal(page, target);
   await moveTo(page, box.x + box.width + 24, box.y + box.height / 2, 600);

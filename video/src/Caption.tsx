@@ -3,7 +3,7 @@ import type { VideoEvent } from "./events.ts";
 import { captionAt } from "./steps.ts";
 import { color } from "./theme.ts";
 
-/** The step's caption in a paper pill under the window, outside the camera (specs/demo-video.md). */
+/** The step's caption in a paper pill under the window (specs/demo-video.md). */
 export function Caption({ events }: { events: VideoEvent[] }) {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();

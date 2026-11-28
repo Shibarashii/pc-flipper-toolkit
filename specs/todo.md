@@ -2292,6 +2292,9 @@ lists (approved with it).
   step ends and in 0.3 s after the next starts (5 Vitest tests, written first). The end card
   fades in over the last half second of the recording. Checked as frames at phone width (390
   px), where the captions still read; watching the whole video is Checkpoint 26's.
+- Changed 2026-11-28: the author found the zooms too distracting, so the camera (T69's
+  `camera.ts` and its 8 tests) was removed; the whole window stays on screen. Spec criterion 4
+  is dropped.
 
 ### Checkpoint 26: A 35-second demo video
 - [ ] The spec's success criteria 1–5 pass on the final MP4

@@ -3,7 +3,7 @@
 
 export type VideoEvent =
   // "type": a key typed into the field at (x, y); "look": the cursor resting on something
-  // worth seeing. The camera stays in on both.
+  // worth seeing.
   | { t: number; type: "move" | "click" | "type" | "look"; x: number; y: number }
   | { t: number; type: "step"; step: number };
 
